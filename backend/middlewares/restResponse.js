@@ -39,5 +39,13 @@ export default function restResponse(req, res, next) {
     });
   };
 
+  res.error = (data = null, message = null) => {
+    res.status(500).json({
+      success: false,
+      data: data,
+      message: message,
+    });
+  };
+
   next();
 }
