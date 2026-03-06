@@ -1,13 +1,24 @@
--- just demo table will change in the future
-CREATE TABLE IF NOT EXISTS RECORD (
-    record_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    activity_type TEXT NOT NULL CHECK (
-        activity_type IN ('Walking', 'Running')
+CREATE TABLE IF NOT EXISTS USER (
+    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    full_name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS NOTIFICATION (
+    notification_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    type TEXT CHECK (
+        type IN ('System', 'Activity', 'Social')
     ),
-    start_time DATETIME DEFAULT (DATETIME('now', 'localtime')),
-    end_time DATETIME,
-    duration_seconds INTEGER,
-    distance_km REAL,
-    calories_burned INTEGER,
-    heart_rate_avg INTEGER
+    is_read INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id)
+    REFERENCES USER(user_id)
+    ON DELETE CASCADE
 );
