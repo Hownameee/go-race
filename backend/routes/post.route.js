@@ -5,6 +5,12 @@ import { followIdSchema } from "../utils/schemas/follow.schema.js";
 import {
     createPostSchema,
     getPostFeedQuerySchema,
+    postIdSchema,
+    likeBodySchema,
+    createCommentBodySchema,
+    getCommentsQuerySchema,
+    commentIdParamsSchema,
+    deleteCommentBodySchema,
 } from "../utils/schemas/post.schema.js";
 
 const router = Router();
@@ -26,6 +32,45 @@ router.get(
     validation(followIdSchema, "params"),
     validation(getPostFeedQuerySchema, "query"),
     postController.getFollowingFeed,
+);
+
+// Likes
+
+router.post(
+    "/api/posts/:postId/like",
+    validation(postIdSchema, "params"),
+    validation(likeBodySchema, "body"),
+    postController.likePost,
+);
+
+router.delete(
+    "/api/posts/:postId/like",
+    validation(postIdSchema, "params"),
+    validation(likeBodySchema, "body"),
+    postController.unlikePost,
+);
+
+// Comments
+
+router.post(
+    "/api/posts/:postId/comments",
+    validation(postIdSchema, "params"),
+    validation(createCommentBodySchema, "body"),
+    postController.createComment,
+);
+
+router.get(
+    "/api/posts/:postId/comments",
+    validation(postIdSchema, "params"),
+    validation(getCommentsQuerySchema, "query"),
+    postController.getComments,
+);
+
+router.delete(
+    "/api/posts/:postId/comments/:commentId",
+    validation(commentIdParamsSchema, "params"),
+    validation(deleteCommentBodySchema, "body"),
+    postController.deleteComment,
 );
 
 export default router;

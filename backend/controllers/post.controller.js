@@ -42,6 +42,82 @@ const postController = {
             return next(error);
         }
     },
+
+    async likePost(req, res, next) {
+        try {
+            const postId = parseInt(req.params.postId);
+            const { userId } = req.body;
+            const result = await postService.likePost(postId, userId);
+            return res.created(result, "Post liked successfully.");
+        } catch (error) {
+            if (error.status === 409) {
+                console.error(error);
+                return res.violate(null, error.message);
+            }
+            return next(error);
+        }
+    },
+
+    async unlikePost(req, res, next) {
+        try {
+            const postId = parseInt(req.params.postId);
+            const { userId } = req.body;
+            const result = await postService.unlikePost(postId, userId);
+            return res.ok(result, "Post unliked successfully.");
+        } catch (error) {
+            if (error.status === 409) {
+                console.error(error);
+                return res.violate(null, error.message);
+            }
+            return next(error);
+        }
+    },
+
+    async createComment(req, res, next) {
+        try {
+            const postId = parseInt(req.params.postId);
+            const { userId, content } = req.body;
+            const comment = await postService.createComment(postId, userId, content);
+            return res.created(comment, "Comment created successfully.");
+        } catch (error) {
+            if (error.status === 409) {
+                console.error(error);
+                return res.violate(null, error.message);
+            }
+            return next(error);
+        }
+    },
+
+    async getComments(req, res, next) {
+        try {
+            const postId = parseInt(req.params.postId);
+            const { cursor, limit } = req.query;
+            const result = await postService.getComments(postId, cursor, limit);
+            return res.ok(result, "Comments retrieved successfully.");
+        } catch (error) {
+            if (error.status === 409) {
+                console.error(error);
+                return res.violate(null, error.message);
+            }
+            return next(error);
+        }
+    },
+
+    async deleteComment(req, res, next) {
+        try {
+            const postId = parseInt(req.params.postId);
+            const commentId = parseInt(req.params.commentId);
+            const { userId } = req.body;
+            const result = await postService.deleteComment(postId, commentId, userId);
+            return res.ok(result, "Comment deleted successfully.");
+        } catch (error) {
+            if (error.status === 409 || error.status === 404) {
+                console.error(error);
+                return res.violate(null, error.message);
+            }
+            return next(error);
+        }
+    },
 };
 
 export default postController;

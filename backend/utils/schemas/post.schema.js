@@ -23,3 +23,38 @@ export const getPostFeedQuerySchema = z.object({
         .regex(/^\d+$/, "limit must be a numeric string")
         .optional(),
 });
+
+export const postIdSchema = z.object({
+    postId: z.string().regex(/^\d+$/, "postId must be a numeric string"),
+});
+
+export const likeBodySchema = z.object({
+    userId: z.number().int().positive("userId must be a positive number"),
+});
+
+export const createCommentBodySchema = z.object({
+    userId: z.number().int().positive("userId must be a positive number"),
+    content: z
+        .string()
+        .min(1, "content must not be empty")
+        .max(2000, "content must be at most 2000 characters"),
+});
+
+export const getCommentsQuerySchema = z.object({
+    cursor: z.string().optional(),
+    limit: z
+        .string()
+        .regex(/^\d+$/, "limit must be a numeric string")
+        .optional(),
+});
+
+export const commentIdParamsSchema = z.object({
+    postId: z.string().regex(/^\d+$/, "postId must be a numeric string"),
+    commentId: z.string().regex(/^\d+$/, "commentId must be a numeric string"),
+});
+
+export const deleteCommentBodySchema = z.object({
+    userId: z.number().int().positive("userId must be a positive number"),
+});
+
+

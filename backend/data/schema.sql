@@ -30,6 +30,8 @@ CREATE TABLE IF NOT EXISTS POST (
     title TEXT,
     description TEXT,
     photo_url TEXT,
+    like_count INTEGER DEFAULT 0,
+    comment_count INTEGER DEFAULT 0,
     view_mode TEXT NOT NULL CHECK (view_mode IN ('Everyone', 'Followers', 'Self')) DEFAULT 'Everyone',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (record_id) REFERENCES RECORD(record_id) ON DELETE SET NULL,
@@ -70,3 +72,9 @@ CREATE INDEX IF NOT EXISTS idx_follow_follower ON FOLLOW(follower_id, created_at
 
 -- Index for efficient cursor-based pagination on POST
 CREATE INDEX IF NOT EXISTS idx_post_created_at ON POST(created_at);
+
+-- Indexes for efficient cursor-based pagination on COMMENT
+CREATE INDEX IF NOT EXISTS idx_comment_post_created ON COMMENT(post_id, created_at);
+
+-- Index for efficient like lookups
+CREATE INDEX IF NOT EXISTS idx_like_post_user ON LIKE(post_id, user_id);

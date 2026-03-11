@@ -37,6 +37,48 @@ const postService = {
 
         return { posts: rows, nextCursor };
     },
+
+    async likePost(postId, userId) {
+        const changes = await postRepo.insertLike(postId, userId);
+        return { liked: changes > 0 };
+    },
+
+    async unlikePost(postId, userId) {
+        const changes = await postRepo.deleteLike(postId, userId);
+        return { unliked: changes > 0 };
+    },
+
+    async createComment(postId, userId, content) {
+        if (!content || content.trim().length === 0) {
+            const error = new Error("Comment content must not be empty.");
+            error.status = 409;
+            throw error;
+        }
+
+        return await postRepo.insertComment(postId, userId, content.trim());
+    },
+
+    async getComments(postId, cursor, limit) {
+        const effectiveCursor = cursor || FAR_FUTURE;
+        const effectiveLimit = Math.min(parseInt(limit) || DEFAULT_LIMIT, 100);
+
+        const rows = await postRepo.selectComments(postId, effectiveCursor, effectiveLimit);
+
+        const nextCursor =
+            rows.length === effectiveLimit ? rows[rows.length - 1].created_at : null;
+
+        return { comments: rows, nextCursor };
+    },
+
+    async deleteComment(postId, commentId, userId) {
+        const changes = await postRepo.deleteComment(postId, commentId, userId);
+        if (changes === 0) {
+            const error = new Error("Comment not found or unauthorized to delete.");
+            error.status = 404;
+            throw error;
+        }
+        return { deleted: true };
+    },
 };
 
 export default postService;
