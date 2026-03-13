@@ -1,3 +1,5 @@
+import authService from "../services/auth.service";
+
 const authMiddleware = {
   isAdmin: (req, res, next) => {
     const userRole = req.headers['x-user-role']; 

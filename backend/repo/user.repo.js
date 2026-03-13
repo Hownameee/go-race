@@ -29,20 +29,18 @@ const userRepo = {
   },
   
   createUser: (user) => {
-    // Không nhận role ở đây, để Database tự động gán DEFAULT 'user'
-    const { user_name, full_name, email, password_hash, birthdate } = user;
+    const { user_name, full_name, email, hashed_password, birthdate } = user;
     const sql = `
-      INSERT INTO USERS (user_name, full_name, email, password_hash, birthdate)
+      INSERT INTO USERS (user_name, full_name, email, hashed_password, birthdate)
       VALUES (?, ?, ?, ?, ?);
     `;
-    return db.prepare(sql).run(user_name, full_name, email, password_hash, birthdate).lastInsertRowid;
+    return db.prepare(sql).run(user_name, full_name, email, hashed_password, birthdate).lastInsertRowid;
   },
   
   updateUser: (user_id, updateData) => {
     const fields = [];
     const values = [];
 
-    // TUYỆT ĐỐI KHÔNG CÓ 'role' Ở ĐÂY (Bảo mật Privilege Escalation)
     const allowedColumns = [
       'full_name', 'birthdate', 'avatar_url', 'nationality', 
       'address', 'height_cm', 'weight_kg', 'shirt_size'
@@ -67,13 +65,13 @@ const userRepo = {
     return db.prepare(sql).run(...values).changes;
   },
 
-  updatePassword: (user_id, new_password_hash) => {
+  updatePassword: (user_id, new_hashed_password) => {
     const sql = `
       UPDATE USERS 
-      SET password_hash = ?, updated_at = CURRENT_TIMESTAMP 
+      SET hashed_password = ?, updated_at = CURRENT_TIMESTAMP 
       WHERE user_id = ?
     `;
-    return db.prepare(sql).run(new_password_hash, user_id).changes;
+    return db.prepare(sql).run(new_hashed_password, user_id).changes;
   }
 };
 
