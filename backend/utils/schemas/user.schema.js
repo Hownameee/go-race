@@ -4,11 +4,11 @@ const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/
 const STRONG_PASSWORD_MSG = "Password must be at least 8 characters and include uppercase, lowercase, numbers, and special characters";
 
 export const registerSchema = z.object({
-  user_name: z.string()
+  username: z.string()
     .min(3, "Username must be at least 3 characters long")
     .max(50, "Username cannot exceed 50 characters")
     .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
-  full_name: z.string()
+  fullname: z.string()
     .min(1, "Full name cannot be empty")
     .max(100, "Full name is too long"),
   email: z.email("Invalid email format"),
@@ -22,7 +22,7 @@ export const loginSchema = z.object({
 }).strict();
 
 export const updateProfileSchema = z.object({
-  full_name: z.string()
+  fullname: z.string()
     .min(1, "Full name cannot be empty")
     .max(100, "Full name is too long")
     .optional(),

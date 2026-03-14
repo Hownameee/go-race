@@ -1,10 +1,10 @@
 import { ZodError } from "zod";
 
 export default function errorHandler(error, req, res, next) {
-  console.error(error);
+  console.log(error.message);
   if (error instanceof ZodError) {
-    res.error(error.issues, "Validation failed");
-  } else {
-    res.error(error.issues);
+    return res.badRequest(error.issues, "Validation failed");
   }
+  
+  return res.error(error.issues, error.message || "Internal Server Error");
 }

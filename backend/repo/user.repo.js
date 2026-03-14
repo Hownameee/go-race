@@ -2,7 +2,7 @@ import db from "../utils/db/db.js";
 
 // ĐÃ THÊM 'role' VÀO ĐÂY
 const SAFE_COLUMNS = `
-  user_id, role, user_name, full_name, email, birthdate, 
+  user_id, role, username, fullname, email, birthdate, 
   avatar_url, nationality, address, height_cm, weight_kg, shirt_size, 
   created_at, updated_at
 `;
@@ -29,12 +29,12 @@ const userRepo = {
   },
   
   createUser: (user) => {
-    const { user_name, full_name, email, hashed_password, birthdate } = user;
+    const { username, fullname, email, hashed_password, birthdate } = user;
     const sql = `
-      INSERT INTO USERS (user_name, full_name, email, hashed_password, birthdate)
+      INSERT INTO USERS (username, fullname, email, hashed_password, birthdate)
       VALUES (?, ?, ?, ?, ?);
     `;
-    return db.prepare(sql).run(user_name, full_name, email, hashed_password, birthdate).lastInsertRowid;
+    return db.prepare(sql).run(username, fullname, email, hashed_password, birthdate).lastInsertRowid;
   },
   
   updateUser: (user_id, updateData) => {
@@ -42,7 +42,7 @@ const userRepo = {
     const values = [];
 
     const allowedColumns = [
-      'full_name', 'birthdate', 'avatar_url', 'nationality', 
+      'fullname', 'birthdate', 'avatar_url', 'nationality', 
       'address', 'height_cm', 'weight_kg', 'shirt_size'
     ];
 

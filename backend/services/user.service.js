@@ -16,17 +16,15 @@ const userService = {
   },
 
   getUserByEmail: async function (email) {
-    const user = await userRepo.getUserByEmail(email);
-    if (!user) throw new Error(`User with email: ${email} not found`);
-    return user;
+    return await userRepo.getUserByEmail(email);
   },
 
   createUser: async function(user_data) {
     const hashed_password = await authService.hashPassword(user_data.password);
     
     return userRepo.createUser({
-      user_name: user_data.user_name,
-      full_name: user_data.full_name,
+      username: user_data.username,
+      fullname: user_data.fullname,
       email: user_data.email,
       hashed_password: hashed_password,
       birthdate: user_data.birthdate,

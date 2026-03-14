@@ -1,7 +1,8 @@
-import bcrypt, { hash } from "bcrypt";
+import bcrypt from "bcrypt";
 import config from "../config/config.js";
 import jwt from "jsonwebtoken"
 
+// OK, not to be fixed now
 const authService = {
   hashPassword: async (plainPassword) => {
     return await bcrypt.hash(plainPassword, config.SALT_ROUNDS);

@@ -19,8 +19,8 @@ CREATE TABLE IF NOT EXISTS USERS (
   ),
 
   -- sign-up information
-  user_name TEXT NOT NULL,
-  full_name TEXT NOT NULL,
+  username TEXT NOT NULL,
+  fullname TEXT NOT NULL,
   email TEXT NOT NULL UNIQUE,
   hashed_password TEXT NOT NULL,
   birthdate DATETIME NOT NULL,

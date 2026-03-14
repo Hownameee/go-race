@@ -6,17 +6,17 @@ const authController = {
     try {
       const user_data = req.body;
 
-      const existing_user = userService.getUserByEmail(user_data.email);
-      if (existing_user) throw new Error("Email already exists");
+      const existing_user = await userService.getUserByEmail(user_data.email);
+      if (existing_user) {
+        console.log("Email already exists");
+        return res.violate(null, "Email already exists");
+      }
 
       const new_user_id = await userService.createUser(user_data);  
       if (!new_user_id) throw new Error("Created user account failed");
       
-      res.created({ user_id: new_user_id }, "User registered successfully");
+      return res.created({ user_id: new_user_id }, "User registered successfully");
     } catch (error) {
-      if (error.message === "Email already exists") {
-        return res.violate(null, error.message); 
-      }
       next(error);
     }
   },
@@ -26,10 +26,10 @@ const authController = {
       const { email, password } = req.body;
 
       const user = await userService.getUserByEmail(email);
-      if (!user) res.unauthorized();
+      if (!user) return res.unauthorized();
 
       const is_match = await authService.comparePassword(password, user.hashed_password);
-      if (!is_match) res.unauthorized();
+      if (!is_match) return res.unauthorized();
 
       const token = authService.generateToken({
         user_id: user.user_id,
@@ -37,7 +37,7 @@ const authController = {
         role: user.user_role
       })
 
-      res.ok(token, "Login successful");
+      return res.ok(token, "Login successful");
     } catch (error) {
       next(error);
     }
