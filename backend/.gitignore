@@ -1,4 +1,4 @@
-package-lock.json
-node_modules/
+.env
 app.db
-public/
+node_modules/
+package-lock.json

@@ -3,7 +3,7 @@ export default function restResponse(req, res, next) {
     res.status(401).json({
       success: false,
       data: null,
-      message: "Unathorized",
+      message: 'Unathorized',
     });
   };
 
@@ -11,11 +11,11 @@ export default function restResponse(req, res, next) {
     res.status(404).json({
       success: false,
       data: null,
-      message: "Not found",
+      message: 'Not found',
     });
   };
 
-  res.created = (data = null, message = "Created") => {
+  res.created = (data = null, message = 'Created') => {
     res.status(201).json({
       success: true,
       data: data,
@@ -31,7 +31,7 @@ export default function restResponse(req, res, next) {
     });
   };
 
-  res.badRequest = (data = null, message = "Bad Request") => {
+  res.badRequest = (data = null, message = 'Bad Request') => {
     res.status(400).json({
       success: false,
       data: data,

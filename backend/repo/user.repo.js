@@ -1,6 +1,5 @@
-import db from "../utils/db/db.js";  
+import db from '../utils/db/db.js';
 
-// ĐÃ THÊM 'role' VÀO ĐÂY
 const SAFE_COLUMNS = `
   user_id, role, username, fullname, email, birthdate, 
   avatar_url, nationality, address, height_cm, weight_kg, shirt_size, 
@@ -12,67 +11,29 @@ const userRepo = {
     const sql = `SELECT ${SAFE_COLUMNS} FROM USERS LIMIT ? OFFSET ?`;
     return db.prepare(sql).all(limit, offset);
   },
-  
-  getUserById: (user_id) => {
+
+  getUserById: (userId) => {
     const sql = `SELECT ${SAFE_COLUMNS} FROM USERS WHERE user_id = ?`;
-    return db.prepare(sql).get(user_id);
+    return db.prepare(sql).get(userId);
   },
-  
-  getUserAuthById: (user_id) => {
-    const sql = `SELECT * FROM USERS WHERE user_id = ?`;
-    return db.prepare(sql).get(user_id);
-  },
-  
+
+  // Need to login so need password
   getUserByEmail: (email) => {
     const sql = `SELECT * FROM USERS WHERE email = ?`;
     return db.prepare(sql).get(email);
   },
-  
+
   createUser: (user) => {
-    const { username, fullname, email, hashed_password, birthdate } = user;
+    const { username, fullname, email, hashedPassword, birthdate } = user;
     const sql = `
       INSERT INTO USERS (username, fullname, email, hashed_password, birthdate)
       VALUES (?, ?, ?, ?, ?);
     `;
-    return db.prepare(sql).run(username, fullname, email, hashed_password, birthdate).lastInsertRowid;
+    return db
+      .prepare(sql)
+      .run(username, fullname, email, hashedPassword, birthdate)
+      .lastInsertRowid;
   },
-  
-  updateUser: (user_id, updateData) => {
-    const fields = [];
-    const values = [];
-
-    const allowedColumns = [
-      'fullname', 'birthdate', 'avatar_url', 'nationality', 
-      'address', 'height_cm', 'weight_kg', 'shirt_size'
-    ];
-
-    for (const [key, value] of Object.entries(updateData)) {
-      if (value !== undefined && allowedColumns.includes(key)) {
-        fields.push(`${key} = ?`);
-        values.push(value);
-      }
-    }
-
-    if (fields.length === 0) return 0;
-
-    const sql = `
-      UPDATE USERS
-      SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP
-      WHERE user_id = ?;
-    `;
-    values.push(user_id);
-
-    return db.prepare(sql).run(...values).changes;
-  },
-
-  updatePassword: (user_id, new_hashed_password) => {
-    const sql = `
-      UPDATE USERS 
-      SET hashed_password = ?, updated_at = CURRENT_TIMESTAMP 
-      WHERE user_id = ?
-    `;
-    return db.prepare(sql).run(new_hashed_password, user_id).changes;
-  }
 };
 
 export default userRepo;

@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node server.js",
     "seed": "node ./data/seed.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "format": "prettier --write .",
+    "lint": "eslint ."
   },
   "keywords": [],
   "author": "",
@@ -23,6 +25,10 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.0.3",
+    "globals": "^17.4.0",
+    "prettier": "^3.8.1"
   }
 }
