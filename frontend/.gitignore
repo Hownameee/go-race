@@ -40,6 +40,6 @@ local.properties
 /.idea/codeStyles/*
 !/.idea/codeStyles/Project.xml
 !/.idea/codeStyles/codeStyleConfig.xml
-
+app/src/main/res/values/mapbox_access_token.xml
 # Gradle cache
 .gradle

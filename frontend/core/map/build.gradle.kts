@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "com.grouprace.core.data"
+    namespace = "com.grouprace.core.map"
     compileSdk {
         version = release(36)
     }
@@ -31,10 +31,7 @@ android {
 }
 
 dependencies {
-    implementation(libs.appcompat)
-    implementation(libs.material)
-    api(libs.room.runtime)
-    annotationProcessor(libs.room.compiler)
+    api(libs.mapbox.maps)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

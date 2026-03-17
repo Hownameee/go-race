@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "com.grouprace.core.data"
+    namespace = "com.grouprace.feature.tracking"
     compileSdk {
         version = release(36)
     }
@@ -33,8 +33,12 @@ android {
 dependencies {
     implementation(libs.appcompat)
     implementation(libs.material)
-    api(libs.room.runtime)
-    annotationProcessor(libs.room.compiler)
+    implementation(libs.lifecycle.viewmodel)
+    implementation(libs.lifecycle.livedata)
+    implementation(project(":core:data"))
+    implementation(project(":core:common"))
+    implementation(project(":core:service"))
+    implementation(project(":core:map"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
