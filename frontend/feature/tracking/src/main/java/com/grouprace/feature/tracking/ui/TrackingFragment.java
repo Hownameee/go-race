@@ -17,15 +17,15 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.grouprace.core.data.AppDatabase;
-import com.grouprace.core.data.dao.RoutePointDao;
 import com.grouprace.feature.tracking.R;
-import com.grouprace.feature.tracking.data.TrackingRepositoryImpl;
 import com.mapbox.geojson.Point;
+
+import dagger.hilt.android.AndroidEntryPoint;
 import com.mapbox.maps.CameraOptions;
 import com.mapbox.maps.MapView;
 import com.mapbox.maps.Style;
 
+@AndroidEntryPoint
 public class TrackingFragment extends Fragment {
 
     private MapView mapView;
@@ -57,11 +57,7 @@ public class TrackingFragment extends Fragment {
         Button btnStart = view.findViewById(R.id.btn_start);
         Button btnStop = view.findViewById(R.id.btn_stop);
 
-        RoutePointDao dao = AppDatabase.getInstance(requireContext()).routePointDao();
-        TrackingRepositoryImpl repository = new TrackingRepositoryImpl(dao);
-        TrackingViewModelFactory factory = new TrackingViewModelFactory(requireActivity().getApplication(), repository);
-
-        viewModel = new ViewModelProvider(this, factory).get(TrackingViewModel.class);
+        viewModel = new ViewModelProvider(this).get(TrackingViewModel.class);
 
         viewModel.getIsTracking().observe(getViewLifecycleOwner(), tracking -> {
             btnStart.setVisibility(Boolean.TRUE.equals(tracking) ? View.GONE : View.VISIBLE);
