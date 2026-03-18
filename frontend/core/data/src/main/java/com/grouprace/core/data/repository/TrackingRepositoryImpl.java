@@ -1,4 +1,4 @@
-package com.grouprace.feature.tracking.data;
+package com.grouprace.core.data.repository;
 
 import android.location.Location;
 
@@ -10,12 +10,14 @@ import com.grouprace.core.service.LocationTrackingService;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import javax.inject.Inject;
 
 public class TrackingRepositoryImpl implements TrackingRepository {
 
     private final RoutePointDao dao;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
+    @Inject
     public TrackingRepositoryImpl(RoutePointDao dao) {
         this.dao = dao;
     }

@@ -16,10 +16,10 @@
             android:minLines="3" />
 
         <Button
-            android:id="@+id/btn_submit_post"
+            android:id="@+id/btn_get_posts"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Publish Post"
+            android:text="Get Posts"
             android:layout_marginTop="16dp"/>
 
         <TextView
@@ -29,6 +29,13 @@
             android:layout_marginTop="16dp"
             android:textAlignment="center"
             android:textSize="16sp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_posts"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="16dp" />
 
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
