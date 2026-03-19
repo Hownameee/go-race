@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.hilt)
 }
 
 android {
@@ -39,7 +40,11 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.constraintlayout)
 
+    implementation(project(":feature:tracking"))
     implementation(project(":feature:posts"))
+    implementation(project(":core:data"))
+    implementation(libs.hilt.android)
+    annotationProcessor(libs.hilt.compiler)
     implementation(project(":feature:auth"))
 
     testImplementation(libs.junit)
