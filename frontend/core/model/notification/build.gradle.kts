@@ -1,23 +1,19 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.hilt)
+    alias(libs.plugins.android.library)
 }
 
 android {
-    namespace = "com.grouprace.gorace"
+    namespace = "com.grouprace.core.model.notification"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "com.grouprace.gorace"
         minSdk = 29
-        targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+
 
     buildTypes {
         release {
@@ -38,15 +34,6 @@ dependencies {
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
-    implementation(libs.constraintlayout)
-
-    implementation(project(":feature:tracking"))
-    implementation(project(":feature:posts"))
-    implementation(project(":feature:notification"))
-    implementation(project(":core:data"))
-    implementation(libs.hilt.android)
-    annotationProcessor(libs.hilt.compiler)
-
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

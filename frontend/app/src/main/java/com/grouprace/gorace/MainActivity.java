@@ -5,6 +5,7 @@ import android.os.Bundle;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.grouprace.feature.notification.NotificationFragment;
 import com.grouprace.feature.tracking.ui.TrackingFragment;
 import com.grouprace.feature.posts.ui.PostFragment;
 import dagger.hilt.android.AndroidEntryPoint;
@@ -19,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.main, new PostFragment())
+                    .replace(R.id.main, new NotificationFragment())
                     .commit();
         }
     }
