@@ -52,4 +52,10 @@ public class NetworkModule {
     public com.grouprace.core.network.api.PostApiService providePostApiService(Retrofit retrofit) {
         return retrofit.create(com.grouprace.core.network.api.PostApiService.class);
     }
+
+    @Provides
+    @Singleton
+    public com.grouprace.core.network.api.AuthenticationApiService provideAuthenticationService(Retrofit retrofit) {
+        return retrofit.create(com.grouprace.core.network.api.AuthenticationApiService.class);
+    }
 }
