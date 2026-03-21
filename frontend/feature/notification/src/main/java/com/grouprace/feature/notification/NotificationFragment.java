@@ -32,8 +32,9 @@ public class NotificationFragment extends Fragment {
             }
         }
         View view = inflater.inflate(R.layout.fragment_notification, container, false);
-        viewModel = new ViewModelProvider(this).get(NotificationViewModel.class);
 
+        // Initialize ViewModel
+        viewModel = new ViewModelProvider(this).get(NotificationViewModel.class);
         EditText etTitle = (EditText) view.findViewById(R.id.edtTitle);
         EditText etMsg = (EditText) view.findViewById(R.id.edtMessage);
         Button btnSetAlarm = view.findViewById(R.id.btnSetAlarm);
