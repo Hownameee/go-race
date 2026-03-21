@@ -8,8 +8,7 @@ import errorHandler from './middlewares/errorHandler.js';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 
-import mailController from './controllers/mail.controller.js';
-import notificationController from './controllers/notification.controller.js';
+import notificationRouter from './routes/notification.route.js';
 
 const app = express();
 initDatabase();
@@ -20,10 +19,12 @@ app.use(restResponse);
 
 // routes here
 
-app.use(notFound);
+// app.use(notFound);
+
+
+
+app.use('/notifications', notificationRouter);
+
+
 app.use(errorHandler);
-
-app.post('/send-mail', mailController.sendEmail);
-app.get('/notification/list', notificationController.getList);
-
 export default app;

@@ -1,22 +1,21 @@
 import notificationRepository from '../repo/notification.repo.js';
 
 const notificationService = {
-  getNotifications: async function (userId) {
-    const data = await notificationRepository.getList(userId);
-    console.log(data);
-    return data;
+  create: async function (data) {
+    const id = await notificationRepository.create(data);
+
+    return {
+      id,
+      ...data,
+    };
   },
 
-  sendNotification: async function (userId, title, message) {
-    const data = {
-      userId,
-      title,
-      message,
-      isRead: false,
-      createdAt: new Date(),
-    };
+  getNotifications: async function (userId) {
+    return await notificationRepository.findByUserId(userId);
+  },
 
-    return notificationRepository.create(data);
+  markAsRead: async function (id) {
+    await notificationRepository.markAsRead(id);
   },
 };
 

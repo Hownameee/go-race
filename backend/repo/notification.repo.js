@@ -1,38 +1,45 @@
 import db from '../utils/db/db.js';
 
 const notificationRepository = {
-  getList: async function (userId) {
+  // Lấy tất cả thông báo của user (có hỗ trợ phân trang)
+  findByUserId: async function (userId, offset = 0, limit = 20) {
     const sql = `
-      SELECT * 
-      FROM NOTIFICATION
+      SELECT * FROM notifications
       WHERE user_id = ?
       ORDER BY created_at DESC
+      LIMIT ? OFFSET ?
     `;
-
-    return await db.prepare(sql).all(userId);
+    return await db.prepare(sql).all(userId, limit, offset);
   },
 
-  create: async function (data) {
+  // Lấy một thông báo theo id
+  findById: async function (notificationId) {
+    const sql = `SELECT * FROM notifications WHERE id = ?`;
+    return await db.prepare(sql).get(notificationId);
+  },
+
+  // Tạo một thông báo mới
+  create: async function ({ userId, type, actorId, activityId, title, message }) {
     const sql = `
-      INSERT INTO NOTIFICATION (user_id, title, message, type)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO notifications (user_id, type, actor_id, activity_id, title, message)
+      VALUES (?, ?, ?, ?, ?, ?)
     `;
-
-    const result = await db
-      .prepare(sql)
-      .run(data.userId, data.title, data.message, data.type);
-
-    return result;
+    const params = [userId, type, actorId, activityId, title, message];
+    const info = await db.prepare(sql).run(...params);
+    return info.lastInsertRowid; // SQLite dùng lastInsertRowid
   },
 
+  // Đánh dấu thông báo đã đọc
   markAsRead: async function (notificationId) {
-    const sql = `
-      UPDATE NOTIFICATION
-      SET is_read = 1
-      WHERE notification_id = ?
-    `;
+    const sql = `UPDATE notifications SET \`read\` = 1 WHERE id = ?`;
+    await db.prepare(sql).run(notificationId);
+  },
 
-    return await db.prepare(sql).run(notificationId);
+  // Đánh dấu tất cả thông báo của user đã đọc
+  markAllAsRead: async function (userId) {
+    const sql = `UPDATE notifications SET \`read\` = 1 WHERE user_id = ?`;
+    const info = await db.prepare(sql).run(userId);
+    return info.changes; // số thông báo đã update
   },
 };
 

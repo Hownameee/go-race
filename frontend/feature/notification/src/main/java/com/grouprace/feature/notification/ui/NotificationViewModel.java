@@ -1,4 +1,4 @@
-package com.grouprace.feature.notification;
+package com.grouprace.feature.notification.ui;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;

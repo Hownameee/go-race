@@ -9,7 +9,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.GoRace">
         <activity
-            android:name=".NotificationViewModel"
+            android:name=".ui.NotificationViewModel"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS USER (
+CREATE TABLE IF NOT EXISTS USERS (
     user_id INTEGER PRIMARY KEY AUTOINCREMENT,
     full_name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
@@ -7,18 +7,17 @@ CREATE TABLE IF NOT EXISTS USER (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS NOTIFICATION (
-    notification_id INTEGER PRIMARY KEY AUTOINCREMENT,
+CREATE TABLE IF NOT EXISTS NOTIFICATIONS (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
+    type TEXT CHECK (type IN ('like','comment','follow','system')) NOT NULL,
+    actor_id INTEGER,
+    activity_id INTEGER,
     title TEXT NOT NULL,
-    message TEXT NOT NULL,
-    type TEXT CHECK (
-        type IN ('System', 'Activity', 'Social')
-    ),
-    is_read INTEGER DEFAULT 0,
+    message TEXT,
+    read INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (user_id)
-    REFERENCES USER(user_id)
-    ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (actor_id) REFERENCES users(user_id) ON DELETE SET NULL
 );

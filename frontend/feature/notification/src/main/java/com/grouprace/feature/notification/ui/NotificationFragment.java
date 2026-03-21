@@ -1,4 +1,4 @@
-package com.grouprace.feature.notification;
+package com.grouprace.feature.notification.ui;
 
 
 import android.content.Intent;
@@ -12,12 +12,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.grouprace.core.model.NotificationModel;
 import com.grouprace.core.notification.NotificationHelper;
+import com.grouprace.feature.notification.R;
 
 public class NotificationFragment extends Fragment {
     private NotificationViewModel viewModel;

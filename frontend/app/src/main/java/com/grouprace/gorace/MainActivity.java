@@ -5,9 +5,8 @@ import android.os.Bundle;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.grouprace.feature.notification.NotificationFragment;
-import com.grouprace.feature.tracking.ui.TrackingFragment;
-import com.grouprace.feature.posts.ui.PostFragment;
+import com.grouprace.feature.notification.ui.NotificationFragment;
+
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
