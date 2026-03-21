@@ -1,1 +1,5 @@
 .env
+app.db
+node_modules/
+package-lock.json
+>>>>>>> feature/frontend-notification

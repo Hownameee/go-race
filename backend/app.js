@@ -7,6 +7,7 @@ import notFound from './middlewares/notFound.js';
 import errorHandler from './middlewares/errorHandler.js';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+
 import mailController from './controllers/mail.controller.js';
 import notificationController from './controllers/notification.controller.js';
 

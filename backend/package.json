@@ -24,7 +24,11 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+<<<<<<< HEAD
     "eslint": "^10.0.2",
+=======
+    "eslint": "^10.0.3",
+>>>>>>> feature/frontend-notification
     "globals": "^17.4.0",
     "prettier": "^3.8.1"
   }
