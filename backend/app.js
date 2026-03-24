@@ -18,13 +18,9 @@ app.use(cors());
 app.use(restResponse);
 
 // routes here
-
-// app.use(notFound);
-
-
-
 app.use('/notifications', notificationRouter);
 
-
+// app.use(notFound);
 app.use(errorHandler);
+
 export default app;

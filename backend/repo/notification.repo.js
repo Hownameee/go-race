@@ -19,12 +19,12 @@ const notificationRepository = {
   },
 
   // Tạo một thông báo mới
-  create: async function ({ userId, type, actorId, activityId, title, message }) {
+  create: async function ({ user_id, type, actor_id, activity_id, title, message }) {
     const sql = `
       INSERT INTO notifications (user_id, type, actor_id, activity_id, title, message)
       VALUES (?, ?, ?, ?, ?, ?)
     `;
-    const params = [userId, type, actorId, activityId, title, message];
+    const params = [user_id, type, actor_id, activity_id, title, message];
     const info = await db.prepare(sql).run(...params);
     return info.lastInsertRowid; // SQLite dùng lastInsertRowid
   },
