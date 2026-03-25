@@ -5,6 +5,7 @@ import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.grouprace.core.common.result.Result;
 import com.grouprace.core.network.api.RecordApiService;
 import com.grouprace.core.network.model.NetworkRecord;
 import com.grouprace.core.network.model.RecordPayload;
@@ -27,31 +28,33 @@ public class RecordNetworkDataSource {
         this.apiService = apiService;
     }
 
-    public LiveData<List<NetworkRecord>> getRecords() {
-        MutableLiveData<List<NetworkRecord>> liveData = new MutableLiveData<>();
+    public LiveData<Result<List<NetworkRecord>>> getRecords(int userId, int offset) {
+        MutableLiveData<Result<List<NetworkRecord>>> liveData = new MutableLiveData<>();
+        
+        liveData.setValue(new Result.Loading<>());
 
-        apiService.getRecords().enqueue(new Callback<ApiResponse<RecordPayload>>() {
+        apiService.getRecords(userId, offset).enqueue(new Callback<ApiResponse<RecordPayload>>() {
             @Override
             public void onResponse(Call<ApiResponse<RecordPayload>> call, Response<ApiResponse<RecordPayload>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     ApiResponse<RecordPayload> apiResponse = response.body();
                     if (apiResponse.isSuccess() && apiResponse.getData() != null) {
                         Log.d("RecordNetworkDataSource", "Successfully fetched " + apiResponse.getData().getRecords().size() + " records");
-                        liveData.postValue(apiResponse.getData().getRecords());
+                        liveData.postValue(new Result.Success<>(apiResponse.getData().getRecords()));
                     } else {
                         Log.e("RecordNetworkDataSource", "API returned success false or null data. Message: " + apiResponse.getMessage());
-                        liveData.postValue(null);
+                        liveData.postValue(new Result.Error<>(null, apiResponse.getMessage()));
                     }
                 } else {
                     Log.e("RecordNetworkDataSource", "HTTP Error: " + response.code() + " " + response.message());
-                    liveData.postValue(null);
+                    liveData.postValue(new Result.Error<>(null, "HTTP Error: " + response.code()));
                 }
             }
 
             @Override
             public void onFailure(Call<ApiResponse<RecordPayload>> call, Throwable t) {
                 Log.e("RecordNetworkDataSource", "Network Failure: " + t.getMessage(), t);
-                liveData.postValue(null);
+                liveData.postValue(new Result.Error<>(new Exception(t), t.getMessage()));
             }
         });
 

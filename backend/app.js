@@ -13,9 +13,10 @@ initDatabase();
 app.use(bodyParser.json());
 app.use(cors());
 app.use(restResponse);
+app.use('/public', express.static('public'));
 
 const apiRoute = express.Router();
-// should put this in user route when possible (record usually belong to particular user)
+
 apiRoute.use('/users/:userId/records', recordRouter);
 
 app.use('/api', apiRoute);

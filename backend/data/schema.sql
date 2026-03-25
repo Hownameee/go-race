@@ -10,5 +10,6 @@ CREATE TABLE IF NOT EXISTS Record (
     distance_km REAL,
     calories_burned REAL,
     heart_rate_avg INTEGER,
-    speed REAL
+    speed REAL,
+    route_url TEXT
 );

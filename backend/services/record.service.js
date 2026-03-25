@@ -1,7 +1,7 @@
 import recordRepo from '../repo/record.repo.js';
 
 const recordService = {
-  getList: async function (userId, offset = 0, quantity = 10) {
+  getList: async function (userId, offset = 0, quantity = 8) {
     return await recordRepo.findRecordsByUserId(userId, offset, quantity);
   },
 

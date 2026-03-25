@@ -1,8 +1,11 @@
 <resources>
     <string name="distance">Distance</string>
-    <string name="duration">Duration</string>
+    <string name="time">Time</string>
     <string name="speed">Speed</string>
     <string name="content_description_mini_map">Mini map of distance</string>
     <string name="calories">Calories</string>
     <string name="heart_rate">Heart rate</string>
+    <string name="msg_loading_records">Loading records &#8230;</string>
+    <string name="error_loading_more">Error loading more records!</string>
+    <string name="retry">Retry</string>"
 </resources>

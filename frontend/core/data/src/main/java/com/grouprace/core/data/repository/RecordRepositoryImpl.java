@@ -3,6 +3,7 @@ package com.grouprace.core.data.repository;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Transformations;
 
+import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.Record;
 import com.grouprace.core.network.model.NetworkRecord;
 import com.grouprace.core.network.source.RecordNetworkDataSource;
@@ -22,10 +23,20 @@ public class RecordRepositoryImpl implements RecordRepository {
     }
 
     @Override
-    public LiveData<List<Record>> getRecords() {
-        return Transformations.map(recordNetworkDataSource.getRecords(), networkRecords -> {
-            if (networkRecords == null) return null;
-            return networkRecords.stream().map(NetworkRecord::asExternalModel).collect(Collectors.toList());
+    public LiveData<Result<List<Record>>> getRecords(int offset) {
+        return Transformations.map(recordNetworkDataSource.getRecords(1, offset), result -> {
+            if (result instanceof Result.Success) {
+                List<NetworkRecord> networkRecords = ((Result.Success<List<NetworkRecord>>) result).data;
+                List<Record> records = networkRecords.stream()
+                        .map(NetworkRecord::asExternalModel)
+                        .collect(Collectors.toList());
+                return new Result.Success<>(records);
+            } else if (result instanceof Result.Error) {
+                Result.Error<List<NetworkRecord>> error = (Result.Error<List<NetworkRecord>>) result;
+                return new Result.Error<>(error.exception, error.message);
+            } else {
+                return new Result.Loading<>();
+            }
         });
     }
 }

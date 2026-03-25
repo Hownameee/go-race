@@ -3,4 +3,6 @@
     <color name="text_primary">#000000</color>
     <color name="text_secondary">#757575</color>
     <color name="icon_background">#E0E0E0</color>
+    <color name="bg_light_gray">#F5F7FA</color>
+    <color name="text_secondary_dark">#555555</color>
 </resources>

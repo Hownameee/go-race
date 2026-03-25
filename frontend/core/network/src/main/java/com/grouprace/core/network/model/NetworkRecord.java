@@ -30,6 +30,9 @@ public class NetworkRecord {
     @SerializedName("speed")
     private float speed;
 
+    @SerializedName("route_url")
+    private String routeUrl;
+
     // --- Getters and Setters ---
 
     public String getActivityType() {
@@ -104,7 +107,16 @@ public class NetworkRecord {
         this.speed = speed;
     }
 
+    public String getRouteUrl() {
+        return routeUrl;
+    }
+
+    public void setRouteUrl(String routeUrl) {
+        this.routeUrl = routeUrl;
+    }
+
+
     public com.grouprace.core.model.Record asExternalModel() {
-        return new com.grouprace.core.model.Record(this.activityType, this.startTime, this.endTime, this.ownerId, this.duration, this.distance, this.calories, this.heartRate, this.speed);
+        return new com.grouprace.core.model.Record(this.activityType, this.startTime, this.endTime, this.ownerId, this.duration, this.distance, this.calories, this.heartRate, this.speed, this.routeUrl);
     }
 }

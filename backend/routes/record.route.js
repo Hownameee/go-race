@@ -6,12 +6,17 @@ import {
 } from '../utils/schemas/record.schema.js';
 import { userIdSchema } from '../utils/schemas/user.schema.js';
 import validation from '../middlewares/validation.js';
+import { offsetSchema } from '../utils/schemas/offset.schema.js';
 
 const recordRouter = express.Router({ mergeParams: true });
 
 recordRouter.use(validation(userIdSchema, 'params'));
 
-recordRouter.get('/', recordController.getList);
+recordRouter.get(
+  '/',
+  validation(offsetSchema, 'query'),
+  recordController.getList,
+);
 
 recordRouter.get(
   '/:recordId',

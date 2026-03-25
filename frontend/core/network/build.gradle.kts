@@ -36,6 +36,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.lifecycle.livedata)
     implementation(project(":core:model"))
+    implementation(project(":core:common"))
 
     // Retrofit
     implementation(libs.retrofit)

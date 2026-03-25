@@ -3,7 +3,8 @@ import recordService from '../services/record.service.js';
 const recordController = {
   getList: async function (req, res) {
     const userId = req.params.userId;
-    const data = await recordService.getList(userId);
+    const offset = req.query.offset;
+    const data = await recordService.getList(userId, offset);
     res.ok({ records: data });
   },
 

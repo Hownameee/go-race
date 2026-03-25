@@ -9,7 +9,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.bumptech.glide.Glide;
+import com.grouprace.core.common.DateUtils;
+import com.grouprace.core.common.TimeUtils;
 import com.grouprace.feature.records.R;
+
+import java.util.Locale;
 
 public class RecordDetailFragment extends Fragment {
 
@@ -20,6 +25,10 @@ public class RecordDetailFragment extends Fragment {
     private static final String ARG_HEART_RATE = "arg_heart_rate";
     private static final String ARG_CALORIES = "arg_calories";
     private static final String ARG_DURATION = "arg_duration";
+    private static final String ARG_ROUTE_URL = "arg_route_url";
+    
+    private static final String BASE_IMAGE_URL = "http://10.0.2.2:5000";
+
     private ImageView ivRoutePreview;
     private TextView tvActivityTitle;
     private TextView tvStartTime;
@@ -33,18 +42,20 @@ public class RecordDetailFragment extends Fragment {
         super(R.layout.fragment_detail_record);
     }
 
-    public static RecordDetailFragment newInstance(String activityType, String startTime, String distance, String avgSpeed, String heartRate, String calories, String duration) {
+    public static RecordDetailFragment newInstance(String activityType, String startTime, String distance, String avgSpeed, String heartRate, String calories, int duration, String routeUrl) {
 
         RecordDetailFragment fragment = new RecordDetailFragment();
         Bundle args = new Bundle();
 
         args.putString(ARG_ACTIVITY_TYPE, activityType);
-        args.putString(ARG_START_TIME, startTime);
+        args.putString(ARG_START_TIME, DateUtils.formatStartTime(startTime));
         args.putString(ARG_DISTANCE, distance);
         args.putString(ARG_AVG_SPEED, avgSpeed);
         args.putString(ARG_HEART_RATE, heartRate);
         args.putString(ARG_CALORIES, calories);
-        args.putString(ARG_DURATION, duration);
+        args.putString(ARG_ROUTE_URL, routeUrl);
+
+        args.putString(ARG_DURATION, TimeUtils.formatDuration(duration));
 
         fragment.setArguments(args);
         return fragment;
@@ -71,6 +82,15 @@ public class RecordDetailFragment extends Fragment {
             tvHeartRate.setText(getArguments().getString(ARG_HEART_RATE));
             tvCalories.setText(getArguments().getString(ARG_CALORIES));
             tvDuration.setText(getArguments().getString(ARG_DURATION));
+            
+            String routeUrl = getArguments().getString(ARG_ROUTE_URL);
+            if (routeUrl != null && !routeUrl.isEmpty()) {
+                String fullUrl = BASE_IMAGE_URL + routeUrl;
+                Glide.with(this)
+                        .load(fullUrl)
+                        .placeholder(R.color.icon_background)
+                        .into(ivRoutePreview);
+            }
         }
     }
 }
