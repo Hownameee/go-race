@@ -24,11 +24,35 @@ public class NotificationModel {
     }
 
     // getters ...
+    public int getId() {
+        return id;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public Integer getActorId() {
+        return actorId;
+    }
+
+    public Integer getActivityId() {
+        return activityId;
+    }
+
     public String getTitle() {
         return title;
     }
 
     public String getMessage() {
         return message;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
     }
 }

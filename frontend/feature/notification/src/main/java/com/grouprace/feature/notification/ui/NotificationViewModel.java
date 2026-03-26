@@ -1,82 +1,52 @@
 package com.grouprace.feature.notification.ui;
 
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.grouprace.core.data.repository.NotificationRepository;
 import com.grouprace.core.model.NotificationModel;
-import com.grouprace.core.notification.NotificationHelper;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.lifecycle.HiltViewModel;
+
+@HiltViewModel
 public class NotificationViewModel extends ViewModel {
 
-    // Danh sách lưu trữ notification
-    private final List<NotificationModel> notificationList = new ArrayList<>();
+    private final NotificationRepository repository;
+    private final LiveData<List<NotificationModel>> notifications;
 
-    // LiveData mà UI sẽ observe
-    private final MutableLiveData<List<NotificationModel>> notifications = new MutableLiveData<>();
+    @Inject
+    public NotificationViewModel(NotificationRepository repository) {
+        this.repository = repository;
+        this.notifications = repository.getNotifications();
+    }
 
     public LiveData<List<NotificationModel>> getNotifications() {
         return notifications;
     }
 
-    /**
-     * Bắt đầu kết nối socket và nhận realtime notifications
-     */
     public void startSocket(int userId) {
-        // Kết nối socket
-        NotificationHelper.getInstance().connect(userId);
-
-        // Đăng ký listener để nhận notification từ server
-        NotificationHelper.getInstance().setNotificationListener(notification -> {
-            // notification bây giờ là NotificationModel đầy đủ
-            addNotification(notification);
-        });
+        repository.startSocket(userId);
     }
 
-    /**
-     * Thêm notification vào list và update LiveData
-     */
     public void addNotification(NotificationModel notification) {
-        notificationList.add(notification);
-
-        // Cập nhật LiveData
-        notifications.postValue(new ArrayList<>(notificationList));
+        repository.addNotification(notification);
     }
 
-    /**
-     * Tạo notification thủ công (test) từ title & message
-     */
-    public void addNotificationManual(String title, String message) {
-        // Tạo NotificationModel dummy với giá trị mặc định
-        NotificationModel notification = new NotificationModel(
-                -1,            // id chưa có
-                -1,            // userId chưa có
-                "system",      // type mặc định
-                null,          // actorId
-                null,          // activityId
-                title,
-                message,
-                ""             // createdAt trống
-        );
-
-        addNotification(notification);
+    public void disconnect() {
+        repository.disconnect();
     }
 
-    /**
-     * Xóa hết notification
-     */
-    public void clearAll() {
-        notificationList.clear();
-        notifications.setValue(new ArrayList<>(notificationList));
+    public void refreshNotifications() {
+        repository.refreshNotifications();
     }
 
     @Override
     protected void onCleared() {
         super.onCleared();
-        // Ngắt socket khi ViewModel bị hủy
-        NotificationHelper.getInstance().disconnect();
+        repository.disconnect();
     }
 }
