@@ -10,9 +10,9 @@ public class Record {
     private final float calories;
     private final float heartRate;
     private final float speed;
-    private final String routeUrl;
+    private final String imageUrl;
 
-    public Record(String activityType, String startTime, String endTime, int ownerId, int duration, double distance, float calories, float heartRate, float speed, String routeUrl) {
+    public Record(String activityType, String startTime, String endTime, int ownerId, int duration, double distance, float calories, float heartRate, float speed, String imageUrl) {
         this.activityType = activityType;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -22,7 +22,7 @@ public class Record {
         this.calories = calories;
         this.heartRate = heartRate;
         this.speed = speed;
-        this.routeUrl = routeUrl;
+        this.imageUrl = imageUrl;
     }
 
     public String getActivityType() {
@@ -61,7 +61,7 @@ public class Record {
         return speed;
     }
 
-    public String getRouteUrl() {
-        return routeUrl;
+    public String getImageUrl() {
+        return imageUrl;
     }
 }

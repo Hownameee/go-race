@@ -17,18 +17,32 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <!-- Map/Route Preview: Increased size for better visual context -->
-        <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/iv_icon"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:background="@color/icon_background"
-            android:contentDescription="@string/content_description_mini_map"
-            android:scaleType="centerCrop"
+        <!-- Map/Route Preview: Wrapped in FrameLayout for Loading Indicator -->
+        <FrameLayout
+            android:id="@+id/fl_image_container"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium"
-            tools:srcCompat="@android:drawable/ic_menu_directions" />
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/iv_image_record"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/icon_background"
+                android:contentDescription="@string/content_description_mini_map"
+                android:scaleType="centerCrop"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium"
+                tools:srcCompat="@android:drawable/ic_menu_directions" />
+
+            <ProgressBar
+                android:id="@+id/pb_image_loading"
+                style="?android:attr/progressBarStyleSmall"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:visibility="gone" />
+        </FrameLayout>
 
         <!-- Activity Info Group -->
         <TextView
@@ -40,8 +54,8 @@
             android:textSize="20sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/iv_icon"
-            app:layout_constraintTop_toTopOf="@+id/iv_icon"
+            app:layout_constraintStart_toEndOf="@+id/fl_image_container"
+            app:layout_constraintTop_toTopOf="@+id/fl_image_container"
             tools:text="Afternoon Run" />
 
         <TextView
@@ -56,7 +70,7 @@
             app:layout_constraintTop_toBottomOf="@+id/tv_activity_type"
             tools:text="Today at 4:30 pm" />
 
-        <!-- Metrics Row: Horizontally distributed with clear visual hierarchy -->
+        <!-- Metrics Row -->
         <LinearLayout
             android:id="@+id/ll_metrics"
             android:layout_width="0dp"
@@ -67,7 +81,7 @@
             android:weightSum="3"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/iv_icon">
+            app:layout_constraintTop_toBottomOf="@+id/fl_image_container">
 
             <!-- Distance -->
             <LinearLayout

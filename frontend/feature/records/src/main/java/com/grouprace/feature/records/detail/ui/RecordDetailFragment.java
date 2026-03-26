@@ -1,8 +1,10 @@
 package com.grouprace.feature.records.detail.ui;
 
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -10,11 +12,14 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.grouprace.core.common.DateUtils;
 import com.grouprace.core.common.TimeUtils;
 import com.grouprace.feature.records.R;
-
-import java.util.Locale;
 
 public class RecordDetailFragment extends Fragment {
 
@@ -25,11 +30,10 @@ public class RecordDetailFragment extends Fragment {
     private static final String ARG_HEART_RATE = "arg_heart_rate";
     private static final String ARG_CALORIES = "arg_calories";
     private static final String ARG_DURATION = "arg_duration";
-    private static final String ARG_ROUTE_URL = "arg_route_url";
-    
-    private static final String BASE_IMAGE_URL = "http://10.0.2.2:5000";
+    private static final String ARG_IMAGE_URL = "arg_image_url";
 
-    private ImageView ivRoutePreview;
+    private ImageView ivImagePreview;
+    private ProgressBar pbImageLoading;
     private TextView tvActivityTitle;
     private TextView tvStartTime;
     private TextView tvDistance;
@@ -42,7 +46,7 @@ public class RecordDetailFragment extends Fragment {
         super(R.layout.fragment_detail_record);
     }
 
-    public static RecordDetailFragment newInstance(String activityType, String startTime, String distance, String avgSpeed, String heartRate, String calories, int duration, String routeUrl) {
+    public static RecordDetailFragment newInstance(String activityType, String startTime, String distance, String avgSpeed, String heartRate, String calories, int duration, String imageUrl) {
 
         RecordDetailFragment fragment = new RecordDetailFragment();
         Bundle args = new Bundle();
@@ -53,7 +57,7 @@ public class RecordDetailFragment extends Fragment {
         args.putString(ARG_AVG_SPEED, avgSpeed);
         args.putString(ARG_HEART_RATE, heartRate);
         args.putString(ARG_CALORIES, calories);
-        args.putString(ARG_ROUTE_URL, routeUrl);
+        args.putString(ARG_IMAGE_URL, imageUrl);
 
         args.putString(ARG_DURATION, TimeUtils.formatDuration(duration));
 
@@ -65,7 +69,8 @@ public class RecordDetailFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        ivRoutePreview = view.findViewById(R.id.iv_route_preview);
+        ivImagePreview = view.findViewById(R.id.iv_image_record);
+        pbImageLoading = view.findViewById(R.id.pb_image_loading);
         tvActivityTitle = view.findViewById(R.id.tv_activity_title);
         tvStartTime = view.findViewById(R.id.tv_start_time);
         tvDistance = view.findViewById(R.id.tv_distance);
@@ -82,14 +87,27 @@ public class RecordDetailFragment extends Fragment {
             tvHeartRate.setText(getArguments().getString(ARG_HEART_RATE));
             tvCalories.setText(getArguments().getString(ARG_CALORIES));
             tvDuration.setText(getArguments().getString(ARG_DURATION));
-            
-            String routeUrl = getArguments().getString(ARG_ROUTE_URL);
-            if (routeUrl != null && !routeUrl.isEmpty()) {
-                String fullUrl = BASE_IMAGE_URL + routeUrl;
+
+            String imageUrl = getArguments().getString(ARG_IMAGE_URL);
+            if (imageUrl != null && !imageUrl.isEmpty()) {
+                pbImageLoading.setVisibility(View.VISIBLE);
                 Glide.with(this)
-                        .load(fullUrl)
-                        .placeholder(R.color.icon_background)
-                        .into(ivRoutePreview);
+                        .load(imageUrl)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .listener(new RequestListener<Drawable>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                                pbImageLoading.setVisibility(View.GONE);
+                                return false;
+                            }
+
+                            @Override
+                            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                                pbImageLoading.setVisibility(View.GONE);
+                                return false;
+                            }
+                        })
+                        .into(ivImagePreview);
             }
         }
     }

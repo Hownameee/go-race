@@ -1,14 +1,23 @@
 package com.grouprace.feature.records.list.ui.adapter;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
+
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.grouprace.core.common.DateUtils;
 import com.grouprace.core.common.TimeUtils;
 import com.grouprace.core.model.Record;
@@ -18,9 +27,6 @@ import java.util.List;
 import java.util.Locale;
 
 public class RecordAdapter extends ArrayAdapter<Record> {
-
-    private static final String BASE_IMAGE_URL = "http://10.0.2.2:5000";
-
     public RecordAdapter(Context context, List<Record> records) {
         super(context, R.layout.item_record, records);
     }
@@ -39,7 +45,8 @@ public class RecordAdapter extends ArrayAdapter<Record> {
             TextView distance = convertView.findViewById(R.id.distance);
             TextView duration = convertView.findViewById(R.id.duration);
             TextView activityType = convertView.findViewById(R.id.tv_activity_type);
-            ImageView ivIcon = convertView.findViewById(R.id.iv_icon);
+            ImageView ivIcon = convertView.findViewById(R.id.iv_image_record);
+            ProgressBar pbLoading = convertView.findViewById(R.id.pb_image_loading);
 
             start.setText(DateUtils.formatStartTime(currentRecord.getStartTime()));
             speed.setText(String.format(Locale.getDefault(), "%.1f km/h", currentRecord.getSpeed()));
@@ -49,14 +56,29 @@ public class RecordAdapter extends ArrayAdapter<Record> {
 
             activityType.setText(currentRecord.getActivityType());
             
-            String routeUrl = currentRecord.getRouteUrl();
-            if (routeUrl != null && !routeUrl.isEmpty()) {
-                String fullUrl = BASE_IMAGE_URL + routeUrl;
+            String imageUrl = currentRecord.getImageUrl();
+            if (imageUrl != null && !imageUrl.isEmpty()) {
+                pbLoading.setVisibility(View.VISIBLE);
                 Glide.with(getContext())
-                        .load(fullUrl)
-                        .placeholder(R.color.icon_background)
+                        .load(imageUrl)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .listener(new RequestListener<Drawable>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                                pbLoading.setVisibility(View.GONE);
+                                return false;
+                            }
+
+                            @Override
+                            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                                pbLoading.setVisibility(View.GONE);
+                                return false;
+                            }
+                        })
                         .centerCrop()
                         .into(ivIcon);
+            } else {
+                pbLoading.setVisibility(View.GONE);
             }
         }
 

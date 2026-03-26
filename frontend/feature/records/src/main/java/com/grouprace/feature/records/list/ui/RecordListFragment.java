@@ -136,7 +136,7 @@ public class RecordListFragment extends Fragment {
     private void onRecordClick(AdapterView<?> parent, View view, int position, long id) {
         Record clickedRecord = adapter.getItem(position);
         if (clickedRecord != null) {
-            RecordDetailFragment detailFragment = RecordDetailFragment.newInstance(clickedRecord.getActivityType(), clickedRecord.getStartTime(), String.format(java.util.Locale.getDefault(), "%.2f km", clickedRecord.getDistance()), String.format(java.util.Locale.getDefault(), "%.1f km/h", clickedRecord.getSpeed()), String.format(java.util.Locale.getDefault(), "%.0f bpm", clickedRecord.getHeartRate()), String.format(java.util.Locale.getDefault(), "%.0f kcal", clickedRecord.getCalories()), clickedRecord.getDuration(), clickedRecord.getRouteUrl());
+            RecordDetailFragment detailFragment = RecordDetailFragment.newInstance(clickedRecord.getActivityType(), clickedRecord.getStartTime(), String.format(java.util.Locale.getDefault(), "%.2f km", clickedRecord.getDistance()), String.format(java.util.Locale.getDefault(), "%.1f km/h", clickedRecord.getSpeed()), String.format(java.util.Locale.getDefault(), "%.0f bpm", clickedRecord.getHeartRate()), String.format(java.util.Locale.getDefault(), "%.0f kcal", clickedRecord.getCalories()), clickedRecord.getDuration(), clickedRecord.getImageUrl());
             requireActivity().getSupportFragmentManager().beginTransaction()
                     .setCustomAnimations(R.anim.slide_in_right, android.R.anim.fade_out, android.R.anim.fade_in, android.R.anim.slide_out_right).replace(getId(), detailFragment).addToBackStack(null).commit();
 

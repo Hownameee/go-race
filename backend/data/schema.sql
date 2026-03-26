@@ -11,5 +11,5 @@ CREATE TABLE IF NOT EXISTS Record (
     calories_burned REAL,
     heart_rate_avg INTEGER,
     speed REAL,
-    route_url TEXT
+    s3_key TEXT
 );
