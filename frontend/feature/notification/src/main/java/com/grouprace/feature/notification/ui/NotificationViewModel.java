@@ -44,6 +44,10 @@ public class NotificationViewModel extends ViewModel {
         repository.refreshNotifications();
     }
 
+    public void registerDeviceToken(int userId, String token) {
+        repository.registerDeviceToken(userId, token);
+    }
+
     @Override
     protected void onCleared() {
         super.onCleared();

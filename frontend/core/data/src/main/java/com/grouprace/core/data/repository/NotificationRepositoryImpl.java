@@ -49,6 +49,11 @@ public class NotificationRepositoryImpl implements NotificationRepository {
     }
 
     @Override
+    public void registerDeviceToken(int userId, String token) {
+        networkDataSource.registerDeviceToken(userId, token);
+    }
+
+    @Override
     public void startSocket(int userId) {
         NotificationHelper.getInstance().connect(userId);
         NotificationHelper.getInstance().setNotificationListener(notification -> {

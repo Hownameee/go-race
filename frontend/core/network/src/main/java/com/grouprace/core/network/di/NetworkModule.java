@@ -1,5 +1,8 @@
 package com.grouprace.core.network.di;
 
+import com.grouprace.core.network.api.NotificationApiService;
+import com.grouprace.core.network.source.NotificationNetworkDataSource;
+
 import dagger.Module;
 import dagger.Provides;
 import dagger.hilt.InstallIn;
@@ -51,5 +54,19 @@ public class NetworkModule {
     @Singleton
     public com.grouprace.core.network.api.PostApiService providePostApiService(Retrofit retrofit) {
         return retrofit.create(com.grouprace.core.network.api.PostApiService.class);
+    }
+
+    @Provides
+    @Singleton
+    public NotificationApiService provideNotificationApiService(Retrofit retrofit) {
+        // Tạo instance interface Retrofit
+        return retrofit.create(NotificationApiService.class);
+    }
+
+    @Provides
+    @Singleton
+    public NotificationNetworkDataSource provideNotificationNetworkDataSource(NotificationApiService apiService) {
+        // Tạo network data source
+        return new NotificationNetworkDataSource(apiService);
     }
 }

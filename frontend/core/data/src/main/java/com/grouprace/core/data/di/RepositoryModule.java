@@ -4,6 +4,8 @@ import android.content.Context;
 
 import com.grouprace.core.data.AppDatabase;
 import com.grouprace.core.data.dao.RoutePointDao;
+import com.grouprace.core.data.repository.NotificationRepository;
+import com.grouprace.core.data.repository.NotificationRepositoryImpl;
 import com.grouprace.core.data.repository.PostRepository;
 import com.grouprace.core.data.repository.PostRepositoryImpl;
 import com.grouprace.core.data.repository.TrackingRepository;
@@ -25,4 +27,7 @@ public abstract class RepositoryModule {
 
     @Binds
     public abstract PostRepository bindPostRepository(PostRepositoryImpl impl);
+
+    @Binds
+    public abstract NotificationRepository bindNotificationRepository(NotificationRepositoryImpl impl);
 }

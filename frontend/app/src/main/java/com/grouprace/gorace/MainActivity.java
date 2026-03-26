@@ -6,6 +6,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.grouprace.feature.notification.ui.NotificationFragment;
+import com.grouprace.feature.posts.ui.PostFragment;
 
 import dagger.hilt.android.AndroidEntryPoint;
 

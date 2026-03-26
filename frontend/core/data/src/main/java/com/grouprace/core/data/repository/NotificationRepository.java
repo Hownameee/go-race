@@ -9,6 +9,7 @@ public interface NotificationRepository {
 
     LiveData<List<NotificationModel>> getNotifications();
     void refreshNotifications();
+    void registerDeviceToken(int userId, String token);
 
     void startSocket(int userId);
 

@@ -59,7 +59,7 @@ public class NotificationHelper {
 
             // Khi kết nối thành công
             mSocket.on(Socket.EVENT_CONNECT, args -> {
-                Log.d("SocketIO", "✅ Connected to server, userId=" + userId);
+                Log.d("SocketIO", "Connected to server, userId=" + userId);
 
                 // Tham gia room user
                 try {
@@ -73,12 +73,12 @@ public class NotificationHelper {
 
             // Khi kết nối lỗi
             mSocket.on(Socket.EVENT_CONNECT_ERROR, args -> {
-                Log.e("SocketIO", "❌ Connection error: " + args[0]);
+                Log.e("SocketIO", "Connection error: " + args[0]);
             });
 
             // Khi bị ngắt kết nối
             mSocket.on(Socket.EVENT_DISCONNECT, args -> {
-                Log.d("SocketIO", "🔌 Disconnected from server");
+                Log.d("SocketIO", "Disconnected from server");
             });
 
             // Lắng nghe notification

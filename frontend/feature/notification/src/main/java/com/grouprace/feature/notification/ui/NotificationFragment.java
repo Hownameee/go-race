@@ -17,8 +17,8 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.grouprace.core.model.NotificationModel;
-import com.grouprace.core.notification.NotificationHelper;
 import com.grouprace.feature.notification.R;
 
 import java.util.List;
@@ -69,6 +69,15 @@ public class NotificationFragment extends Fragment {
         // Start socket
         viewModel.startSocket(currentUserId);
 
+        // Register FCM token so pushes work when app is inactive
+        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
+            if (!task.isSuccessful()) return;
+            String token = task.getResult();
+            if (token != null && !token.isEmpty()) {
+                viewModel.registerDeviceToken(currentUserId, token);
+            }
+        });
+
         // Initialize views
         etTitle = view.findViewById(R.id.edtTitle);
         etMsg = view.findViewById(R.id.edtMessage);
@@ -111,19 +120,7 @@ public class NotificationFragment extends Fragment {
             return;
         }
         lastShownNotificationId = latest.getId();
-
-        Intent intent = requireContext().getPackageManager()
-                .getLaunchIntentForPackage(requireContext().getPackageName());
-        if (intent == null) return;
-
-        NotificationHelper.showNotification(
-                requireContext(),
-                (int) System.currentTimeMillis(),
-                latest.getTitle(),
-                latest.getMessage(),
-                intent
-        );
-
+        // Don't show system notification while user is already on this screen.
         Toast.makeText(getContext(), "Nhận notification mới!", Toast.LENGTH_SHORT).show();
     }
 

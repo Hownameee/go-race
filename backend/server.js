@@ -1,11 +1,15 @@
 import http from 'http';
 import app from './app.js';
 import { Server } from 'socket.io';
+import { initFirebaseAdmin } from './utils/firebase/admin.js';
 
 const PORT = 5000;
 
 // Tạo server HTTP
 const server = http.createServer(app);
+
+// Init Firebase Admin (optional; only if env configured)
+initFirebaseAdmin();
 
 // Init Socket.IO
 const io = new Server(server, {

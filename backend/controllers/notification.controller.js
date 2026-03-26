@@ -4,13 +4,25 @@ const notificationController = {
   getList: async function (req, res) {
     const userId = 1; // hoặc req.user.id nếu auth
     const data = await notificationService.getNotifications(userId);
-    res.ok(data);
+    console.log(data);
+    res.ok({
+        notifications: data,  
+        nextCursor: null              
+    });
   },
 
   createNotification: async function (req, res) {
     try {
       const io = req.app.get('io'); // Lấy socket.io server
-      const { user_id, type, actor_id, activity_id, title, message } = req.body;
+      const {
+        user_id,
+        type,
+        actor_id,
+        activity_id,
+        title,
+        message,
+        send_all,
+      } = req.body;
       console.log(user_id, " " , type, " ", actor_id, " ", activity_id, " ", title, " " ,message);
 
       // Tạo notification trong DB
@@ -24,8 +36,16 @@ const notificationController = {
       });
 
       // Gửi realtime qua socket
-      notificationService.sendMessageByUserId(io, user_id, notification);
-      // notificationService.sendMessageAllUsers(io, notification);
+      const shouldSendAll = send_all === true || send_all === 'true';
+      if (shouldSendAll) {
+        // notificationService.sendMessageAllUsers(io, notification);
+        // Send push (FCM) so all users receive when app is inactive
+        await notificationService.sendPushAllUsers(notification);
+      } else {
+        // notificationService.sendMessageByUserId(io, user_id, notification);
+        // Send push (FCM) so user receives when app is inactive
+        await notificationService.sendPushByUserId(user_id, notification);
+      }
 
       res.created(notification, 'Notification created');
     } catch (err) {
