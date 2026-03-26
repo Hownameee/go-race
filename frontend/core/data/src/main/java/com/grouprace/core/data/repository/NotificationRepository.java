@@ -11,11 +11,7 @@ public interface NotificationRepository {
     void refreshNotifications();
     void registerDeviceToken(int userId, String token);
 
-    void startSocket(int userId);
-
     void addNotification(NotificationModel notification);
 
     void clearAll();
-
-    void disconnect();
 }

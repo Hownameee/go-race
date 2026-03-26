@@ -52,7 +52,6 @@ public class NotificationNetworkDataSource {
                         List<NetworkNotification> list = result.getData().getNotifications(); // ← no .getNotifications()
                         Log.d("notifications", " list " + list);
                         liveData.postValue(list);
-//                        liveData.postValue(result.getData());
                     } else {
                         Log.e("NotificationNetworkDataSource", "error result: " + result.getData().getNotifications());
                         liveData.postValue(Collections.emptyList());

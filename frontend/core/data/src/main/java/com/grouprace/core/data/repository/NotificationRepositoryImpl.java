@@ -54,15 +54,6 @@ public class NotificationRepositoryImpl implements NotificationRepository {
     }
 
     @Override
-    public void startSocket(int userId) {
-        NotificationHelper.getInstance().connect(userId);
-        NotificationHelper.getInstance().setNotificationListener(notification -> {
-            cache.add(0, notification);
-            notificationsLiveData.postValue(new ArrayList<>(cache));
-        });
-    }
-
-    @Override
     public void addNotification(NotificationModel notification) {
         cache.add(0, notification);
         notificationsLiveData.postValue(new ArrayList<>(cache));
@@ -72,11 +63,6 @@ public class NotificationRepositoryImpl implements NotificationRepository {
     public void clearAll() {
         cache.clear();
         notificationsLiveData.postValue(new ArrayList<>());
-    }
-
-    @Override
-    public void disconnect() {
-        NotificationHelper.getInstance().disconnect();
     }
 
     private List<NotificationModel> mapNetworkNotifications(List<NetworkNotification> networkNotifications) {

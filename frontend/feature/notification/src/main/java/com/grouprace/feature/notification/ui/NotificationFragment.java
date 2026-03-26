@@ -1,6 +1,5 @@
 package com.grouprace.feature.notification.ui;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
@@ -20,8 +19,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.grouprace.core.model.NotificationModel;
 import com.grouprace.feature.notification.R;
-
-import java.util.List;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -65,9 +62,6 @@ public class NotificationFragment extends Fragment {
 
         // Initialize ViewModel
         viewModel = new ViewModelProvider(this).get(NotificationViewModel.class);
-
-        // Start socket
-        viewModel.startSocket(currentUserId);
 
         // Register FCM token so pushes work when app is inactive
         FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
@@ -150,6 +144,5 @@ public class NotificationFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        viewModel.disconnect();
     }
 }

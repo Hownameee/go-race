@@ -28,16 +28,8 @@ public class NotificationViewModel extends ViewModel {
         return notifications;
     }
 
-    public void startSocket(int userId) {
-        repository.startSocket(userId);
-    }
-
     public void addNotification(NotificationModel notification) {
         repository.addNotification(notification);
-    }
-
-    public void disconnect() {
-        repository.disconnect();
     }
 
     public void refreshNotifications() {
@@ -51,6 +43,5 @@ public class NotificationViewModel extends ViewModel {
     @Override
     protected void onCleared() {
         super.onCleared();
-        repository.disconnect();
     }
 }
