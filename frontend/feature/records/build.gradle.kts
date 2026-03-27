@@ -34,6 +34,9 @@ dependencies {
     implementation(project(":core:model"))
     implementation(project(":core:data"))
     implementation(project(":core:common"))
+    implementation(project(":core:system"))
+
+    // AndroidX
     implementation(libs.appcompat)
     implementation(libs.material)
     testImplementation(libs.junit)

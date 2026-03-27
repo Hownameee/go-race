@@ -36,20 +36,20 @@ public class RecordListViewModel extends ViewModel {
     private void setupRecordsStream() {
         recordsResult.addSource(fetchTrigger, offset -> {
             LiveData<Result<List<Record>>> source = recordRepository.getRecords(offset);
-            
+
             recordsResult.addSource(source, result -> {
                 if (result instanceof Result.Loading) {
                     recordsResult.setValue(new Result.Loading<>());
                     return;
                 }
-                
+
                 if (result instanceof Result.Success) {
                     handleSuccessResponse(offset, ((Result.Success<List<Record>>) result).data);
                 } else if (result instanceof Result.Error) {
                     Result.Error<?> error = (Result.Error<?>) result;
                     recordsResult.setValue(new Result.Error<>(error.exception, error.message));
                 }
-                
+
                 recordsResult.removeSource(source);
             });
         });
@@ -68,7 +68,7 @@ public class RecordListViewModel extends ViewModel {
         } else {
             isLast = true;
         }
-        
+
         recordsResult.setValue(new Result.Success<>(new ArrayList<>(allRecords)));
     }
 
@@ -83,7 +83,7 @@ public class RecordListViewModel extends ViewModel {
         isInitialLoadCalled = true;
         fetchTrigger.setValue(0);
     }
-    
+
     public void initialLoad() {
         if (!isInitialLoadCalled) {
             refresh();

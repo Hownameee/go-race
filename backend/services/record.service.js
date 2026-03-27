@@ -4,17 +4,17 @@ import { getImageUrlS3 } from '../utils/s3/s3.js';
 const recordService = {
   getList: async function (userId, offset = 0, quantity = 8) {
     const list = await recordRepo.findRecordsByUserId(userId, offset, quantity);
-
     const result = await Promise.all(
       list.map(async (item) => {
-        if (item.s3_key) {
-          const image_url = await getImageUrlS3(item.s3_key);
+        const { s3_key, ...itemWithoutS3Key } = item;
+        if (s3_key) {
+          const image_url = await getImageUrlS3(s3_key);
           return {
-            ...item,
+            ...itemWithoutS3Key,
             image_url,
           };
         }
-        return item;
+        return itemWithoutS3Key;
       }),
     );
 

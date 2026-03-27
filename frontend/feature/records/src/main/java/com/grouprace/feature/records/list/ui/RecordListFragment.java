@@ -17,6 +17,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.Record;
+import com.grouprace.core.system.component.LoadingButton;
 import com.grouprace.feature.records.R;
 import com.grouprace.feature.records.detail.ui.RecordDetailFragment;
 import com.grouprace.feature.records.list.ui.adapter.RecordAdapter;
@@ -35,10 +36,9 @@ import dagger.hilt.android.AndroidEntryPoint;
 public class RecordListFragment extends Fragment {
     private RecordListViewModel viewModel;
     private RecordAdapter adapter;
-
-    // UI components for load more footer
     private View loadMoreLoading;
     private View loadMoreError;
+    private LoadingButton retryBtn;
 
     public RecordListFragment() {
         super(R.layout.fragment_list_record);
@@ -54,7 +54,7 @@ public class RecordListFragment extends Fragment {
         ListView listRecord = view.findViewById(R.id.lv_record_list);
         LinearLayout loadingLayout = view.findViewById(R.id.ll_loading);
         LinearLayout errorLayout = view.findViewById(R.id.ll_error);
-        Button retryButton = view.findViewById(R.id.btn_retry);
+        retryBtn = view.findViewById(R.id.btn_retry);
         TextView errorText = view.findViewById(R.id.tv_error_message);
 
         setupFooter(listRecord);
@@ -63,10 +63,9 @@ public class RecordListFragment extends Fragment {
         viewModel = new ViewModelProvider(this).get(RecordListViewModel.class);
         observeViewModel(loadingLayout, errorLayout, errorText, listRecord);
 
-        // Call initialLoad to ensure data is fetched or restored without overriding existing success state with a failed fetch
         viewModel.initialLoad();
 
-        retryButton.setOnClickListener(v -> viewModel.refresh());
+        retryBtn.setOnClickListener(v -> viewModel.refresh());
         setupScrollListener(listRecord);
     }
 
@@ -74,13 +73,13 @@ public class RecordListFragment extends Fragment {
         View loadMoreFooter = LayoutInflater.from(requireContext()).inflate(R.layout.footer_load_more, listRecord, false);
         loadMoreLoading = loadMoreFooter.findViewById(R.id.ll_load_more_loading);
         loadMoreError = loadMoreFooter.findViewById(R.id.ll_load_more_error);
-        Button loadMoreRetryBtn = loadMoreFooter.findViewById(R.id.btn_load_more_retry);
+        LoadingButton loadMoreRetryBtn = loadMoreFooter.findViewById(R.id.btn_load_more_retry);
 
         loadMoreRetryBtn.setOnClickListener(v -> viewModel.loadMore());
         listRecord.addFooterView(loadMoreFooter, null, false);
         setLoadMoreVisibility(false, false);
     }
-
+    
     private void setupAdapter(ListView listRecord) {
         adapter = new RecordAdapter(requireContext(), new ArrayList<>());
         listRecord.setAdapter(adapter);

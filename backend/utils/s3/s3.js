@@ -35,8 +35,8 @@ export async function uploadImageS3(buffer, key, contentType = 'image/png') {
   }
 }
 
-// expire in 7 days
-export async function getImageUrlS3(key, expiresIn = 3600 * 24 * 7) {
+// expire in 12 hours
+export async function getImageUrlS3(key, expiresIn = 3600 * 12) {
   try {
     const command = new GetObjectCommand({
       Bucket: s3Config.bucket,

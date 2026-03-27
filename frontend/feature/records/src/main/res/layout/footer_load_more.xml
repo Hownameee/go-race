@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="16dp">
@@ -35,11 +36,10 @@
             android:textColor="@android:color/holo_red_dark"
             android:textSize="14sp" />
 
-        <Button
+        <com.grouprace.core.system.component.LoadingButton
             android:id="@+id/btn_load_more_retry"
-            style="?android:attr/buttonStyleSmall"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/retry" />
+            app:buttonText="@string/retry" />
     </LinearLayout>
 </FrameLayout>

@@ -67,15 +67,14 @@
             android:layout_marginHorizontal="32dp"
             android:layout_marginBottom="16dp"
             android:gravity="center"
-            android:text="Network error!"
             android:textColor="@color/text_secondary_dark"
             android:textSize="16sp" />
 
-        <Button
+        <com.grouprace.core.system.component.LoadingButton
             android:id="@+id/btn_retry"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Retry" />
+            app:buttonText="@string/retry"/>
 
     </LinearLayout>
 
