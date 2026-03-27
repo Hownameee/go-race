@@ -43,7 +43,10 @@ dependencies {
     implementation(project(":feature:tracking"))
     implementation(project(":feature:posts"))
     implementation(project(":core:data"))
+    implementation(project(":core:system"))
     implementation(libs.hilt.android)
+    implementation(libs.navigation.fragment)
+    implementation(libs.navigation.ui)
     annotationProcessor(libs.hilt.compiler)
 
     testImplementation(libs.junit)

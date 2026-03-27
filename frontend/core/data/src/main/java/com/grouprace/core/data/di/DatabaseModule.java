@@ -6,6 +6,7 @@ import androidx.room.Room;
 
 import com.grouprace.core.data.AppDatabase;
 import com.grouprace.core.data.dao.RoutePointDao;
+import com.grouprace.core.data.dao.PostDao;
 
 import dagger.Module;
 import dagger.Provides;
@@ -26,11 +27,16 @@ public class DatabaseModule {
                 context,
                 AppDatabase.class,
                 "gorace.db"
-        ).build();
+        ).fallbackToDestructiveMigration().build();
     }
 
     @Provides
     public RoutePointDao provideRoutePointDao(AppDatabase appDatabase) {
         return appDatabase.routePointDao();
+    }
+
+    @Provides
+    public PostDao providePostDao(AppDatabase appDatabase) {
+        return appDatabase.postDao();
     }
 }

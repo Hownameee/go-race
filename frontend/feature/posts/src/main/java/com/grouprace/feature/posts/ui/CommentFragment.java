@@ -1,0 +1,132 @@
+package com.grouprace.feature.posts.ui;
+
+import android.content.Context;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.grouprace.core.common.result.Result;
+import com.grouprace.core.model.Comment;
+import com.grouprace.feature.posts.R;
+import com.grouprace.feature.posts.ui.adapter.CommentAdapter;
+
+import java.util.List;
+
+import dagger.hilt.android.AndroidEntryPoint;
+
+@AndroidEntryPoint
+public class CommentFragment extends BottomSheetDialogFragment {
+
+    private static final String ARG_POST_ID = "post_id";
+
+    private int postId;
+    private CommentViewModel viewModel;
+    private CommentAdapter adapter;
+    
+    private RecyclerView rvComments;
+    private ProgressBar loadingBar;
+    private TextView tvError;
+    private EditText etComment;
+    private ImageView btnSend;
+
+    public static CommentFragment newInstance(int postId) {
+        CommentFragment fragment = new CommentFragment();
+        Bundle args = new Bundle();
+        args.putInt(ARG_POST_ID, postId);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            postId = getArguments().getInt(ARG_POST_ID);
+        }
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_comments, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        rvComments = view.findViewById(R.id.rv_comments);
+        loadingBar = view.findViewById(R.id.loading_comments);
+        tvError = view.findViewById(R.id.tv_comment_error);
+        etComment = view.findViewById(R.id.et_comment);
+        btnSend = view.findViewById(R.id.btn_send);
+
+        adapter = new CommentAdapter();
+        rvComments.setLayoutManager(new LinearLayoutManager(getContext()));
+        rvComments.setAdapter(adapter);
+
+        viewModel = new ViewModelProvider(this).get(CommentViewModel.class);
+        viewModel.loadComments(postId);
+
+        observeViewModel();
+        setupInput();
+    }
+
+    private void observeViewModel() {
+        viewModel.getComments().observe(getViewLifecycleOwner(), result -> {
+            if (result instanceof Result.Loading) {
+                loadingBar.setVisibility(View.VISIBLE);
+                tvError.setVisibility(View.GONE);
+            } else if (result instanceof Result.Success) {
+                loadingBar.setVisibility(View.GONE);
+                tvError.setVisibility(View.GONE);
+                adapter.submitList(((Result.Success<List<Comment>>) result).data);
+            } else if (result instanceof Result.Error) {
+                loadingBar.setVisibility(View.GONE);
+                tvError.setVisibility(View.VISIBLE);
+                tvError.setText(((Result.Error<?>) result).message);
+            }
+        });
+    }
+
+    private void setupInput() {
+        btnSend.setOnClickListener(v -> {
+            String content = etComment.getText().toString().trim();
+            if (!content.isEmpty()) {
+                // Hardcoded userId = 1 for now
+                viewModel.createComment(postId, 1, content).observe(getViewLifecycleOwner(), result -> {
+                    if (result instanceof Result.Success) {
+                        etComment.setText("");
+                        hideKeyboard();
+                        viewModel.loadComments(postId); // Refresh
+                        Toast.makeText(getContext(), "Comment posted", Toast.LENGTH_SHORT).show();
+                    } else if (result instanceof Result.Error) {
+                        Toast.makeText(getContext(), "Failed: " + ((Result.Error<?>) result).message, Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+    }
+
+    private void hideKeyboard() {
+        View view = getView();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+    }
+}

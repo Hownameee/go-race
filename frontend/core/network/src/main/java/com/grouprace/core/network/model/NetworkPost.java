@@ -1,6 +1,7 @@
 package com.grouprace.core.network.model;
 
 import com.google.gson.annotations.SerializedName;
+import com.grouprace.core.model.Post;
 
 public class NetworkPost {
 
@@ -84,8 +85,8 @@ public class NetworkPost {
     public String getProfilePictureUrl() { return profilePictureUrl; }
     public void setProfilePictureUrl(String profilePictureUrl) { this.profilePictureUrl = profilePictureUrl; }
 
-    public com.grouprace.core.model.Post asExternalModel() {
-        return new com.grouprace.core.model.Post(
+    public Post asExternalModel() {
+        return new Post(
             postId, recordId, ownerId, title, description, photoUrl,
             likeCount, commentCount, viewMode, createdAt, username, displayName, profilePictureUrl
         );
