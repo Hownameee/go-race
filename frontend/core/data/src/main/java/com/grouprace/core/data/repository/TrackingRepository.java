@@ -1,4 +1,4 @@
-package com.grouprace.feature.tracking.data;
+package com.grouprace.core.data.repository;
 
 import com.grouprace.core.data.model.RoutePoint;
 

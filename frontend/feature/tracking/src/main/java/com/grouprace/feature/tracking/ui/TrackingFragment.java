@@ -19,12 +19,15 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.grouprace.feature.tracking.R;
 import com.mapbox.geojson.Point;
+
+import dagger.hilt.android.AndroidEntryPoint;
 import com.mapbox.maps.CameraOptions;
 import com.mapbox.maps.MapView;
 import com.mapbox.maps.Style;
 import com.mapbox.maps.plugin.Plugin;
 import com.mapbox.maps.plugin.locationcomponent.LocationComponentPlugin;
 
+@AndroidEntryPoint
 public class TrackingFragment extends Fragment {
 
     private MapView mapView;

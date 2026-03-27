@@ -10,23 +10,24 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 
-import com.grouprace.core.data.AppDatabase;
 import com.grouprace.core.data.model.RoutePoint;
+import com.grouprace.core.data.repository.TrackingRepository;
 import com.grouprace.core.service.LocationTrackingService;
-import com.grouprace.feature.tracking.data.TrackingRepository;
-import com.grouprace.feature.tracking.data.TrackingRepositoryImpl;
 
+import javax.inject.Inject;
+import dagger.hilt.android.lifecycle.HiltViewModel;
+
+@HiltViewModel
 public class TrackingViewModel extends AndroidViewModel {
 
     private final MutableLiveData<Boolean> isTracking = new MutableLiveData<>(false);
     private final TrackingRepository repository;
     private final Observer<Location> savePointObserver;
 
-    public TrackingViewModel(@NonNull Application application) {
+    @Inject
+    public TrackingViewModel(@NonNull Application application, TrackingRepository repository) {
         super(application);
-        repository = new TrackingRepositoryImpl(
-                AppDatabase.getInstance(application).routePointDao()
-        );
+        this.repository = repository;
         savePointObserver = location -> {
             if (location != null) {
                 repository.savePoint(new RoutePoint(
