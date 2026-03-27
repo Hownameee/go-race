@@ -39,14 +39,14 @@ router.get(
 router.post(
     "/api/posts/:postId/like",
     validation(postIdSchema, "params"),
-    validation(likeBodySchema, "body"),
+    validation(likeBodySchema, "query"), // <- Delete here
     postController.likePost,
 );
 
 router.delete(
     "/api/posts/:postId/like",
     validation(postIdSchema, "params"),
-    validation(likeBodySchema, "body"),
+    validation(likeBodySchema, "query"), // <- Delete here
     postController.unlikePost,
 );
 
@@ -56,6 +56,7 @@ router.post(
     "/api/posts/:postId/comments",
     validation(postIdSchema, "params"),
     validation(createCommentBodySchema, "body"),
+    validation(likeBodySchema, "query"),
     postController.createComment,
 );
 
@@ -69,7 +70,7 @@ router.get(
 router.delete(
     "/api/posts/:postId/comments/:commentId",
     validation(commentIdParamsSchema, "params"),
-    validation(deleteCommentBodySchema, "body"),
+    validation(likeBodySchema, "query"), // <- Delete here
     postController.deleteComment,
 );
 

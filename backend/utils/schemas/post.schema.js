@@ -29,7 +29,7 @@ export const postIdSchema = z.object({
 });
 
 export const likeBodySchema = z.object({
-    userId: z.number().int().positive("userId must be a positive number"),
+    userId: z.string().regex(/^\d+$/, "userId must be a numeric string"),
 });
 
 export const createCommentBodySchema = z.object({
