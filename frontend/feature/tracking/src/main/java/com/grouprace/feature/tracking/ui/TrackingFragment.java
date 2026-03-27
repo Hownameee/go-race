@@ -17,24 +17,24 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.grouprace.core.data.AppDatabase;
-import com.grouprace.core.data.dao.RoutePointDao;
 import com.grouprace.feature.tracking.R;
-import com.grouprace.feature.tracking.data.TrackingRepositoryImpl;
 import com.mapbox.geojson.Point;
 import com.mapbox.maps.CameraOptions;
 import com.mapbox.maps.MapView;
 import com.mapbox.maps.Style;
+import com.mapbox.maps.plugin.Plugin;
+import com.mapbox.maps.plugin.locationcomponent.LocationComponentPlugin;
 
 public class TrackingFragment extends Fragment {
 
     private MapView mapView;
     private TrackingViewModel viewModel;
+    private ServiceLocationProvider locationProvider;
 
     private final ActivityResultLauncher<String[]> locationPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
-                Boolean fine = result.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false);
-                if (Boolean.TRUE.equals(fine)) {
+                Boolean granted = result.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false);
+                if (Boolean.TRUE.equals(granted)) {
                     viewModel.startTracking();
                 }
             });
@@ -52,33 +52,38 @@ public class TrackingFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         mapView = view.findViewById(R.id.map_view);
-        mapView.getMapboxMap().loadStyle(Style.MAPBOX_STREETS);
+
+        locationProvider = new ServiceLocationProvider();
+
+        mapView.getMapboxMap().loadStyle(Style.MAPBOX_STREETS, style -> {
+            LocationComponentPlugin locationPlugin =
+                    mapView.getPlugin(Plugin.MAPBOX_LOCATION_COMPONENT_PLUGIN_ID);
+            if (locationPlugin != null) {
+                locationPlugin.setLocationProvider(locationProvider);
+                locationPlugin.updateSettings(settings -> {
+                    settings.setEnabled(true);
+                    return null;
+                });
+            }
+        });
 
         Button btnStart = view.findViewById(R.id.btn_start);
         Button btnStop = view.findViewById(R.id.btn_stop);
 
-        RoutePointDao dao = AppDatabase.getInstance(requireContext()).routePointDao();
-        TrackingRepositoryImpl repository = new TrackingRepositoryImpl(dao);
-        TrackingViewModelFactory factory = new TrackingViewModelFactory(requireActivity().getApplication(), repository);
-
-        viewModel = new ViewModelProvider(this, factory).get(TrackingViewModel.class);
+        viewModel = new ViewModelProvider(this).get(TrackingViewModel.class);
 
         viewModel.getIsTracking().observe(getViewLifecycleOwner(), tracking -> {
             btnStart.setVisibility(Boolean.TRUE.equals(tracking) ? View.GONE : View.VISIBLE);
             btnStop.setVisibility(Boolean.TRUE.equals(tracking) ? View.VISIBLE : View.GONE);
         });
 
-        viewModel.getCurrentLocation().observe(getViewLifecycleOwner(), location -> {
-            if (location != null) {
-                moveCamera(location);
-            }
-        });
+        viewModel.getCurrentLocation().observe(getViewLifecycleOwner(), this::moveCamera);
 
-        btnStart.setOnClickListener(v -> requestLocationPermissionAndStart());
+        btnStart.setOnClickListener(v -> requestLocationAndStart());
         btnStop.setOnClickListener(v -> viewModel.stopTracking());
     }
 
-    private void requestLocationPermissionAndStart() {
+    private void requestLocationAndStart() {
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             viewModel.startTracking();
@@ -91,6 +96,10 @@ public class TrackingFragment extends Fragment {
     }
 
     private void moveCamera(Location location) {
+        if (location == null) return;
+
+        locationProvider.updateLocation(location.getLongitude(), location.getLatitude());
+
         mapView.getMapboxMap().setCamera(
                 new CameraOptions.Builder()
                         .center(Point.fromLngLat(location.getLongitude(), location.getLatitude()))

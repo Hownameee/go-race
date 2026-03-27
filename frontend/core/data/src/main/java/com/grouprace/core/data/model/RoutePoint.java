@@ -1,6 +1,7 @@
 package com.grouprace.core.data.model;
 
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "route_points")
@@ -17,6 +18,7 @@ public class RoutePoint {
 
     public RoutePoint() {}
 
+    @Ignore
     public RoutePoint(double latitude, double longitude, double altitude,
                       long timestamp, float accuracy) {
         this.latitude = latitude;

@@ -8,45 +8,65 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 
+import com.grouprace.core.data.AppDatabase;
+import com.grouprace.core.data.model.RoutePoint;
 import com.grouprace.core.service.LocationTrackingService;
 import com.grouprace.feature.tracking.data.TrackingRepository;
-import com.grouprace.feature.tracking.domain.StartWalkUseCase;
-import com.grouprace.feature.tracking.domain.StopWalkUseCase;
+import com.grouprace.feature.tracking.data.TrackingRepositoryImpl;
 
 public class TrackingViewModel extends AndroidViewModel {
 
     private final MutableLiveData<Boolean> isTracking = new MutableLiveData<>(false);
     private final TrackingRepository repository;
-    private final StartWalkUseCase startWalkUseCase;
-    private final StopWalkUseCase stopWalkUseCase;
+    private final Observer<Location> savePointObserver;
 
-    public TrackingViewModel(@NonNull Application application, TrackingRepository repository) {
+    public TrackingViewModel(@NonNull Application application) {
         super(application);
-        this.repository = repository;
-        this.startWalkUseCase = new StartWalkUseCase(repository);
-        this.stopWalkUseCase = new StopWalkUseCase(repository);
+        repository = new TrackingRepositoryImpl(
+                AppDatabase.getInstance(application).routePointDao()
+        );
+        savePointObserver = location -> {
+            if (location != null) {
+                repository.savePoint(new RoutePoint(
+                        location.getLatitude(),
+                        location.getLongitude(),
+                        location.getAltitude(),
+                        location.getTime(),
+                        location.getAccuracy()
+                ));
+            }
+        };
     }
 
-    public MutableLiveData<Boolean> getIsTracking() {
+    public LiveData<Boolean> getIsTracking() {
         return isTracking;
     }
 
     public LiveData<Location> getCurrentLocation() {
-        return repository.getCurrentLocation();
+        return LocationTrackingService.getLocationLiveData();
     }
 
     public void startTracking() {
-        startWalkUseCase.execute();
-        Intent intent = new Intent(getApplication(), LocationTrackingService.class);
-        getApplication().startForegroundService(intent);
+        getApplication().startForegroundService(
+                new Intent(getApplication(), LocationTrackingService.class)
+        );
+        LocationTrackingService.getLocationLiveData().observeForever(savePointObserver);
         isTracking.setValue(true);
     }
 
     public void stopTracking() {
-        stopWalkUseCase.execute();
-        Intent intent = new Intent(getApplication(), LocationTrackingService.class);
-        getApplication().stopService(intent);
+        LocationTrackingService.getLocationLiveData().removeObserver(savePointObserver);
+        getApplication().stopService(
+                new Intent(getApplication(), LocationTrackingService.class)
+        );
         isTracking.setValue(false);
+    }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        LocationTrackingService.getLocationLiveData().removeObserver(savePointObserver);
     }
 }
