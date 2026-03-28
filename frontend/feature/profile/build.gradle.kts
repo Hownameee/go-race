@@ -40,6 +40,7 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:service"))
     implementation(project(":core:network"))
+    implementation(project(":core:system"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

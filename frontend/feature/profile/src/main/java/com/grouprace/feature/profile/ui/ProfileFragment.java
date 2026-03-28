@@ -29,12 +29,12 @@ public class ProfileFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        tvUserId = view.findViewById(R.id.tv_user_id);
-
-        SessionManager sessionManager = new SessionManager(requireContext());
-        String savedToken = sessionManager.getAuthToken();
-
-        // 3. In ra màn hình!
-        tvUserId.setText("Token của bạn: \n" + savedToken);
+//        tvUserId = view.findViewById(R.id.tv_user_id);
+//
+//        SessionManager sessionManager = new SessionManager(requireContext());
+//        String savedToken = sessionManager.getAuthToken();
+//
+//        // 3. In ra màn hình!
+//        tvUserId.setText("Token của bạn: \n" + savedToken);
     }
 }

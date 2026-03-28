@@ -6,6 +6,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.grouprace.feature.login.ui.LoginFragment;
+import com.grouprace.feature.profile.ui.EditProfileFragment;
 import com.grouprace.feature.profile.ui.ProfileFragment;
 import com.grouprace.feature.tracking.ui.TrackingFragment;
 import com.grouprace.feature.posts.ui.PostFragment;
