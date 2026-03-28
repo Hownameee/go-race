@@ -16,7 +16,7 @@ const authController = {
       if (!newUserId) throw new Error('Created user account failed');
 
       return res.created(
-        { userId: newUserId },
+        null,
         'User registered successfully',
       );
     } catch (error) {
@@ -39,11 +39,10 @@ const authController = {
 
       const token = authService.generateToken({
         userId: user.user_id,
-        email: user.email,
         role: user.role,
       });
 
-      return res.ok({token}, 'Login successful');
+      return res.ok({token: token}, 'Login successful');
     } catch (error) {
       next(error);
     }

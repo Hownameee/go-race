@@ -1,11 +1,14 @@
 package com.grouprace.core.network.source;
 
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.google.gson.JsonObject;
+import com.grouprace.core.common.result.Result;
 import com.grouprace.core.network.api.AuthApiService;
 import com.grouprace.core.network.model.auth.LoginPayload;
+import com.grouprace.core.network.model.auth.LoginResponse;
 import com.grouprace.core.network.model.auth.RegisterPayload;
 import com.grouprace.core.network.utils.ApiResponse;
 
@@ -23,56 +26,80 @@ public class AuthDataSource {
         this.apiService = apiService;
     }
 
-    public LiveData<ApiResponse<JsonObject>> register(RegisterPayload payload) {
-        MutableLiveData<ApiResponse<JsonObject>> liveData = new MutableLiveData<>();
+    public LiveData<Result<Void>> register(RegisterPayload payload) {
+        MutableLiveData<Result<Void>> liveData = new MutableLiveData<>();
 
-        apiService.register(payload).enqueue(new Callback<ApiResponse<JsonObject>>() {
+        // Bắn trạng thái Loading
+        liveData.postValue(new Result.Loading<>());
+
+        // Chuyển toàn bộ callback sang ApiResponse<Void>
+        apiService.register(payload).enqueue(new Callback<ApiResponse<Void>>() {
             @Override
-            public void onResponse(Call<ApiResponse<JsonObject>> call, Response<ApiResponse<JsonObject>> response) {
+            public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    liveData.setValue(response.body());
+                    ApiResponse<Void> apiResponse = response.body();
+
+                    // Chỉ cần check isSuccess(), không cần check data nữa
+                    if (apiResponse.isSuccess()) {
+                        Log.d("AuthDataSource", "Register Success.");
+                        // Trả về null đại diện cho Void
+                        liveData.postValue(new Result.Success<>(null));
+                    } else {
+                        String msg = apiResponse.getMessage() != null ? apiResponse.getMessage() : "Registration failed.";
+                        Log.e("AuthDataSource", "Register API Failed: " + msg);
+                        liveData.postValue(new Result.Error<>(new Exception(msg), msg));
+                    }
                 } else {
-                    ApiResponse<JsonObject> errorRes = new ApiResponse<>();
-                    errorRes.setSuccess(false);
-                    errorRes.setMessage("Registration failed. Please try again.");
-                    liveData.setValue(errorRes);
+                    String errorMessage = "HTTP Error: " + response.code() + " " + response.message();
+                    Log.e("AuthDataSource", errorMessage);
+                    liveData.postValue(new Result.Error<>(new Exception(errorMessage), errorMessage));
                 }
             }
 
             @Override
-            public void onFailure(Call<ApiResponse<JsonObject>> call, Throwable t) {
-                ApiResponse<JsonObject> errorRes = new ApiResponse<>();
-                errorRes.setSuccess(false);
-                errorRes.setMessage("Network error: " + t.getMessage());
-                liveData.setValue(errorRes);
+            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
+                Log.e("AuthDataSource", "Register Network Failure: " + t.getMessage(), t);
+                Exception exception = (t instanceof Exception) ? (Exception) t : new Exception(t);
+                liveData.postValue(new Result.Error<>(exception, "Network Failure: " + t.getMessage()));
             }
         });
 
         return liveData;
     }
 
-    public LiveData<ApiResponse<JsonObject>> login(LoginPayload payload) {
-        MutableLiveData<ApiResponse<JsonObject>> liveData = new MutableLiveData<>();
+    public LiveData<Result<String>> login(LoginPayload payload) {
+        MutableLiveData<Result<String>> liveData = new MutableLiveData<>();
 
-        apiService.login(payload).enqueue(new Callback<ApiResponse<JsonObject>>() {
+        // Bắn trạng thái Loading
+        liveData.postValue(new Result.Loading<>());
+
+        apiService.login(payload).enqueue(new Callback<ApiResponse<LoginResponse>>() {
             @Override
-            public void onResponse(Call<ApiResponse<JsonObject>> call, Response<ApiResponse<JsonObject>> response) {
+            public void onResponse(Call<ApiResponse<LoginResponse>> call, Response<ApiResponse<LoginResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    liveData.setValue(response.body());
+                    ApiResponse<LoginResponse> apiResponse = response.body();
+
+                    if (apiResponse.isSuccess() && apiResponse.getData() != null) {
+                        Log.d("AuthDataSource", "Login Success. Token: " + apiResponse.getData().getToken());
+                        // Trả về thẳng Token chuỗi String khi Success
+                        liveData.postValue(new Result.Success<>(apiResponse.getData().getToken()));
+                    } else {
+                        String msg = apiResponse.getMessage() != null ? apiResponse.getMessage() : "Login failed.";
+                        Log.e("AuthDataSource", "Login API Failed: " + msg);
+                        liveData.postValue(new Result.Error<>(new Exception(msg), msg));
+                    }
                 } else {
-                    ApiResponse<JsonObject> errorRes = new ApiResponse<>();
-                    errorRes.setSuccess(false);
-                    errorRes.setMessage("Login failed. Please check your credentials.");
-                    liveData.setValue(errorRes);
+                    String errorMessage = "HTTP Error: " + response.code() + " " + response.message();
+                    Log.e("AuthDataSource", errorMessage);
+                    liveData.postValue(new Result.Error<>(new Exception(errorMessage), errorMessage));
                 }
             }
 
             @Override
-            public void onFailure(Call<ApiResponse<JsonObject>> call, Throwable t) {
-                ApiResponse<JsonObject> errorRes = new ApiResponse<>();
-                errorRes.setSuccess(false);
-                errorRes.setMessage("Network error: " + t.getMessage());
-                liveData.setValue(errorRes);
+            public void onFailure(Call<ApiResponse<LoginResponse>> call, Throwable t) {
+                Log.e("AuthDataSource", "Login Network Failure: " + t.getMessage(), t);
+                Exception exception = (t instanceof Exception) ? (Exception) t : new Exception(t);
+                liveData.postValue(new Result.Error<>(exception, "Network Failure: " + t.getMessage()));
             }
         });
 

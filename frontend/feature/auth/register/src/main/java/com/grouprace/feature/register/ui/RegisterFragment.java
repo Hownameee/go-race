@@ -15,6 +15,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.grouprace.core.common.result.Result;
+
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
@@ -31,7 +33,6 @@ public class RegisterFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_register, container, false);
     }
 
-    // https://developer.android.com/guide/fragments/lifecycle
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -40,13 +41,13 @@ public class RegisterFragment extends Fragment {
         initViews(view);
         setupListeners();
 
+        // Lắng nghe các thông báo lỗi cơ bản (như chưa điền đủ form)
         viewModel.getToastMessage().observe(getViewLifecycleOwner(), message -> {
             if (message != null) {
                 Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
             }
         });
     }
-
 
     private void initViews(View view) {
         editUsername = view.findViewById(R.id.username_edit_text);
@@ -75,6 +76,32 @@ public class RegisterFragment extends Fragment {
         String password = editPassword.getText().toString().trim();
         String confirmPassword = editConfirmPassword.getText().toString().trim();
 
-        viewModel.register(username, fullname, email, birthdate, password, confirmPassword);
+        // Cập nhật: Observe LiveData trả về từ hàm register
+        viewModel.register(username, fullname, email, birthdate, password, confirmPassword)
+                .observe(getViewLifecycleOwner(), result -> {
+                    if (result instanceof Result.Loading) {
+                        // Khóa nút và đổi text để báo hiệu đang xử lý
+                        buttonRegister.setEnabled(false);
+                        buttonRegister.setText("Registering...");
+
+                    } else if (result instanceof Result.Success) {
+                        // Mở lại nút
+                        buttonRegister.setEnabled(true);
+                        buttonRegister.setText("Register");
+
+                        Toast.makeText(requireContext(), "Registration Successful!", Toast.LENGTH_SHORT).show();
+
+                        // Đăng ký thành công thì quay lại trang Login
+                        requireActivity().onBackPressed();
+
+                    } else if (result instanceof Result.Error) {
+                        // Lỗi -> Mở lại nút và báo lỗi
+                        buttonRegister.setEnabled(true);
+                        buttonRegister.setText("Register");
+
+                        String errorMsg = ((Result.Error<Void>) result).message;
+                        Toast.makeText(requireContext(), "Failed: " + errorMsg, Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 }

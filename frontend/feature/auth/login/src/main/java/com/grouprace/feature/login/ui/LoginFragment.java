@@ -2,10 +2,7 @@ package com.grouprace.feature.login.ui;
 
 import androidx.lifecycle.ViewModelProvider;
 
-import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -19,11 +16,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.google.gson.JsonObject;
-import com.grouprace.core.network.utils.SessionManager;
-import com.grouprace.feature.login.ui.R;
+import com.grouprace.core.common.result.Result;
 
-import dagger.hilt.EntryPoint;
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
@@ -47,7 +41,7 @@ public class LoginFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
-        // TODO: Use the ViewModel
+
         initViews(view);
         setupListeners();
 
@@ -75,39 +69,36 @@ public class LoginFragment extends Fragment {
             String email = editEmail.getText().toString().trim();
             String password = editPassword.getText().toString().trim();
 
-            viewModel.login(email, password).observe(getViewLifecycleOwner(), response -> {
-                if (response != null) {
-                    if (response.isSuccess()) {
-                        Toast.makeText(requireContext(), "Login successful!", Toast.LENGTH_SHORT).show();
+            // Observe theo chuẩn Result mới
+            viewModel.login(email, password).observe(getViewLifecycleOwner(), result -> {
+                if (result instanceof Result.Loading) {
+                    buttonLogin.setEnabled(false);
+                    buttonLogin.setText("Logging in...");
 
-                        JsonObject dataObj = response.getData();
-                        android.util.Log.d("DEBUG_API", "Dữ liệu trả về: " + dataObj.toString());
+                } else if (result instanceof Result.Success) {
+                    buttonLogin.setEnabled(true);
+                    buttonLogin.setText("Login");
 
-                        if (dataObj != null && dataObj.has("token")) {
-                            String token = dataObj.get("token").getAsString();
+                    Toast.makeText(requireContext(), "Login successful!", Toast.LENGTH_SHORT).show();
 
-                            // Lưu token vào SessionManager như bước trước
-                            SessionManager sessionManager = new SessionManager(requireContext());
-                            sessionManager.saveAuthToken(token);
+                    try {
+                        Class<?> mainActivityClass = Class.forName("com.grouprace.gorace.MainActivity");
+                        Intent intent = new Intent(requireActivity(), mainActivityClass);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                        requireActivity().finish();
 
-                            // TODO: Chuyển trang
-                            try {
-                                // Tìm class MainActivity thông qua đường dẫn String
-                                Class<?> mainActivityClass = Class.forName("com.grouprace.gorace.MainActivity");
-
-                                Intent intent = new Intent(requireActivity(), mainActivityClass);
-                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                startActivity(intent);
-                                requireActivity().finish();
-
-                            } catch (ClassNotFoundException e) {
-                                e.printStackTrace();
-                                Toast.makeText(requireContext(), "Lỗi chuyển trang!", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    } else {
-                        Toast.makeText(requireContext(), response.getMessage(), Toast.LENGTH_SHORT).show();
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                        Toast.makeText(requireContext(), "Lỗi chuyển trang!", Toast.LENGTH_SHORT).show();
                     }
+
+                } else if (result instanceof Result.Error) {
+                    buttonLogin.setEnabled(true);
+                    buttonLogin.setText("Login");
+
+                    String errorMsg = ((Result.Error<Void>) result).message;
+                    Toast.makeText(requireContext(), errorMsg, Toast.LENGTH_SHORT).show();
                 }
             });
         });

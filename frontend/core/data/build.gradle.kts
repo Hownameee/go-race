@@ -41,6 +41,7 @@ dependencies {
     implementation(project(":core:service"))
     implementation(project(":core:network"))
     implementation(project(":core:model"))
+    implementation(project(":core:common"))
     annotationProcessor(libs.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
