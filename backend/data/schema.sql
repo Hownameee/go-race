@@ -11,3 +11,28 @@ CREATE TABLE IF NOT EXISTS RECORD (
     calories_burned INTEGER,
     heart_rate_avg INTEGER
 );
+
+CREATE TABLE IF NOT EXISTS USERS (
+  user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  role TEXT DEFAULT 'user' CHECK (
+    role IN ('user', 'admin')
+  ),
+
+  -- sign-up information
+  username TEXT NOT NULL,
+  fullname TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  hashed_password TEXT NOT NULL,
+  birthdate DATETIME NOT NULL,
+
+  -- extra information (profile)
+  avatar_url TEXT,
+  nationality TEXT,
+  address TEXT, -- "street, ward, province / city, country"
+  height_cm REAL,
+  weight_kg REAL,
+
+  -- timestamps
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME
+);
