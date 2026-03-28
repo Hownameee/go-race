@@ -1,9 +1,9 @@
 package com.grouprace.core.network.api;
 
-import com.grouprace.core.network.model.CreateCommentRequest;
-import com.grouprace.core.network.model.CommentPayload;
-import com.grouprace.core.network.model.CreatePostRequest;
-import com.grouprace.core.network.model.PostPayload;
+import com.grouprace.core.network.model.post.CreateCommentRequest;
+import com.grouprace.core.network.model.post.CommentPayload;
+import com.grouprace.core.network.model.post.CreatePostRequest;
+import com.grouprace.core.network.model.post.PostPayload;
 import com.grouprace.core.network.utils.ApiResponse;
 
 import retrofit2.Call;
@@ -13,7 +13,6 @@ import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
-import okhttp3.RequestBody;
 
 public interface PostApiService {
 

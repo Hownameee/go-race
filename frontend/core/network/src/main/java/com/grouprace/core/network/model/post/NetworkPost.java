@@ -1,4 +1,4 @@
-package com.grouprace.core.network.model;
+package com.grouprace.core.network.model.post;
 
 import com.google.gson.annotations.SerializedName;
 import com.grouprace.core.model.Post;

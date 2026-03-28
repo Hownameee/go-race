@@ -6,10 +6,9 @@ import androidx.lifecycle.Transformations;
 
 import com.grouprace.core.model.Post;
 import com.grouprace.core.model.Comment;
-import com.grouprace.core.network.model.NetworkPost;
-import com.grouprace.core.network.model.NetworkComment;
-import com.grouprace.core.network.model.CommentPayload;
-import com.grouprace.core.network.model.PostPayload;
+import com.grouprace.core.network.model.post.NetworkPost;
+import com.grouprace.core.network.model.post.NetworkComment;
+import com.grouprace.core.network.model.post.CommentPayload;
 import com.grouprace.core.network.source.PostNetworkDataSource;
 import com.grouprace.core.data.dao.PostDao;
 import com.grouprace.core.data.model.PostEntity;

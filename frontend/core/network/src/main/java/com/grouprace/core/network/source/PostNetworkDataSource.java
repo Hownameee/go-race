@@ -5,10 +5,10 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.network.api.PostApiService;
-import com.grouprace.core.network.model.NetworkPost;
-import com.grouprace.core.network.model.PostPayload;
-import com.grouprace.core.network.model.CreateCommentRequest;
-import com.grouprace.core.network.model.CommentPayload;
+import com.grouprace.core.network.model.post.NetworkPost;
+import com.grouprace.core.network.model.post.PostPayload;
+import com.grouprace.core.network.model.post.CreateCommentRequest;
+import com.grouprace.core.network.model.post.CommentPayload;
 import com.grouprace.core.network.utils.ApiResponse;
 
 import javax.inject.Inject;
@@ -19,9 +19,6 @@ import retrofit2.Response;
 import android.util.Log;
 
 import java.util.List;
-
-import okhttp3.MediaType;
-import okhttp3.RequestBody;
 
 public class PostNetworkDataSource {
 
