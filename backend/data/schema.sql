@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS USERS (
 
 CREATE TABLE IF NOT EXISTS NOTIFICATIONS (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
+    user_id INTEGER,
     type TEXT CHECK (type IN ('like','comment','follow','system')) NOT NULL,
     actor_id INTEGER,
     activity_id INTEGER,

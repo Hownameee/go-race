@@ -9,7 +9,7 @@ const router = express.Router();
  * @access  Private (giả sử req.user.userId có sẵn)
  */
 router.get('/', notificationController.getList);
-
+3;
 /**
  * @route   POST /notifications
  * @desc    Tạo notification mới

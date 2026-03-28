@@ -1,7 +1,6 @@
 package com.grouprace.core.network.di;
 
 import com.grouprace.core.network.api.NotificationApiService;
-import com.grouprace.core.network.source.NotificationNetworkDataSource;
 
 import dagger.Module;
 import dagger.Provides;
@@ -20,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 public class NetworkModule {
 
     private static final String BASE_URL = "http://10.0.2.2:5000/";
+//    private static final String BASE_URL = "http:/10.122.2.228:5000/";
 
     @Provides
     @Singleton
@@ -59,14 +59,6 @@ public class NetworkModule {
     @Provides
     @Singleton
     public NotificationApiService provideNotificationApiService(Retrofit retrofit) {
-        // Tạo instance interface Retrofit
         return retrofit.create(NotificationApiService.class);
-    }
-
-    @Provides
-    @Singleton
-    public NotificationNetworkDataSource provideNotificationNetworkDataSource(NotificationApiService apiService) {
-        // Tạo network data source
-        return new NotificationNetworkDataSource(apiService);
     }
 }

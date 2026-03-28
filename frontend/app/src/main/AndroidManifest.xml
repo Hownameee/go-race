@@ -43,11 +43,6 @@
             </intent-filter>
         </service>
 
-
-        <receiver
-            android:name="com.grouprace.core.notification.AlarmReceiver"
-            android:enabled="true"
-            android:exported="false" />
     </application>
 
 

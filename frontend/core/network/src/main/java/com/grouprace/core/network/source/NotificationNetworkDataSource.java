@@ -10,16 +10,16 @@ import com.grouprace.core.network.model.NetworkNotification;
 import com.grouprace.core.network.model.NotificationPayload;
 import com.grouprace.core.network.model.RegisterDeviceTokenRequest;
 import com.grouprace.core.network.utils.ApiResponse;
-
-import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-
+import com.grouprace.core.common.result.Result;
+@Singleton
 public class NotificationNetworkDataSource {
 
     public final NotificationApiService apiService;
@@ -29,8 +29,8 @@ public class NotificationNetworkDataSource {
         this.apiService = apiService;
     }
 
-    public LiveData<List<NetworkNotification>> getNotifications() {
-        MutableLiveData<List<NetworkNotification>> liveData = new MutableLiveData<>();
+    public LiveData<Result<List<NetworkNotification>>> getNotifications() {
+        MutableLiveData<Result<List<NetworkNotification>>> liveData = new MutableLiveData<>();
 
         apiService.getNotifications().enqueue(new Callback<ApiResponse<NotificationPayload>>() {
             @Override
@@ -47,25 +47,23 @@ public class NotificationNetworkDataSource {
                 if (response.isSuccessful() && response.body() != null) {
                     ApiResponse<NotificationPayload> result = response.body();
                     Log.d("Notification check", "result" + result);
-                    if (result.isSuccess()) {
+                    if (result.isSuccess() && result.getData() != null) {
                         Log.d("NotificationNetworkDataSource","fetch: " + result.getData().getNotifications());
-                        List<NetworkNotification> list = result.getData().getNotifications(); // ← no .getNotifications()
-                        Log.d("notifications", " list " + list);
-                        liveData.postValue(list);
+                        liveData.postValue(new Result.Success<>(result.getData().getNotifications()));
                     } else {
                         Log.e("NotificationNetworkDataSource", "error result: " + result.getData().getNotifications());
-                        liveData.postValue(Collections.emptyList());
+                        liveData.postValue(new Result.Error<>(null, result.getMessage()));
                     }
                 } else {
                     Log.e("NotificationNetworkDataSource", "HTTP Error: " + response.code() + " " + response.message());
-                    liveData.postValue(Collections.emptyList());
+                    liveData.postValue(new Result.Error<>(null, "HTTP Error: " + response.code()));
                 }
             }
 
             @Override
             public void onFailure(Call<ApiResponse<NotificationPayload>> call, Throwable t) {
                 Log.e("NotificationNetworkDataSource", "Network Failure" + t.getMessage());
-                liveData.postValue(Collections.emptyList());
+                liveData.postValue(new Result.Error<>(new Exception(t), t.getMessage()));
             }
         });
 

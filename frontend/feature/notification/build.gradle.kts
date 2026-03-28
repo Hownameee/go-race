@@ -38,6 +38,7 @@ dependencies {
     implementation(project(":core:notification"))
     implementation(project(":core:model"))
     implementation(project(":core:data"))
+    implementation(project(":core:common"))
 
     // Lifecycle
     implementation(libs.lifecycle.viewmodel)

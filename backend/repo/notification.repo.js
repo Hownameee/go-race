@@ -19,7 +19,14 @@ const notificationRepository = {
   },
 
   // Tạo một thông báo mới
-  create: async function ({ user_id, type, actor_id, activity_id, title, message }) {
+  create: async function ({
+    user_id,
+    type,
+    actor_id,
+    activity_id,
+    title,
+    message,
+  }) {
     const sql = `
       INSERT INTO notifications (user_id, type, actor_id, activity_id, title, message)
       VALUES (?, ?, ?, ?, ?, ?)

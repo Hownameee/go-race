@@ -8,4 +8,3 @@ export default function errorHandler(error, req, res) {
     res.error(error.issues);
   }
 }
-

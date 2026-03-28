@@ -24,7 +24,6 @@ public class NotificationHelper {
 
     private static final String CHANNEL_ID = "grouprace_channel";
     private static NotificationHelper instance;
-    private Socket mSocket;
     private NotificationListener listener;
 
     // Singleton

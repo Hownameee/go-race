@@ -6,24 +6,15 @@ const notificationController = {
     const data = await notificationService.getNotifications(userId);
     console.log(data);
     res.ok({
-        notifications: data,  
-        nextCursor: null              
+      notifications: data,
+      nextCursor: null,
     });
   },
 
   createNotification: async function (req, res) {
     try {
-      const io = req.app.get('io'); // Lấy socket.io server
-      const {
-        user_id,
-        type,
-        actor_id,
-        activity_id,
-        title,
-        message,
-        send_all,
-      } = req.body;
-      console.log(user_id, " " , type, " ", actor_id, " ", activity_id, " ", title, " " ,message);
+      const { user_id, type, actor_id, activity_id, title, message } =
+        req.body;
 
       // Tạo notification trong DB
       const notification = await notificationService.create({
@@ -35,14 +26,12 @@ const notificationController = {
         message,
       });
 
-      // Gửi realtime qua socket
-      const shouldSendAll = send_all === true || send_all === 'true';
+      const shouldSendAll = type === 'system';
+      console.log(`Notification created for user_id=${user_id}, type=${type}, shouldSendAll=${shouldSendAll}`);
       if (shouldSendAll) {
-        // notificationService.sendMessageAllUsers(io, notification);
         // Send push (FCM) so all users receive when app is inactive
         await notificationService.sendPushAllUsers(notification);
       } else {
-        // notificationService.sendMessageByUserId(io, user_id, notification);
         // Send push (FCM) so user receives when app is inactive
         await notificationService.sendPushByUserId(user_id, notification);
       }

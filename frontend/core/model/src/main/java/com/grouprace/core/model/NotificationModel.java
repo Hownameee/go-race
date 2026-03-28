@@ -10,9 +10,10 @@ public class NotificationModel {
     private String message;
     private String createdAt;
 
+    private boolean isRead;
     // Constructor, getters và setters
     public NotificationModel(int id, int userId, String type, Integer actorId, Integer activityId,
-                        String title, String message, String createdAt) {
+                        String title, String message, String createdAt, boolean read) {
         this.id = id;
         this.userId = userId;
         this.type = type;
@@ -21,6 +22,8 @@ public class NotificationModel {
         this.title = title;
         this.message = message;
         this.createdAt = createdAt;
+        this.isRead = read;
+
     }
 
     // getters ...
@@ -54,5 +57,13 @@ public class NotificationModel {
 
     public String getCreatedAt() {
         return createdAt;
+    }
+
+    public Boolean isRead() {
+        return isRead;
+    }
+
+    public void setRead(boolean read) {
+        isRead = read;
     }
 }

@@ -22,7 +22,7 @@ app.use(restResponse);
 app.use('/api/notifications', notificationRouter);
 app.use('/api/device-tokens', deviceTokenRouter);
 
-// app.use(notFound);
+app.use(notFound);
 app.use(errorHandler);
 
 export default app;

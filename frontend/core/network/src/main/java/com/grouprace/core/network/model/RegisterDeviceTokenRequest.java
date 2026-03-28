@@ -1,5 +1,7 @@
 package com.grouprace.core.network.model;
 
+import android.util.Log;
+
 import com.google.gson.annotations.SerializedName;
 
 public class RegisterDeviceTokenRequest {
