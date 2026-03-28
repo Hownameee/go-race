@@ -42,6 +42,9 @@ dependencies {
 
     implementation(project(":feature:tracking"))
     implementation(project(":feature:posts"))
+    implementation(project(":feature:auth:register"))
+    implementation(project(":feature:auth:login"))
+    implementation(project(":feature:profile"))
     implementation(project(":core:data"))
     implementation(project(":core:system"))
     implementation(libs.hilt.android)
