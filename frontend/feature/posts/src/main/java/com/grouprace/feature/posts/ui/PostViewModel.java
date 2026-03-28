@@ -48,11 +48,11 @@ public class PostViewModel extends ViewModel {
         syncTrigger.setValue(cursor);
     }
 
-    public LiveData<Result<Boolean>> likePost(int postId, int userId) {
-        return postRepository.likePost(postId, userId);
+    public LiveData<Result<Boolean>> likePost(int postId) {
+        return postRepository.likePost(postId);
     }
 
-    public LiveData<Result<Boolean>> unlikePost(int postId, int userId) {
-        return postRepository.unlikePost(postId, userId);
+    public LiveData<Result<Boolean>> unlikePost(int postId) {
+        return postRepository.unlikePost(postId);
     }
 }

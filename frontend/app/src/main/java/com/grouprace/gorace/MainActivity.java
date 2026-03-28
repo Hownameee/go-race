@@ -41,9 +41,9 @@ public class MainActivity extends AppCompatActivity {
             } else if (itemId == R.id.nav_record) {
                 fragment = new TrackingFragment();
             } else if (itemId == R.id.nav_clubs) {
-                fragment = new PlaceholderFragment();
+                fragment = new LoginFragment();
             } else if (itemId == R.id.nav_you) {
-                fragment = new PlaceholderFragment();
+                fragment = new ProfileFragment();
             }
 
             if (fragment != null) {

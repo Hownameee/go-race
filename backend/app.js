@@ -9,6 +9,7 @@ import cors from 'cors';
 import authRoute from './routes/auth.route.js';
 import followRoutes from './routes/follow.route.js';
 import postRoutes from './routes/post.route.js';
+import { auth } from './middlewares/auth.middleware.js';
 
 const app = express();
 initDatabase();
@@ -17,8 +18,11 @@ app.use(bodyParser.json());
 app.use(cors());
 app.use(restResponse);
 
+
 // routes here
 app.use("/auth", authRoute);
+
+app.use(auth)
 app.use(followRoutes);
 app.use(postRoutes);
 

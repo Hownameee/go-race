@@ -78,13 +78,13 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public LiveData<Result<Boolean>> likePost(int postId, int userId) {
-        return postNetworkDataSource.likePost(postId, userId);
+    public LiveData<Result<Boolean>> likePost(int postId) {
+        return postNetworkDataSource.likePost(postId);
     }
 
     @Override
-    public LiveData<Result<Boolean>> unlikePost(int postId, int userId) {
-        return postNetworkDataSource.unlikePost(postId, userId);
+    public LiveData<Result<Boolean>> unlikePost(int postId) {
+        return postNetworkDataSource.unlikePost(postId);
     }
 
     @Override
@@ -106,12 +106,12 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public LiveData<Result<Boolean>> createComment(int postId, int userId, String content) {
-        return postNetworkDataSource.createComment(postId, content, userId);
+    public LiveData<Result<Boolean>> createComment(int postId, String content) {
+        return postNetworkDataSource.createComment(postId, content);
     }
 
     @Override
-    public LiveData<Result<Boolean>> deleteComment(int postId, int commentId, int userId) {
-        return postNetworkDataSource.deleteComment(postId, commentId, userId);
+    public LiveData<Result<Boolean>> deleteComment(int postId, int commentId) {
+        return postNetworkDataSource.deleteComment(postId, commentId);
     }
 }

@@ -3,7 +3,8 @@ import postService from "../services/post.service.js";
 const postController = {
     async createPost(req, res, next) {
         try {
-            const newPost = await postService.createPost(req.body);
+            const userId = req.user.userId;
+            const newPost = await postService.createPost({userId, ...req.body});
             return res.created(newPost, "Post created successfully.");
         } catch (error) {
             if (error.status === 409) {
@@ -30,7 +31,7 @@ const postController = {
 
     async getFollowingFeed(req, res, next) {
         try {
-            const userId = parseInt(req.params.userId);
+            const userId = req.user.userId;
             const { cursor, limit } = req.query;
             const result = await postService.getFollowingFeed(userId, cursor, limit);
             return res.ok(result, "Following feed retrieved successfully.");
@@ -46,7 +47,7 @@ const postController = {
     async likePost(req, res, next) {
         try {
             const postId = parseInt(req.params.postId);
-            const userId = parseInt(req.query.userId);
+            const userId = req.user.userId;
             const result = await postService.likePost(postId, userId);
             return res.created(result, "Post liked successfully.");
         } catch (error) {
@@ -61,7 +62,7 @@ const postController = {
     async unlikePost(req, res, next) {
         try {
             const postId = parseInt(req.params.postId);
-            const userId = parseInt(req.query.userId);
+            const userId = req.user.userId;
             const result = await postService.unlikePost(postId, userId);
             return res.ok(result, "Post unliked successfully.");
         } catch (error) {
@@ -76,7 +77,7 @@ const postController = {
     async createComment(req, res, next) {
         try {
             const postId = parseInt(req.params.postId);
-            const userId = parseInt(req.query.userId);
+            const userId = req.user.userId;
             const { content } = req.body;
             const comment = await postService.createComment(postId, userId, content);
             return res.created(comment, "Comment created successfully.");
@@ -108,7 +109,7 @@ const postController = {
         try {
             const postId = parseInt(req.params.postId);
             const commentId = parseInt(req.params.commentId);
-            const userId = parseInt(req.query.userId);
+            const userId = req.user.userId;
             const result = await postService.deleteComment(postId, commentId, userId);
             return res.ok(result, "Comment deleted successfully.");
         } catch (error) {

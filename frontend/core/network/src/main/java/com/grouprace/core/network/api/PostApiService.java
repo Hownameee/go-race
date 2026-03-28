@@ -24,25 +24,23 @@ public interface PostApiService {
     Call<ApiResponse<Void>> createPost(@Body CreatePostRequest request);
 
     @POST("api/posts/{postId}/like")
-    Call<ApiResponse<Void>> likePost(@Path("postId") int postId, @Query("userId") int userId);
+    Call<ApiResponse<Void>> likePost(@Path("postId") int postId);
 
     @DELETE("api/posts/{postId}/like")
-    Call<ApiResponse<Void>> unlikePost(@Path("postId") int postId, @Query("userId") int userId);
+    Call<ApiResponse<Void>> unlikePost(@Path("postId") int postId);
 
     @GET("api/posts/{postId}/comments")
     Call<ApiResponse<CommentPayload>> getComments(@Path("postId") int postId);
     
-    @POST("api/posts/{postId}/comment")
+    @POST("api/posts/{postId}/comments")
     Call<ApiResponse<Void>> createComment(
         @Path("postId") int postId, 
-        @Body CreateCommentRequest request,
-        @Query("userId") int userId
+        @Body CreateCommentRequest request
     );
 
     @DELETE("api/posts/{postId}/comment/{commentId}")
     Call<ApiResponse<Void>> deleteComment(
         @Path("postId") int postId,
-        @Path("commentId") int commentId,
-        @Query("userId") int userId
+        @Path("commentId") int commentId
     );
 }

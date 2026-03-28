@@ -3,7 +3,7 @@ import followService from "../services/follow.service.js";
 const followController = {
   async follow(req, res, next) {
     try {
-      const followerId = parseInt(req.params.userId);
+      const followerId = req.user.userId;
       const followingId = parseInt(req.body.followingId);
       const newFollow = await followService.followUser(followerId, followingId);
       return res.created(newFollow, "Followed successfully.");
@@ -18,7 +18,7 @@ const followController = {
 
   async unfollow(req, res, next) {
     try {
-      const followerId = parseInt(req.params.userId);
+      const followerId = req.user.userId;
       const followingId = parseInt(req.body.followingId);
       await followService.unfollowUser(followerId, followingId);
       return res.ok(null, "Unfollowed successfully.");
@@ -33,7 +33,7 @@ const followController = {
 
   async getFollowers(req, res, next) {
     try {
-      const userId = parseInt(req.params.userId);
+      const userId = req.user.userId;
       const { cursor, limit } = req.query;
       const result = await followService.getFollowers(userId, cursor, limit);
       return res.ok(result, "Get followers successfully.");
@@ -48,7 +48,7 @@ const followController = {
 
   async getFollowing(req, res, next) {
     try {
-      const userId = parseInt(req.params.userId);
+      const userId = req.user.userId;
       const { cursor, limit } = req.query;
       const result = await followService.getFollowing(userId, cursor, limit);
       return res.ok(result, "Get following successfully.");

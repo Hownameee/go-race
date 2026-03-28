@@ -37,7 +37,7 @@ public class CommentViewModel extends ViewModel {
         postIdTrigger.setValue(postId);
     }
 
-    public LiveData<Result<Boolean>> createComment(int postId, int userId, String content) {
-        return postRepository.createComment(postId, userId, content);
+    public LiveData<Result<Boolean>> createComment(int postId, String content) {
+        return postRepository.createComment(postId, content);
     }
 }

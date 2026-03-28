@@ -8,6 +8,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import com.grouprace.core.network.utils.AuthInterceptor;
+import com.grouprace.core.network.utils.SessionManager;
 
 import javax.inject.Singleton;
 import java.util.concurrent.TimeUnit;
@@ -28,9 +30,16 @@ public class NetworkModule {
 
     @Provides
     @Singleton
-    public OkHttpClient provideOkHttpClient(HttpLoggingInterceptor loggingInterceptor) {
+    public AuthInterceptor provideAuthInterceptor(SessionManager sessionManager) {
+        return new AuthInterceptor(sessionManager);
+    }
+
+    @Provides
+    @Singleton
+    public OkHttpClient provideOkHttpClient(HttpLoggingInterceptor loggingInterceptor, AuthInterceptor authInterceptor) {
         return new OkHttpClient.Builder()
                 .addInterceptor(loggingInterceptor)
+                .addInterceptor(authInterceptor)
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS)
                 .writeTimeout(30, TimeUnit.SECONDS)

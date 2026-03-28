@@ -12,9 +12,9 @@ const postRepo = {
 
     async selectFeed(cursor, limit) {
         const stmt = db.prepare(
-            `SELECT p.*, u.username, u.display_name, u.profile_picture_url
+            `SELECT p.*, u.username, u.fullname, u.avatar_url
        FROM POST p
-       JOIN USER u ON u.user_id = p.owner_id
+       JOIN USERS u ON u.user_id = p.owner_id
        WHERE p.created_at < ?
        ORDER BY p.created_at DESC
        LIMIT ?`,
@@ -24,10 +24,10 @@ const postRepo = {
 
     async selectFollowingFeed(userId, cursor, limit) {
         const stmt = db.prepare(
-            `SELECT p.*, u.username, u.display_name, u.profile_picture_url
+            `SELECT p.*, u.username, u.fullname, u.avatar_url
        FROM POST p
        JOIN FOLLOW f ON f.following_id = p.owner_id
-       JOIN USER u ON u.user_id = p.owner_id
+       JOIN USERS u ON u.user_id = p.owner_id
        WHERE f.follower_id = ? AND p.created_at < ?
        ORDER BY p.created_at DESC
        LIMIT ?`,
@@ -124,9 +124,9 @@ const postRepo = {
     async selectComments(postId, cursor, limit) {
         const stmt = db.prepare(
             `SELECT c.comment_id, c.post_id, c.user_id, c.content, c.created_at,
-                    u.username, u.display_name, u.profile_picture_url
+                    u.username, u.fullname, u.avatar_url
              FROM COMMENT c
-             JOIN USER u ON u.user_id = c.user_id
+             JOIN USERS u ON u.user_id = c.user_id
              WHERE c.post_id = ? AND c.created_at < ?
              ORDER BY c.created_at DESC
              LIMIT ?`,

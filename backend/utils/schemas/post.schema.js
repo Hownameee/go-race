@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 export const createPostSchema = z.object({
-    owner_id: z.number().int().positive("owner_id must be a positive number"),
     record_id: z
         .number()
         .int()
@@ -28,12 +27,7 @@ export const postIdSchema = z.object({
     postId: z.string().regex(/^\d+$/, "postId must be a numeric string"),
 });
 
-export const likeBodySchema = z.object({
-    userId: z.string().regex(/^\d+$/, "userId must be a numeric string"),
-});
-
 export const createCommentBodySchema = z.object({
-    userId: z.number().int().positive("userId must be a positive number"),
     content: z
         .string()
         .min(1, "content must not be empty")
@@ -51,10 +45,6 @@ export const getCommentsQuerySchema = z.object({
 export const commentIdParamsSchema = z.object({
     postId: z.string().regex(/^\d+$/, "postId must be a numeric string"),
     commentId: z.string().regex(/^\d+$/, "commentId must be a numeric string"),
-});
-
-export const deleteCommentBodySchema = z.object({
-    userId: z.number().int().positive("userId must be a positive number"),
 });
 
 

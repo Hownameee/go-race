@@ -17,9 +17,9 @@ const followRepo = {
 
   async selectFollowers(userId, cursor, limit) {
     const stmt = db.prepare(
-      `SELECT u.user_id, u.username, u.display_name, u.profile_picture_url, f.created_at
+      `SELECT u.user_id, u.username, u.fullname, u.avatar_url, f.created_at
          FROM FOLLOW f
-         JOIN USER u ON u.user_id = f.follower_id
+         JOIN USERS u ON u.user_id = f.follower_id
          WHERE f.following_id = ? AND f.created_at < ?
          ORDER BY f.created_at DESC
          LIMIT ?`,
@@ -29,9 +29,9 @@ const followRepo = {
 
   async selectFollowing(userId, cursor, limit) {
     const stmt = db.prepare(
-      `SELECT u.user_id, u.username, u.display_name, u.profile_picture_url, f.created_at
+      `SELECT u.user_id, u.username, u.fullname, u.avatar_url, f.created_at
          FROM FOLLOW f
-         JOIN USER u ON u.user_id = f.following_id
+         JOIN USERS u ON u.user_id = f.following_id
          WHERE f.follower_id = ? AND f.created_at < ?
          ORDER BY f.created_at DESC
          LIMIT ?`,

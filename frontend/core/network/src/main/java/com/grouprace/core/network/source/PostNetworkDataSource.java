@@ -67,11 +67,11 @@ public class PostNetworkDataSource {
         return liveData;
     }
 
-    public LiveData<Result<Boolean>> likePost(int postId, int userId) {
+    public LiveData<Result<Boolean>> likePost(int postId) {
         MutableLiveData<Result<Boolean>> liveData = new MutableLiveData<>();
         liveData.postValue(new Result.Loading<>());
 
-        apiService.likePost(postId, userId).enqueue(new Callback<ApiResponse<Void>>() {
+        apiService.likePost(postId).enqueue(new Callback<ApiResponse<Void>>() {
             @Override
             public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
@@ -95,11 +95,11 @@ public class PostNetworkDataSource {
         return liveData;
     }
 
-    public LiveData<Result<Boolean>> unlikePost(int postId, int userId) {
+    public LiveData<Result<Boolean>> unlikePost(int postId) {
         MutableLiveData<Result<Boolean>> liveData = new MutableLiveData<>();
         liveData.postValue(new Result.Loading<>());
 
-        apiService.unlikePost(postId, userId).enqueue(new Callback<ApiResponse<Void>>() {
+        apiService.unlikePost(postId).enqueue(new Callback<ApiResponse<Void>>() {
             @Override
             public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
@@ -150,13 +150,13 @@ public class PostNetworkDataSource {
         return liveData;
     }
 
-    public LiveData<Result<Boolean>> createComment(int postId, String content, int userId) {
+    public LiveData<Result<Boolean>> createComment(int postId, String content) {
         MutableLiveData<Result<Boolean>> liveData = new MutableLiveData<>();
         liveData.postValue(new Result.Loading<>());
 
         CreateCommentRequest request = new CreateCommentRequest(content);
 
-        apiService.createComment(postId, request, userId).enqueue(new Callback<ApiResponse<Void>>() {
+        apiService.createComment(postId, request).enqueue(new Callback<ApiResponse<Void>>() {
             @Override
             public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
@@ -180,11 +180,11 @@ public class PostNetworkDataSource {
         return liveData;
     }
 
-    public LiveData<Result<Boolean>> deleteComment(int postId, int commentId, int userId) {
+    public LiveData<Result<Boolean>> deleteComment(int postId, int commentId) {
         MutableLiveData<Result<Boolean>> liveData = new MutableLiveData<>();
         liveData.postValue(new Result.Loading<>());
 
-        apiService.deleteComment(postId, commentId, userId).enqueue(new Callback<ApiResponse<Void>>() {
+        apiService.deleteComment(postId, commentId).enqueue(new Callback<ApiResponse<Void>>() {
             @Override
             public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {

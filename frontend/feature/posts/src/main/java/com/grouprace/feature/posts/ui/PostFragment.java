@@ -46,11 +46,9 @@ public class PostFragment extends Fragment {
         postAdapter.setOnPostActionListener(new PostAdapter.OnPostActionListener() {
             @Override
             public void onLikeClicked(Post post, int position) {
-                // Hardcoded userId = 1 for now. Replace with actual logged-in user ID later.
-                int userId = 1;
 
                 if (post.isLiked()) {
-                    viewModel.unlikePost(post.getPostId(), userId).observe(getViewLifecycleOwner(), result -> {
+                    viewModel.unlikePost(post.getPostId()).observe(getViewLifecycleOwner(), result -> {
                         if (result instanceof Result.Success) {
                             post.setLiked(false);
                             post.setLikeCount(post.getLikeCount() - 1);
@@ -58,7 +56,7 @@ public class PostFragment extends Fragment {
                         }
                     });
                 } else {
-                    viewModel.likePost(post.getPostId(), userId).observe(getViewLifecycleOwner(), result -> {
+                    viewModel.likePost(post.getPostId()).observe(getViewLifecycleOwner(), result -> {
                         if (result instanceof Result.Success) {
                             post.setLiked(true);
                             post.setLikeCount(post.getLikeCount() + 1);

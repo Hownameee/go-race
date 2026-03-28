@@ -1,8 +1,9 @@
 -- Insert mock users
-INSERT OR IGNORE INTO USER (username, email, password_hash, display_name, bio, profile_picture_url) VALUES
-('john_doe', 'john@example.com', 'hashed_pw_1', 'John Doe', 'Fitness enthusiast', 'http://example.com/john.jpg'),
-('jane_smith', 'jane@example.com', 'hashed_pw_2', 'Jane Smith', 'Running all the way', 'http://example.com/jane.jpg'),
-('runner_boy', 'runner@example.com', 'hashed_pw_3', 'Runner Boy', 'Keep pushing', 'http://example.com/runner.jpg');
+INSERT OR IGNORE INTO USERS (username, email, hashed_password, birthdate, fullname, avatar_url) VALUES
+('john_doe', 'john@example.com', 'hashed_pw_1', '2005-07-05', 'John Doe', 'http://example.com/john.jpg'),
+('jane_smith', 'jane@example.com', 'hashed_pw_2', '2005-09-05', 'Jane Smith', 'http://example.com/jane.jpg'),
+('runner_boy', 'runner@example.com', 'hashed_pw_3', '2005-08-05', 'Runner Boy', 'http://example.com/runner.jpg');
+('KD', 'ld@example.com', '$2b$10$OKFQq2gUVgeOmsyEEuuAfuw9KL3Pgp4CYSjE0FRkWcSyeubg9nuHi', '2005-08-05', 'Kim duyen', 'http://example.com/runner.jpg');
 
 -- Insert mock records (Note: RECORD no longer has owner_id in your exact schema)
 INSERT OR IGNORE INTO RECORD (activity_type, start_time, end_time, duration_seconds, distance_km, calories_burned, heart_rate_avg) VALUES

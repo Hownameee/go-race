@@ -22,8 +22,6 @@ public class PostEntity {
     public String profilePictureUrl;
     public boolean isLiked;
 
-    public PostEntity() {}
-
     public PostEntity(int postId, Integer recordId, int ownerId, String title, String description, String photoUrl, int likeCount, int commentCount, String viewMode, String createdAt, String username, String displayName, String profilePictureUrl, boolean isLiked) {
         this.postId = postId;
         this.recordId = recordId;

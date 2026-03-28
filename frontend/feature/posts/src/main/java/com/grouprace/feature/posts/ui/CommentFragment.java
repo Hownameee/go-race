@@ -107,8 +107,7 @@ public class CommentFragment extends BottomSheetDialogFragment {
         btnSend.setOnClickListener(v -> {
             String content = etComment.getText().toString().trim();
             if (!content.isEmpty()) {
-                // Hardcoded userId = 1 for now
-                viewModel.createComment(postId, 1, content).observe(getViewLifecycleOwner(), result -> {
+                viewModel.createComment(postId, content).observe(getViewLifecycleOwner(), result -> {
                     if (result instanceof Result.Success) {
                         etComment.setText("");
                         hideKeyboard();
