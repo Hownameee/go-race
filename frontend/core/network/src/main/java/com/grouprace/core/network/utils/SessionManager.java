@@ -1,21 +1,25 @@
-package com.grouprace.core.network.utils;
+package com.grouprace.core.network.utils; // (Bạn có thể cân nhắc chuyển sang package com.grouprace.core.data.local cho đúng chuẩn Clean Architecture)
 
 import android.content.Context;
 import android.content.SharedPreferences;
 
-public class SessionManager {
-    private final String PREF_NAME = "GoRaceApp";
-    private final String KEY_TOKEN = "Token";
-    private final String KEY_EXPIRE_TIME = "Token_Expire_Time";
+import javax.inject.Inject;
+import dagger.hilt.android.qualifiers.ApplicationContext;
 
-    private static final long EXPIRATION_TIME_MS = 60 * 60 * 1000;
+public class SessionManager {
+    // 1. Chuyển các key thành static final để tiết kiệm bộ nhớ
+    private static final String PREF_NAME = "GoRaceApp";
+    private static final String KEY_TOKEN = "Token";
+    private static final String KEY_EXPIRE_TIME = "Token_Expire_Time";
+
+    private static final long EXPIRATION_TIME_MS = 60 * 60 * 1000; // 60 phút
 
     private final SharedPreferences prefs;
-    private final SharedPreferences.Editor editor;
 
-    public SessionManager(Context context) {
-        prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-        editor = prefs.edit();
+    // 2. Thêm @Inject và @ApplicationContext cho Hilt
+    @Inject
+    public SessionManager(@ApplicationContext Context context) {
+        this.prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
     }
 
     /**
@@ -24,9 +28,11 @@ public class SessionManager {
     public void saveAuthToken(String token) {
         long expireTime = System.currentTimeMillis() + EXPIRATION_TIME_MS;
 
-        editor.putString(KEY_TOKEN, token);
-        editor.putLong(KEY_EXPIRE_TIME, expireTime);
-        editor.apply();
+        // 3. Nên gọi prefs.edit() trực tiếp khi cần lưu thay vì giữ Editor làm biến toàn cục
+        prefs.edit()
+                .putString(KEY_TOKEN, token)
+                .putLong(KEY_EXPIRE_TIME, expireTime)
+                .apply();
     }
 
     /**
@@ -34,8 +40,12 @@ public class SessionManager {
      */
     public String getAuthToken() {
         long expireTime = prefs.getLong(KEY_EXPIRE_TIME, 0);
-        long currentTime = System.currentTimeMillis();
 
+        if (expireTime == 0) {
+            return null;
+        }
+
+        long currentTime = System.currentTimeMillis();
         if (currentTime > expireTime) {
             clearSession();
             return null;
@@ -48,9 +58,11 @@ public class SessionManager {
      * Xóa toàn bộ dữ liệu (Dùng khi Đăng xuất hoặc Token hết hạn)
      */
     public void clearSession() {
-        editor.remove(KEY_TOKEN);
-        editor.remove(KEY_EXPIRE_TIME);
-        editor.apply();
+        prefs.edit()
+                .remove(KEY_TOKEN)
+                .remove(KEY_EXPIRE_TIME)
+                .apply();
+        // prefs.edit().clear().apply();
     }
 
     /**

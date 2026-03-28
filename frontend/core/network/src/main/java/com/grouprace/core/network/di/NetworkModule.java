@@ -55,7 +55,7 @@ public class NetworkModule {
 
     @Provides
     @Singleton
-    public com.grouprace.core.network.api.AuthApiService provideAuthenticationService(Retrofit retrofit) {
+    public com.grouprace.core.network.api.AuthApiService provideAuthService(Retrofit retrofit) {
         return retrofit.create(com.grouprace.core.network.api.AuthApiService.class);
     }
 }

@@ -4,10 +4,9 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.google.gson.JsonObject;
+import com.grouprace.core.common.result.Result;
 import com.grouprace.core.data.repository.AuthRepository;
 import com.grouprace.core.network.model.auth.LoginPayload;
-import com.grouprace.core.network.utils.ApiResponse;
 
 import javax.inject.Inject;
 import dagger.hilt.android.lifecycle.HiltViewModel;
@@ -27,7 +26,8 @@ public class LoginViewModel extends ViewModel {
         this.repository = repository;
     }
 
-    public LiveData<ApiResponse<JsonObject>> login(String email, String password) {
+    // Đã đổi thành Result<Void>
+    public LiveData<Result<Void>> login(String email, String password) {
         if (email.isEmpty() || password.isEmpty()) {
             toastMessage.setValue("Please fill in all required fields!");
             return new MutableLiveData<>();
