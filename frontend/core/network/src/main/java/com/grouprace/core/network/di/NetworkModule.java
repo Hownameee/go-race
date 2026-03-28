@@ -1,5 +1,7 @@
 package com.grouprace.core.network.di;
 
+import com.grouprace.core.network.api.NotificationApiService;
+
 import dagger.Module;
 import dagger.Provides;
 import dagger.hilt.InstallIn;
@@ -19,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 public class NetworkModule {
 
     private static final String BASE_URL = "http://10.0.2.2:5000/";
+//    private static final String BASE_URL = "http:/10.122.2.228:5000/";
 
     @Provides
     @Singleton
@@ -66,5 +69,11 @@ public class NetworkModule {
     @Singleton
     public com.grouprace.core.network.api.AuthApiService provideAuthService(Retrofit retrofit) {
         return retrofit.create(com.grouprace.core.network.api.AuthApiService.class);
+    }
+
+    @Provides
+    @Singleton
+    public NotificationApiService provideNotificationApiService(Retrofit retrofit) {
+        return retrofit.create(NotificationApiService.class);
     }
 }

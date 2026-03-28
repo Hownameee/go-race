@@ -1,3 +1,4 @@
+
 -- Insert mock users
 INSERT OR IGNORE INTO USERS (username, email, hashed_password, birthdate, fullname, avatar_url) VALUES
 ('john_doe', 'john@example.com', 'hashed_pw_1', '2005-07-05', 'John Doe', 'http://example.com/john.jpg'),
@@ -40,3 +41,14 @@ INSERT OR IGNORE INTO FOLLOW (follower_id, following_id) VALUES
 (3, 1), -- Runner follows John
 (1, 2), -- John follows Jane
 (1, 3); -- John follows Runner Boy
+
+-- Insert mock notifications
+INSERT INTO NOTIFICATIONS (user_id, type, actor_id, activity_id, title, message)
+VALUES (
+    1,
+    'system',
+    NULL,
+    NULL,
+    'New Activity',
+    'Your running record has been saved'
+);

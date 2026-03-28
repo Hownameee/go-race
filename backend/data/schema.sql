@@ -1,3 +1,27 @@
+CREATE TABLE IF NOT EXISTS NOTIFICATIONS (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    type TEXT CHECK (type IN ('like','comment','follow','system')) NOT NULL,
+    actor_id INTEGER,
+    activity_id INTEGER,
+    title TEXT NOT NULL,
+    message TEXT,
+    read BOOLEAN DEFAULT FALSE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (actor_id) REFERENCES users(user_id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS DEVICE_TOKENS (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    token TEXT NOT NULL UNIQUE,
+    platform TEXT DEFAULT 'android',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
 -- just demo table will change in the future
 CREATE TABLE IF NOT EXISTS RECORD (
     record_id INTEGER PRIMARY KEY AUTOINCREMENT,

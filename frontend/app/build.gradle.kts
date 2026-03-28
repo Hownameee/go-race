@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -45,12 +46,16 @@ dependencies {
     implementation(project(":feature:auth:register"))
     implementation(project(":feature:auth:login"))
     implementation(project(":feature:profile"))
+    implementation(project(":feature:notification"))
     implementation(project(":core:data"))
     implementation(project(":core:system"))
     implementation(libs.hilt.android)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
     annotationProcessor(libs.hilt.compiler)
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
