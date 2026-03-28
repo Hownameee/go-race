@@ -15,12 +15,14 @@ public class RoutePoint {
     public double altitude;
     public long timestamp;
     public float accuracy;
+    public long activityId;
 
     public RoutePoint() {}
 
     @Ignore
-    public RoutePoint(double latitude, double longitude, double altitude,
-                      long timestamp, float accuracy) {
+    public RoutePoint(long activityId, double latitude, double longitude,
+                      double altitude, long timestamp, float accuracy) {
+        this.activityId = activityId;
         this.latitude = latitude;
         this.longitude = longitude;
         this.altitude = altitude;

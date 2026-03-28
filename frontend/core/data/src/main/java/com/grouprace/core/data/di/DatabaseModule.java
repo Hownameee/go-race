@@ -5,6 +5,7 @@ import android.content.Context;
 import androidx.room.Room;
 
 import com.grouprace.core.data.AppDatabase;
+import com.grouprace.core.data.dao.ActivityDao;
 import com.grouprace.core.data.dao.RoutePointDao;
 
 import dagger.Module;
@@ -26,11 +27,17 @@ public class DatabaseModule {
                 context,
                 AppDatabase.class,
                 "gorace.db"
-        ).build();
+        ).addMigrations(AppDatabase.MIGRATION_1_2)
+         .build();
     }
 
     @Provides
     public RoutePointDao provideRoutePointDao(AppDatabase appDatabase) {
         return appDatabase.routePointDao();
+    }
+
+    @Provides
+    public ActivityDao provideActivityDao(AppDatabase appDatabase) {
+        return appDatabase.activityDao();
     }
 }

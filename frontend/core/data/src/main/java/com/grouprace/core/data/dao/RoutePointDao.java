@@ -16,4 +16,7 @@ public interface RoutePointDao {
 
     @Query("SELECT * FROM route_points ORDER BY timestamp ASC")
     List<RoutePoint> getAll();
+
+    @Query("SELECT * FROM route_points WHERE activityId = :activityId ORDER BY timestamp ASC")
+    List<RoutePoint> getByActivityId(long activityId);
 }
