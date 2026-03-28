@@ -6,6 +6,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.grouprace.feature.login.ui.LoginFragment;
+import com.grouprace.feature.profile.ui.ProfileFragment;
 import com.grouprace.feature.tracking.ui.TrackingFragment;
 import com.grouprace.feature.posts.ui.PostFragment;
 import com.grouprace.feature.register.ui.RegisterFragment;
@@ -21,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.main, new LoginFragment())
+                    .replace(R.id.main, new ProfileFragment())
                     .commit();
         }
     }
