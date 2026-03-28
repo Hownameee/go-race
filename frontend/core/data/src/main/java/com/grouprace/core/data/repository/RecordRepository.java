@@ -8,5 +8,6 @@ import com.grouprace.core.model.Record;
 import java.util.List;
 
 public interface RecordRepository {
-    LiveData<Result<List<Record>>> getRecords(int offset);
+    LiveData<List<Record>> getRecords();
+    LiveData<Result<Boolean>> syncRecords(int offset);
 }

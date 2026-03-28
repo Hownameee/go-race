@@ -5,7 +5,7 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 
 import dagger.hilt.android.AndroidEntryPoint;
-import com.grouprace.feature.records.list.ui.RecordListFragment;
+import com.grouprace.feature.records.list.ui.RecordsFragment;
 
 @AndroidEntryPoint
 public class MainActivity extends AppCompatActivity {
@@ -17,7 +17,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, new RecordListFragment())
+                    .replace(R.id.fragment_container, new RecordsFragment())
                     .commit();
         }
     }

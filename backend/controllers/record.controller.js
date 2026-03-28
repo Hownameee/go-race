@@ -8,6 +8,13 @@ const recordController = {
     res.ok({ records: data });
   },
 
+  getNewList: async function (req, res) {
+    const userId = req.params.userId;
+    const currentId = req.query.recordId;
+    const data = await recordService.getNewList(userId, currentId);
+    res.ok({ records: data });
+  },
+
   getRecord: async function (req, res) {
     const userId = req.params.userId;
     const recordId = req.params.recordId;

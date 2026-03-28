@@ -18,5 +18,5 @@ export const recordSchema = z.object({
 });
 
 export const recordIdSchema = z.object({
-  recordId: z.coerce.number().positive(),
+  recordId: z.coerce.number().int().min(0),
 });

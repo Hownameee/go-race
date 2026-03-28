@@ -1,18 +1,20 @@
 package com.grouprace.core.model;
 
 public class Record {
+    private final int recordId;
     private final String activityType;
     private final String startTime;
     private final String endTime;
     private final int ownerId;
     private final int duration;
-    private final double distance;
+    private final float distance;
     private final float calories;
     private final float heartRate;
     private final float speed;
     private final String imageUrl;
 
-    public Record(String activityType, String startTime, String endTime, int ownerId, int duration, double distance, float calories, float heartRate, float speed, String imageUrl) {
+    public Record(int recordId, String activityType, String startTime, String endTime, int ownerId, int duration, float distance, float calories, float heartRate, float speed, String imageUrl) {
+        this.recordId = recordId;
         this.activityType = activityType;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -23,6 +25,10 @@ public class Record {
         this.heartRate = heartRate;
         this.speed = speed;
         this.imageUrl = imageUrl;
+    }
+
+    public int getRecordId() {
+        return recordId;
     }
 
     public String getActivityType() {

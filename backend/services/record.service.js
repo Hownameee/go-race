@@ -21,6 +21,25 @@ const recordService = {
     return result;
   },
 
+  getNewList: async function (userId, currentId) {
+    const list = await recordRepo.findNewRecordsByCurrentId(userId, currentId);
+    const result = await Promise.all(
+      list.map(async (item) => {
+        const { s3_key, ...itemWithoutS3Key } = item;
+        if (s3_key) {
+          const image_url = await getImageUrlS3(s3_key);
+          return {
+            ...itemWithoutS3Key,
+            image_url,
+          };
+        }
+        return itemWithoutS3Key;
+      }),
+    );
+
+    return result;
+  },
+
   getRecord: async function (userId, recordId) {
     return await recordRepo.findRecordByRecordId(userId, recordId);
   },

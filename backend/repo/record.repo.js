@@ -3,12 +3,23 @@ import db from '../utils/db/db.js';
 const recordRepo = {
   findRecordsByUserId: async function (userId, offset, quantity) {
     const sql = `
-        SELECT * FROM Record WHERE owner_id = ? 
-        ORDER BY start_time DESC 
+        SELECT * FROM Record 
+        WHERE owner_id = ? 
+        ORDER BY record_id DESC 
         LIMIT ? OFFSET ?
         `;
 
     return await db.prepare(sql).all(userId, quantity, offset);
+  },
+
+  findNewRecordsByCurrentId: async function (userId, currentId) {
+    const sql = `
+        SELECT * FROM Record 
+        WHERE owner_id = ? AND record_id > ?
+        ORDER BY record_id DESC
+        `;
+
+    return await db.prepare(sql).all(userId, currentId);
   },
 
   findRecordByRecordId: async function (userId, recordId) {

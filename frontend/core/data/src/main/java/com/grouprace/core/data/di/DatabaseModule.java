@@ -5,6 +5,7 @@ import android.content.Context;
 import androidx.room.Room;
 
 import com.grouprace.core.data.AppDatabase;
+import com.grouprace.core.data.dao.RecordDao;
 import com.grouprace.core.data.dao.RoutePointDao;
 
 import dagger.Module;
@@ -32,5 +33,10 @@ public class DatabaseModule {
     @Provides
     public RoutePointDao provideRoutePointDao(AppDatabase appDatabase) {
         return appDatabase.routePointDao();
+    }
+
+    @Provides
+    public RecordDao provideRecordDao(AppDatabase appDatabase) {
+        return appDatabase.recordDao();
     }
 }

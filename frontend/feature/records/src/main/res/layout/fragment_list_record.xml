@@ -68,13 +68,13 @@
             android:layout_marginBottom="16dp"
             android:gravity="center"
             android:textColor="@color/text_secondary_dark"
-            android:textSize="16sp" />
+            android:textSize="16sp"/>
 
-        <com.grouprace.core.system.component.LoadingButton
+        <Button
             android:id="@+id/btn_retry"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:buttonText="@string/retry"/>
+            android:text="@string/retry"/>
 
     </LinearLayout>
 

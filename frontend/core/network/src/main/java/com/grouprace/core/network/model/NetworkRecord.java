@@ -3,6 +3,9 @@ package com.grouprace.core.network.model;
 import com.google.gson.annotations.SerializedName;
 
 public class NetworkRecord {
+    @SerializedName("record_id")
+    private int recordId;
+
     @SerializedName("activity_type")
     private String activityType;
 
@@ -34,6 +37,14 @@ public class NetworkRecord {
     private String imageUrl;
 
     // --- Getters and Setters ---
+
+    public int getRecordId() {
+        return recordId;
+    }
+
+    public void setRecordId(int recordId) {
+        this.recordId = recordId;
+    }
 
     public String getActivityType() {
         return activityType;
@@ -117,6 +128,6 @@ public class NetworkRecord {
 
 
     public com.grouprace.core.model.Record asExternalModel() {
-        return new com.grouprace.core.model.Record(this.activityType, this.startTime, this.endTime, this.ownerId, this.duration, this.distance, this.calories, this.heartRate, this.speed, this.imageUrl);
+        return new com.grouprace.core.model.Record(this.recordId, this.activityType, this.startTime, this.endTime, this.ownerId, this.duration, this.distance, this.calories, this.heartRate, this.speed, this.imageUrl);
     }
 }

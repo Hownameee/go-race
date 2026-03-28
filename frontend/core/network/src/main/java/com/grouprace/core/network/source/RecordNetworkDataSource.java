@@ -28,12 +28,12 @@ public class RecordNetworkDataSource {
         this.apiService = apiService;
     }
 
-    public LiveData<Result<List<NetworkRecord>>> getRecords(int userId, int offset) {
+    public LiveData<Result<List<NetworkRecord>>> getRecords(int currentId) {
         MutableLiveData<Result<List<NetworkRecord>>> liveData = new MutableLiveData<>();
         
         liveData.setValue(new Result.Loading<>());
 
-        apiService.getRecords(userId, offset).enqueue(new Callback<ApiResponse<RecordPayload>>() {
+        apiService.getRecords(1, currentId).enqueue(new Callback<ApiResponse<RecordPayload>>() {
             @Override
             public void onResponse(Call<ApiResponse<RecordPayload>> call, Response<ApiResponse<RecordPayload>> response) {
                 if (response.isSuccessful() && response.body() != null) {
