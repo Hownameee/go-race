@@ -22,7 +22,6 @@ public class AuthInterceptor implements Interceptor {
         Request originalRequest = chain.request();
 
         String token = sessionManager.getAuthToken();
-        token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzc0NjkwNjA4LCJleHAiOjE3NzQ2OTQyMDh9.Ql83hhsMwVpy8tZqUsc-Kh9jjIJTRMObDPRmPa5F6Vw";
 
         if (token != null) {
 

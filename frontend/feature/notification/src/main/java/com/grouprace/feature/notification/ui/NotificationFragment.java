@@ -27,6 +27,9 @@ import com.grouprace.feature.notification.ui.apdater.NotificationAdapter;
 import java.util.Collections;
 import java.util.List;
 
+import com.grouprace.core.system.ui.TopAppBarConfig;
+import com.grouprace.core.system.ui.TopAppBarHelper;
+
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
@@ -47,6 +50,8 @@ public class NotificationFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_notification, container, false);
 
+        TopAppBarHelper.setupTopAppBar(view, getTopAppBarConfig());
+
         // Request permission Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                 ContextCompat.checkSelfPermission(requireContext(),
@@ -59,7 +64,7 @@ public class NotificationFragment extends Fragment {
         SharedPreferences prefs = requireContext().getSharedPreferences("MyAppPrefs", getContext().MODE_PRIVATE);
         currentUserId = prefs.getInt("user_id", -1);
         if (currentUserId == -1) {
-            Toast.makeText(getContext(), "Chưa đăng nhập", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Not login", Toast.LENGTH_SHORT).show();
         }
 
         // Setup RecyclerView & Adapter
@@ -148,7 +153,7 @@ public class NotificationFragment extends Fragment {
 
     private void handleErrorState(String message) {
         if (adapter.getItemCount() == 0) {
-            Toast.makeText(getContext(), "Lỗi tải notifications: " + message, Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Error loading notifications: " + message, Toast.LENGTH_SHORT).show();
         } else {
             setLoadMoreVisibility(false, true);
         }
@@ -163,7 +168,7 @@ public class NotificationFragment extends Fragment {
         }
         if (lastShownNotificationId != null && latest.getId() == lastShownNotificationId) return;
         lastShownNotificationId = latest.getId();
-        Toast.makeText(getContext(), "Nhận notification mới!", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), "Recieve new notifications!", Toast.LENGTH_SHORT).show();
     }
 
     private void setLoadMoreVisibility(boolean isLoading, boolean isError) {
@@ -171,5 +176,17 @@ public class NotificationFragment extends Fragment {
             loadMoreLoading.setVisibility(isLoading ? View.VISIBLE : View.GONE);
         if (loadMoreError != null)
             loadMoreError.setVisibility(isError ? View.VISIBLE : View.GONE);
+    }
+
+    private TopAppBarConfig getTopAppBarConfig() {
+        return new TopAppBarConfig.Builder()
+                .setTitle("Notifications")
+                .setLeftIcon(com.grouprace.core.system.R.drawable.ic_back, v -> {
+                    // back click logic
+                    if (getActivity() != null) {
+                        getActivity().onBackPressed();
+                    }
+                })
+                .build();
     }
 }

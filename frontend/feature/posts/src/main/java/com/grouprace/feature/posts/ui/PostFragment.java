@@ -15,11 +15,17 @@ import com.grouprace.feature.posts.R;
 import com.grouprace.feature.posts.ui.adapter.PostAdapter;
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.Post;
-import java.util.List;
+import com.grouprace.core.system.ui.TopAppBarConfig;
+import com.grouprace.core.system.ui.TopAppBarHelper;
+import com.grouprace.core.navigation.AppNavigator;
+import javax.inject.Inject;
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class PostFragment extends Fragment {
+
+    @Inject
+    AppNavigator appNavigator;
 
     private PostViewModel viewModel;
     private RecyclerView rvPosts;
@@ -35,6 +41,8 @@ public class PostFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        TopAppBarHelper.setupTopAppBar(view, getTopAppBarConfig());
 
         rvPosts = view.findViewById(R.id.rv_posts);
         progressBar = view.findViewById(R.id.loading_state);
@@ -147,5 +155,17 @@ public class PostFragment extends Fragment {
             }
             }
         });
+    }
+
+    private TopAppBarConfig getTopAppBarConfig() {
+        return new TopAppBarConfig.Builder()
+                .setTitle("GORACE")
+                .setLeftIcon(com.grouprace.core.system.R.drawable.ic_app)
+                .setRightIcon(com.grouprace.core.system.R.drawable.ic_notification, v -> {
+                    if (appNavigator != null) {
+                        appNavigator.navigateToNotification(PostFragment.this);
+                    }
+                })
+                .build();
     }
 }

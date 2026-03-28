@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import com.grouprace.feature.login.ui.LoginFragment;
+import com.grouprace.feature.notification.ui.NotificationFragment;
 import com.grouprace.feature.profile.ui.ProfileFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.grouprace.core.system.ui.PlaceholderFragment;

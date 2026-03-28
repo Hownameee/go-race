@@ -3,7 +3,7 @@
 INSERT OR IGNORE INTO USERS (username, email, hashed_password, birthdate, fullname, avatar_url) VALUES
 ('john_doe', 'john@example.com', 'hashed_pw_1', '2005-07-05', 'John Doe', 'http://example.com/john.jpg'),
 ('jane_smith', 'jane@example.com', 'hashed_pw_2', '2005-09-05', 'Jane Smith', 'http://example.com/jane.jpg'),
-('runner_boy', 'runner@example.com', 'hashed_pw_3', '2005-08-05', 'Runner Boy', 'http://example.com/runner.jpg');
+('runner_boy', 'runner@example.com', 'hashed_pw_3', '2005-08-05', 'Runner Boy', 'http://example.com/runner.jpg'),
 ('KD', 'ld@example.com', '$2b$10$OKFQq2gUVgeOmsyEEuuAfuw9KL3Pgp4CYSjE0FRkWcSyeubg9nuHi', '2005-08-05', 'Kim duyen', 'http://example.com/runner.jpg');
 
 -- Insert mock records (Note: RECORD no longer has owner_id in your exact schema)

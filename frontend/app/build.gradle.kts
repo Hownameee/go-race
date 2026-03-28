@@ -49,6 +49,7 @@ dependencies {
     implementation(project(":feature:notification"))
     implementation(project(":core:data"))
     implementation(project(":core:system"))
+    implementation(project(":core:navigation"))
     implementation(libs.hilt.android)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)

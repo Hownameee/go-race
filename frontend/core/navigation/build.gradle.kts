@@ -1,10 +1,9 @@
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.hilt)
 }
 
 android {
-    namespace = "com.grouprace.feature.posts"
+    namespace = "com.grouprace.core.navigation"
     compileSdk {
         version = release(36)
     }
@@ -34,23 +33,6 @@ android {
 dependencies {
     implementation(libs.appcompat)
     implementation(libs.material)
-    
-    implementation(project(":core:data"))
-    implementation(project(":core:model"))
-
-    // Lifecycle
-    implementation(libs.lifecycle.viewmodel)
-    implementation(libs.lifecycle.livedata)
-
-    // Hilt
-    implementation(libs.hilt.android)
-    annotationProcessor(libs.hilt.compiler)
-
-    implementation(project(":core:common"))
-    implementation(project(":core:service"))
-    implementation(project(":core:map"))
-    implementation(project(":core:system"))
-    implementation(project(":core:navigation"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
