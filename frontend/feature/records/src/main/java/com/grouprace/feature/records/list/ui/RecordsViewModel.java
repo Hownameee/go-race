@@ -1,5 +1,7 @@
 package com.grouprace.feature.records.list.ui;
 
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
@@ -22,14 +24,12 @@ public class RecordsViewModel extends ViewModel {
     private final LiveData<Result<Boolean>> syncStatus;
     private final LiveData<List<Record>> records;
     private final int LIMIT = 10;
-    private int currentTopId = 0;
-    private int currentBottomId = 0;
-    private boolean isFirst = true;
+    private final MutableLiveData<Integer> limitLiveData = new MutableLiveData<>(LIMIT);
 
     @Inject
     public RecordsViewModel(RecordRepository recordRepository) {
         this.recordRepository = recordRepository;
-        records = recordRepository.getRecords();
+        this.records = Transformations.switchMap(limitLiveData, limit -> recordRepository.getRecords(limit));
         this.syncStatus = Transformations.switchMap(syncTrigger, recordRepository::syncRecords);
     }
 
@@ -41,19 +41,19 @@ public class RecordsViewModel extends ViewModel {
         return records;
     }
 
-    public void setTopId(int topId) {
-        currentTopId = topId;
-        if (isFirst) {
-            isFirst = false;
-            fetchRecords(currentTopId);
-        }
-    }
-
-    public void setBottomId(int bottomId) {
-        currentBottomId = bottomId;
+    public void syncById(int topId) {
+        fetchRecords(topId);
     }
 
     public void fetchRecords(int offset) {
         syncTrigger.setValue(offset);
+    }
+
+    public void loadMore(int currentListSize) {
+        int currentLimit = limitLiveData.getValue() != null ? limitLiveData.getValue() : LIMIT;
+        if (currentListSize < currentLimit) {
+            return;
+        }
+        limitLiveData.setValue(currentLimit + LIMIT);
     }
 }

@@ -19,6 +19,6 @@ public interface RecordDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAll(List<RecordEntity> records);
 
-    @Query("SELECT * FROM record ORDER BY recordId DESC")
-    LiveData<List<RecordEntity>> getAll();
+    @Query("SELECT * FROM record ORDER BY recordId DESC LIMIT :limit")
+    LiveData<List<RecordEntity>> getRecords(int limit);
 }

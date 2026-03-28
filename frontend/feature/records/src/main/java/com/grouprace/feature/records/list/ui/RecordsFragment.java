@@ -31,12 +31,12 @@ import dagger.hilt.android.AndroidEntryPoint;
  */
 @AndroidEntryPoint
 public class RecordsFragment extends Fragment {
-    private final boolean isLoading = false;
+    private boolean isFirst = true;
     private RecordsViewModel viewModel;
     private RecordAdapter adapter;
     private ListView listRecord;
     private LinearLayout loadingLayout;
-    private  LinearLayout errorLayout;
+    private LinearLayout errorLayout;
     private TextView errorText;
     private Button retryButton;
 
@@ -61,6 +61,8 @@ public class RecordsFragment extends Fragment {
         setupAdapter();
         viewModel = new ViewModelProvider(this).get(RecordsViewModel.class);
         observeViewModel();
+
+        setupScrollListener();
     }
 
     private void setupAdapter() {
@@ -71,19 +73,19 @@ public class RecordsFragment extends Fragment {
 
     private void observeViewModel() {
         viewModel.getRecords().observe(getViewLifecycleOwner(), records -> {
-            displayRecords(records);
-            if (records != null && !records.isEmpty()) {
-                listRecord.post(() -> {
-                    int firstPos = listRecord.getFirstVisiblePosition();
-                    int lastPos = listRecord.getLastVisiblePosition();
-                    Record topItem = (Record) listRecord.getItemAtPosition(firstPos);
-                    Record bottomItem = (Record) listRecord.getItemAtPosition(lastPos);
-                    viewModel.setTopId(topItem.getRecordId());
-                    viewModel.setBottomId(bottomItem.getRecordId());
-                });
+            // Log d all records
+            for (Record record : records) {
+                Log.d("RecordsFragment", "Record: " + record.getRecordId());
             }
-            else {
-                viewModel.setTopId(0);
+            displayRecords(records);
+            if (isFirst) {
+                isFirst = false;
+                if (!records.isEmpty()) {
+                    Record topItem = records.get(0);
+                    viewModel.syncById(topItem.getRecordId());
+                } else {
+                    viewModel.syncById(0);
+                }
             }
         });
 
@@ -99,10 +101,12 @@ public class RecordsFragment extends Fragment {
                 errorLayout.setVisibility(View.GONE);
                 listRecord.setVisibility(View.VISIBLE);
             } else if (result instanceof Result.Error) {
-                loadingLayout.setVisibility(View.GONE);
-                listRecord.setVisibility(View.GONE);
-                errorLayout.setVisibility(View.VISIBLE);
-                errorText.setText(((Result.Error<Boolean>) result).message);
+                if (adapter.isEmpty()) {
+                    loadingLayout.setVisibility(View.GONE);
+                    listRecord.setVisibility(View.GONE);
+                    errorLayout.setVisibility(View.VISIBLE);
+                    errorText.setText(((Result.Error<Boolean>) result).message);
+                }
             }
 
         });
@@ -129,4 +133,20 @@ public class RecordsFragment extends Fragment {
         }
     }
 
+    private void setupScrollListener() {
+        listRecord.setOnScrollListener(new android.widget.AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(android.widget.AbsListView view, int scrollState) {
+            }
+
+            @Override
+            public void onScroll(android.widget.AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                boolean isAtBottom = (firstVisibleItem + visibleItemCount) >= totalItemCount;
+                if (isAtBottom && totalItemCount > 0) {
+                    viewModel.loadMore(adapter.getCount());
+
+                }
+            }
+        });
+    }
 }

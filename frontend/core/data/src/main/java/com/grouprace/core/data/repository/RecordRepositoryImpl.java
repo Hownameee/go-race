@@ -28,8 +28,8 @@ public class RecordRepositoryImpl implements RecordRepository {
     }
 
     @Override
-    public LiveData<List<Record>> getRecords() {
-        return Transformations.map(recordDao.getAll(), entities ->
+    public LiveData<List<Record>> getRecords(int limit) {
+        return Transformations.map(recordDao.getRecords(limit), entities ->
                 entities.stream()
                         .map(RecordEntity::asExternalModel)
                         .collect(Collectors.toList())
