@@ -7,7 +7,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.grouprace.feature.login.ui.LoginFragment;
 import com.grouprace.feature.posts.ui.PostFragment;
+import com.grouprace.feature.profile.ui.ProfileFragment;
+import com.grouprace.feature.register.ui.RegisterFragment;
 import com.grouprace.feature.tracking.ui.TrackingFragment;
 
 import dagger.hilt.android.AndroidEntryPoint;

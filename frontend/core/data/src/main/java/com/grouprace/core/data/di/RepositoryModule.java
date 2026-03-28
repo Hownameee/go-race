@@ -1,5 +1,7 @@
 package com.grouprace.core.data.di;
 
+import com.grouprace.core.data.repository.AuthRepository;
+import com.grouprace.core.data.repository.AuthRepositoryImpl;
 import com.grouprace.core.data.repository.PostRepository;
 import com.grouprace.core.data.repository.PostRepositoryImpl;
 import com.grouprace.core.data.repository.TrackingRepository;
@@ -19,4 +21,7 @@ public abstract class RepositoryModule {
 
     @Binds
     public abstract PostRepository bindPostRepository(PostRepositoryImpl impl);
+
+    @Binds
+    public abstract AuthRepository bindAuthRepository(AuthRepositoryImpl impl);
 }
