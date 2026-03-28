@@ -6,6 +6,8 @@ import errorHandler from './middlewares/errorHandler.js';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 
+import authRoute from './routes/auth.route.js';
+
 const app = express();
 initDatabase();
 
@@ -14,6 +16,7 @@ app.use(cors());
 app.use(restResponse);
 
 // routes here
+app.use("/auth", authRoute);
 
 app.use(notFound);
 app.use(errorHandler);
