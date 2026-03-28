@@ -67,10 +67,12 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             holder.tvTime.setText(createdAtStr);
         }
 
-        if (item.isRead()) {
-            holder.itemView.setBackgroundColor(Color.parseColor("#FFEBEE"));
+        if (item.isRead() == false) {
+            holder.viewDot.setVisibility(View.VISIBLE);    // hiện dot nếu chưa đọc
+            holder.tvTitle.setTextColor(holder.itemView.getContext().getColor(com.grouprace.core.system.R.color.text_primary)); // màu chữ nổi bật
         } else {
-            holder.itemView.setBackgroundColor(Color.WHITE);
+            holder.viewDot.setVisibility(View.GONE);  // ẩn dot nếu đã đọc
+            holder.tvTitle.setTextColor(holder.itemView.getContext().getColor(com.grouprace.core.system.R.color.text_secondary)); // màu chữ mờ hơn
         }
 
         holder.itemView.setOnClickListener(v -> {
@@ -88,12 +90,14 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvTitle, tvMessage, tvTime;
+        View viewDot;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvTitle = itemView.findViewById(R.id.tv_title);
             tvMessage = itemView.findViewById(R.id.tv_message);
             tvTime = itemView.findViewById(R.id.tv_time);
+            viewDot = itemView.findViewById(R.id.view_dot);
         }
     }
 }

@@ -6,7 +6,6 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
-import com.grouprace.feature.notification.ui.NotificationFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.grouprace.core.system.ui.PlaceholderFragment;
 import com.grouprace.feature.tracking.ui.TrackingFragment;
@@ -42,8 +41,6 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new PlaceholderFragment();
             } else if (itemId == R.id.nav_you) {
                 fragment = new PlaceholderFragment();
-            } else if (itemId == R.id.nav_notifications) {
-                fragment = new NotificationFragment();
             }
 
             if (fragment != null) {
