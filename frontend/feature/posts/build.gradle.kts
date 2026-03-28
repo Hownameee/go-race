@@ -49,6 +49,7 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:service"))
     implementation(project(":core:map"))
+    implementation(project(":core:system"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

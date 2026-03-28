@@ -1,4 +1,21 @@
 package com.grouprace.core.data.dao;
 
-public class PostDao {
+import androidx.lifecycle.LiveData;
+import androidx.room.Dao;
+import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
+import androidx.room.Query;
+import com.grouprace.core.data.model.PostEntity;
+import java.util.List;
+
+@Dao
+public interface PostDao {
+    @Query("SELECT * FROM posts ORDER BY createdAt DESC")
+    LiveData<List<PostEntity>> getAllPosts();
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void upsertAll(List<PostEntity> posts);
+
+    @Query("DELETE FROM posts")
+    void deleteAll();
 }

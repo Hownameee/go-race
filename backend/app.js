@@ -7,6 +7,8 @@ import notFound from './middlewares/notFound.js';
 import errorHandler from './middlewares/errorHandler.js';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import followRoutes from './routes/follow.route.js';
+import postRoutes from './routes/post.route.js';
 
 import notificationRouter from './routes/notification.route.js';
 import deviceTokenRouter from './routes/device-token.route.js';
@@ -21,6 +23,8 @@ app.use(restResponse);
 // routes here
 app.use('/api/notifications', notificationRouter);
 app.use('/api/device-tokens', deviceTokenRouter);
+app.use(followRoutes);
+app.use(postRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

@@ -45,7 +45,10 @@ dependencies {
     implementation(project(":feature:posts"))
     implementation(project(":feature:notification"))
     implementation(project(":core:data"))
+    implementation(project(":core:system"))
     implementation(libs.hilt.android)
+    implementation(libs.navigation.fragment)
+    implementation(libs.navigation.ui)
     annotationProcessor(libs.hilt.compiler)
 
     implementation(platform(libs.firebase.bom))
