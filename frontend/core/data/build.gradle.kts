@@ -41,9 +41,11 @@ dependencies {
     implementation(project(":core:service"))
     implementation(project(":core:network"))
     implementation(project(":core:model"))
+    implementation(project(":core:notification"))
     implementation(project(":core:common"))
     annotationProcessor(libs.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    implementation(libs.retrofit.converter.gson)
 }

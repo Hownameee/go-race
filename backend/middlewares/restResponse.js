@@ -31,6 +31,14 @@ export default function restResponse(req, res, next) {
     });
   };
 
+  res.badRequest = (data = null, message = 'Bad Request') => {
+    res.status(400).json({
+      success: false,
+      data: data,
+      message: message,
+    });
+  };
+
   res.violate = (data = null, message = null) => {
     res.status(409).json({
       success: false,

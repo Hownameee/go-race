@@ -98,17 +98,26 @@ public class RecordsFragment extends Fragment {
                 }
             } else if (result instanceof Result.Success) {
                 loadingLayout.setVisibility(View.GONE);
-                errorLayout.setVisibility(View.GONE);
-                listRecord.setVisibility(View.VISIBLE);
+
+                if (adapter.isEmpty()) {
+                    listRecord.setVisibility(View.GONE);
+                    errorLayout.setVisibility(View.VISIBLE);
+                    errorText.setText("You have no records yet.");
+                    retryButton.setVisibility(View.GONE);
+                } else {
+                    errorLayout.setVisibility(View.GONE);
+                    listRecord.setVisibility(View.VISIBLE);
+                }
+
             } else if (result instanceof Result.Error) {
                 if (adapter.isEmpty()) {
                     loadingLayout.setVisibility(View.GONE);
                     listRecord.setVisibility(View.GONE);
                     errorLayout.setVisibility(View.VISIBLE);
                     errorText.setText(((Result.Error<Boolean>) result).message);
+                    retryButton.setVisibility(View.VISIBLE);
                 }
             }
-
         });
     }
 

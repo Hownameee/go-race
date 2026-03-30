@@ -9,6 +9,6 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface RecordApiService {
-    @GET("api/users/{userId}/records/sync")
-    Call<ApiResponse<RecordPayload>> getRecords(@Path("userId") int userId, @Query("recordId") int currentId);
+    @GET("api/records/sync")
+    Call<ApiResponse<RecordPayload>> getRecords(@Query("recordId") int currentId);
 }

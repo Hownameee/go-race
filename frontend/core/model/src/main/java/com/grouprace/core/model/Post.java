@@ -14,6 +14,7 @@ public class Post {
     private String username;
     private String displayName;
     private String profilePictureUrl;
+    private boolean isLiked;
 
     public Post() {}
 
@@ -59,4 +60,6 @@ public class Post {
     public void setDisplayName(String displayName) { this.displayName = displayName; }
     public String getProfilePictureUrl() { return profilePictureUrl; }
     public void setProfilePictureUrl(String profilePictureUrl) { this.profilePictureUrl = profilePictureUrl; }
+    public boolean isLiked() { return isLiked; }
+    public void setLiked(boolean liked) { this.isLiked = liked; }
 }

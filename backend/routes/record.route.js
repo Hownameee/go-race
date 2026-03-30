@@ -4,12 +4,9 @@ import {
   recordIdSchema,
   recordSchema,
 } from '../utils/schemas/record.schema.js';
-import { userIdSchema } from '../utils/schemas/user.schema.js';
 import validation from '../middlewares/validation.js';
 
-const recordRouter = express.Router({ mergeParams: true });
-
-recordRouter.use(validation(userIdSchema, 'params'));
+const recordRouter = express.Router();
 
 recordRouter.get(
   '/',

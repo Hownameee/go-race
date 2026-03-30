@@ -33,7 +33,7 @@ public class RecordNetworkDataSource {
         
         liveData.setValue(new Result.Loading<>());
 
-        apiService.getRecords(1, currentId).enqueue(new Callback<ApiResponse<RecordPayload>>() {
+        apiService.getRecords(currentId).enqueue(new Callback<ApiResponse<RecordPayload>>() {
             @Override
             public void onResponse(Call<ApiResponse<RecordPayload>> call, Response<ApiResponse<RecordPayload>> response) {
                 if (response.isSuccessful() && response.body() != null) {
