@@ -1,18 +1,19 @@
 package com.grouprace.core.data.repository;
 
-import android.location.Location;
-
-import androidx.lifecycle.LiveData;
-
+import com.grouprace.core.data.model.Activity;
 import com.grouprace.core.data.model.RoutePoint;
+
+import java.util.List;
 
 public interface TrackingRepository {
 
-    void startNewActivity();
-
     void savePoint(RoutePoint point);
 
-    LiveData<Location> getCurrentLocation();
+    long createActivity(Activity activity);
 
-    void stopActivity();
+    void updateActivity(Activity activity);
+
+    Activity getActivityById(long id);
+
+    List<RoutePoint> getPointsForActivity(long activityId);
 }

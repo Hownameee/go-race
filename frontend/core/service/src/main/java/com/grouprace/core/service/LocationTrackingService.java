@@ -13,6 +13,7 @@ import android.annotation.SuppressLint;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -24,11 +25,15 @@ import com.google.android.gms.location.Priority;
 
 public class LocationTrackingService extends Service {
 
-    public static final MutableLiveData<Location> locationLiveData = new MutableLiveData<>();
+    private static final MutableLiveData<Location> locationLiveData = new MutableLiveData<>();
+
+    public static LiveData<Location> getLocationLiveData() {
+        return locationLiveData;
+    }
 
     private static final String CHANNEL_ID = "location_tracking_channel";
     private static final int NOTIFICATION_ID = 1001;
-    private static final long LOCATION_INTERVAL_MS = 3000L;
+    private static final long LOCATION_INTERVAL_MS = 1000L;
     private static final float ACCURACY_THRESHOLD = 20f;
 
     private FusedLocationProviderClient fusedLocationClient;
