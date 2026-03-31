@@ -1,3 +1,27 @@
+CREATE TABLE IF NOT EXISTS NOTIFICATIONS (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    type TEXT CHECK (type IN ('like','comment','follow','system')) NOT NULL,
+    actor_id INTEGER,
+    activity_id INTEGER,
+    title TEXT NOT NULL,
+    message TEXT,
+    read BOOLEAN DEFAULT FALSE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (actor_id) REFERENCES users(user_id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS DEVICE_TOKENS (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    token TEXT NOT NULL UNIQUE,
+    platform TEXT DEFAULT 'android',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
 -- just demo table will change in the future
 CREATE TABLE IF NOT EXISTS RECORD (
     record_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,3 +60,59 @@ CREATE TABLE IF NOT EXISTS USERS (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME
 );
+
+CREATE TABLE IF NOT EXISTS POST (
+    post_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    record_id INTEGER,
+    owner_id INTEGER NOT NULL,
+    title TEXT,
+    description TEXT,
+    photo_url TEXT,
+    like_count INTEGER DEFAULT 0,
+    comment_count INTEGER DEFAULT 0,
+    view_mode TEXT NOT NULL CHECK (view_mode IN ('Everyone', 'Followers', 'Self')) DEFAULT 'Everyone',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (record_id) REFERENCES RECORD(record_id) ON DELETE SET NULL,
+    FOREIGN KEY (owner_id) REFERENCES USERS(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS COMMENT (
+    comment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    post_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (post_id) REFERENCES POST(post_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS LIKE (
+    post_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (post_id, user_id),
+    FOREIGN KEY (post_id) REFERENCES POST(post_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS FOLLOW (
+    follower_id INTEGER NOT NULL,
+    following_id INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (follower_id, following_id),
+    FOREIGN KEY (follower_id) REFERENCES USERS(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (following_id) REFERENCES USERS(user_id) ON DELETE CASCADE
+);
+
+-- Indexes for efficient cursor-based pagination on FOLLOW
+CREATE INDEX IF NOT EXISTS idx_follow_following ON FOLLOW(following_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_follow_follower ON FOLLOW(follower_id, created_at);
+
+-- Index for efficient cursor-based pagination on POST
+CREATE INDEX IF NOT EXISTS idx_post_created_at ON POST(created_at);
+
+-- Indexes for efficient cursor-based pagination on COMMENT
+CREATE INDEX IF NOT EXISTS idx_comment_post_created ON COMMENT(post_id, created_at);
+
+-- Index for efficient like lookups
+CREATE INDEX IF NOT EXISTS idx_like_post_user ON LIKE(post_id, user_id);

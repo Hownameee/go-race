@@ -6,13 +6,14 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.grouprace.feature.login.ui.LoginFragment;
-import com.grouprace.feature.posts.ui.PostFragment;
+import com.grouprace.feature.notification.ui.NotificationFragment;
 import com.grouprace.feature.profile.ui.ProfileFragment;
-import com.grouprace.feature.register.ui.RegisterFragment;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.grouprace.core.system.ui.PlaceholderFragment;
 import com.grouprace.feature.tracking.ui.TrackingFragment;
-
+import com.grouprace.feature.posts.ui.PostFragment;
+import com.grouprace.feature.register.ui.RegisterFragment;
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
@@ -24,22 +25,32 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
 
         if (savedInstanceState == null) {
             loadFragment(new PostFragment());
         }
 
         bottomNav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.nav_posts) {
-                loadFragment(new PostFragment());
-                return true;
-            } else if (id == R.id.nav_tracking) {
-                loadFragment(new TrackingFragment());
-                return true;
+            Fragment fragment = null;
+            int itemId = item.getItemId();
+
+            if (itemId == R.id.nav_home) {
+                fragment = new PostFragment();
+            } else if (itemId == R.id.nav_maps) {
+                fragment = new PlaceholderFragment();
+            } else if (itemId == R.id.nav_record) {
+                fragment = new TrackingFragment();
+            } else if (itemId == R.id.nav_clubs) {
+                fragment = new LoginFragment();
+            } else if (itemId == R.id.nav_you) {
+                fragment = new ProfileFragment();
             }
-            return false;
+
+            if (fragment != null) {
+                loadFragment(fragment);
+            }
+            return true;
         });
     }
 
