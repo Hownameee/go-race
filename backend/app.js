@@ -15,6 +15,7 @@ import postRoutes from './routes/post.route.js';
 import notificationRouter from './routes/notification.route.js';
 import deviceTokenRouter from './routes/device-token.route.js';
 import { auth } from './middlewares/auth.middleware.js';
+import userRoutes from './routes/user.route.js';
 
 const app = express();
 initDatabase();
@@ -28,12 +29,13 @@ app.use(restResponse);
 app.use('/api/notifications', notificationRouter);
 app.use('/api/device-tokens', deviceTokenRouter);
 app.use("/auth", authRoute);
+app.use(userRoutes)
 
-app.use(auth)
+// app.use(auth)
 app.use(followRoutes);
 app.use(postRoutes);
 
-app.use(notFound);
+// app.use(notFound);
 app.use(errorHandler);
 
 export default app;

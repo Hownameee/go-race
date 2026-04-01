@@ -74,10 +74,14 @@ public class NotificationFragment extends Fragment {
         recyclerView.setAdapter(adapter);
 
         // Click listener
-        adapter.setOnNotificationClickListener(notification ->
-                Toast.makeText(getContext(), "Click: " + notification.getTitle(), Toast.LENGTH_SHORT).show()
-        );
-
+        adapter.setOnNotificationClickListener(notification -> {
+            // ✅ Call ViewModel to mark as read
+            if (!notification.isRead()) {
+                viewModel.markAsRead(notification);
+            }
+            // Optional: keep your current behavior
+            Toast.makeText(getContext(), "Click: " + notification.getTitle(), Toast.LENGTH_SHORT).show();
+        });
         setupLoadMoreViews(view);
 
         // Setup ViewModel

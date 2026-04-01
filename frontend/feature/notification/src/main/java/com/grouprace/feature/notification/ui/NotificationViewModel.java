@@ -80,4 +80,18 @@ public class NotificationViewModel extends ViewModel {
         }
         return notificationsResult;
     }
+    public void markAsRead(NotificationModel notification) {
+        notification.setRead(true);
+        notificationsResult.setValue(new Result.Success<>(new ArrayList<>(allNotifications)));
+        LiveData<Result<Boolean>> source = repository.markAsRead(notification.getId());
+
+        notificationsResult.addSource(source, result -> {
+
+            if (result instanceof Result.Error) {
+                notification.setRead(false);
+                notificationsResult.setValue(new Result.Success<>(new ArrayList<>(allNotifications)));
+            }
+            notificationsResult.removeSource(source);
+        });
+    }
 }

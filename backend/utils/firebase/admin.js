@@ -1,5 +1,6 @@
 import fs from 'fs';
 import { createRequire } from 'module';
+import config from '../../config/config.js';
 
 const require = createRequire(import.meta.url);
 
@@ -16,7 +17,7 @@ let initialized = false;
 export function initFirebaseAdmin() {
   if (initialized) return;
 
-  const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+  const serviceAccountPath = config.FIREBASE_SERVICE_ACCOUNT_PATH;
 
   if (!serviceAccountPath) {
     console.warn(

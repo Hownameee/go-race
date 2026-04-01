@@ -15,5 +15,7 @@ public interface NotificationRepository {
 
     void addNotification(NotificationModel notification);
 
+    LiveData<Result<Boolean>> markAsRead(int notificationId);
+
     void clearAll();
 }

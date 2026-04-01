@@ -33,6 +33,22 @@ const userController = {
   //     next(error);
   //   }
   // }
+
+  getUsersBySearch: async function (req, res, next) {
+      try {
+        const {search = "", limit = 10} = req.query;
+        const result = await userService.searchUsers(search, limit);
+        console.log(result)
+        return res.ok(result, "Search users successfully.");
+
+      } catch(error) {
+          if (error.status === 409) {
+              console.error(error);
+              return res.violate(null, error.message);
+          }
+          return next(error);
+      }
+  }
 };
 
 export default userController;

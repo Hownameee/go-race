@@ -25,6 +25,11 @@ const userService = {
       birthdate: userData.birthdate,
     });
   },
+
+  searchUsers: async function (search, limit) {
+    const data = await userRepo.searchUsers(search, limit);
+    return {searchUsers: data }
+  }
 };
 
 export default userService;

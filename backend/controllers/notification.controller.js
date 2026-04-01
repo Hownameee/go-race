@@ -47,9 +47,8 @@ const notificationController = {
     try {
       const id = req.params.id;
       await notificationService.markAsRead(id);
-      res.ok({ success: true });
+      res.ok();
     } catch (err) {
-      console.error(err);
       res.error(null, err.message);
     }
   },

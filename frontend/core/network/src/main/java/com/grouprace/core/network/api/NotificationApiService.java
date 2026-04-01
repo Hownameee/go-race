@@ -8,6 +8,8 @@ import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
+import retrofit2.http.Path;
 
 public interface NotificationApiService {
 
@@ -16,4 +18,7 @@ public interface NotificationApiService {
 
     @POST("api/device-tokens")
     Call<ApiResponse<Object>> registerDeviceToken(@Body RegisterDeviceTokenRequest body);
+
+    @PUT("api/notifications/{id}/read")
+    Call<ApiResponse<Object>> markAsRead(@Path("id") int notificationId);
 }

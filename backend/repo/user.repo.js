@@ -34,6 +34,38 @@ const userRepo = {
       .run(username, fullname, email, hashedPassword, birthdate)
       .lastInsertRowid;
   },
+
+  searchUsers: (search, limit) => {
+    // Case 1: empty search → get all users
+    if (!search || search.trim() === '') {
+      const sql = `
+        SELECT user_id, username, avatar_url
+        FROM USERS
+        ORDER BY created_at DESC
+        LIMIT ?
+      `;
+      return db.prepare(sql).all(limit); 
+    }
+
+    // Case 2: FTS search
+    const keyword = search
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .map(w => w + '*')
+      .join(' ');
+
+    const sql = `
+      SELECT u.user_id, u.username, u.avatar_url
+      FROM USERS u
+      JOIN USER_FTS fts ON u.user_id = fts.rowid
+      WHERE USER_FTS MATCH ?
+      ORDER BY bm25(USER_FTS)
+      LIMIT ?
+    `;
+
+    return db.prepare(sql).all(keyword, limit); 
+  }
 };
 
 export default userRepo;

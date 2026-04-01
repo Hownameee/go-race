@@ -116,3 +116,29 @@ CREATE INDEX IF NOT EXISTS idx_comment_post_created ON COMMENT(post_id, created_
 
 -- Index for efficient like lookups
 CREATE INDEX IF NOT EXISTS idx_like_post_user ON LIKE(post_id, user_id);
+
+---FTS5 extension for search user
+CREATE VIRTUAL TABLE IF NOT EXISTS USER_FTS USING FTS5(
+    username,
+    content="USERS",
+    content_rowid="user_id"
+);
+
+---trigger FTS user
+CREATE TRIGGER  IF NOT EXISTS USER_AI AFTER INSERT ON USERS BEGIN
+  INSERT INTO USER_FTS(rowid, username)
+  VALUES (NEW.user_id, NEW.username);
+END;
+
+CREATE TRIGGER IF NOT EXISTS USER_AD AFTER DELETE ON USERS BEGIN
+  INSERT INTO USER_FTS(USER_FTS, rowid, username)
+  VALUES('delete', OLD.user_id, OLD.username);
+END;
+
+CREATE TRIGGER IF NOT EXISTS USER_AU AFTER UPDATE ON USERS BEGIN
+  INSERT INTO USER_FTS(USER_FTS, rowid, username)
+  VALUES('delete', OLD.user_id, OLD.username);
+
+  INSERT INTO USER_FTS(rowid, username)
+  VALUES (NEW.user_id, NEW.username);
+END;

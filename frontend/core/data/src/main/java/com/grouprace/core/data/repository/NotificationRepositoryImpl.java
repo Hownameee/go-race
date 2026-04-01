@@ -85,4 +85,7 @@ public class NotificationRepositoryImpl implements NotificationRepository {
                 ))
                 .collect(Collectors.toList());
     }
+    public LiveData<Result<Boolean>> markAsRead(int notificationId) {
+        return networkDataSource.markAsRead(notificationId);
+    }
 }
