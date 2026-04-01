@@ -55,18 +55,18 @@ public class ActivityDetailFragment extends Fragment {
         TextView tvDistance = view.findViewById(R.id.tv_distance);
         TextView tvTime = view.findViewById(R.id.tv_time);
         TextView tvPace = view.findViewById(R.id.tv_pace);
-
+ 
         viewModel = new ViewModelProvider(this).get(ActivityDetailViewModel.class);
-
+ 
         mapView.getMapboxMap().loadStyle(Style.STANDARD, style -> {
             polylineManager = RouteMapHelper.createPolylineManager(mapView);
-
+ 
             viewModel.getRoutePoints().observe(getViewLifecycleOwner(), points -> {
                 RouteMapHelper.drawPolyline(polylineManager, points);
                 RouteMapHelper.zoomToFitRoute(mapView, points);
             });
         });
-
+ 
         viewModel.getFormattedDistance().observe(getViewLifecycleOwner(), tvDistance::setText);
         viewModel.getFormattedTime().observe(getViewLifecycleOwner(), tvTime::setText);
         viewModel.getFormattedPace().observe(getViewLifecycleOwner(), tvPace::setText);

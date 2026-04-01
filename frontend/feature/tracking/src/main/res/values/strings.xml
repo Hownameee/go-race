@@ -7,7 +7,10 @@
     <string name="finish_tracking">Finish</string>
     <string name="label_km">km</string>
     <string name="label_time">time</string>
-    <string name="label_pace">min/km</string>
+    <string name="label_pace">km/h</string>
     <string name="save_activity">Save</string>
     <string name="activity_title_hint">Name your activity</string>
+    <string name="history">History</string>
+    <string name="compare">Compare</string>
+
 </resources>

@@ -25,8 +25,21 @@ const recordController = {
   createRecord: async function (req, res) {
     const userId = req.user.userId;
     const recordData = req.body;
-    await recordService.createRecord(userId, recordData);
-    res.created();
+    const data = await recordService.createRecord(userId, recordData);
+    res.ok(data);
+  },
+
+  updateRecord: async function (req, res) {
+    const userId = req.user.userId;
+    const { recordId } = req.params;
+    const updateData = req.body;
+
+    try {
+      const result = await recordService.update(userId, recordId, updateData);
+      res.ok();
+    } catch (error) {
+      res.error(null, error.message);
+    }
   },
 };
 

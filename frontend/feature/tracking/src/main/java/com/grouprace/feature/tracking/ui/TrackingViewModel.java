@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.location.Location;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -12,7 +13,8 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 
-import com.grouprace.core.data.model.RoutePoint;
+import com.grouprace.core.common.result.Result;
+import com.grouprace.core.model.RoutePoint;
 import com.grouprace.core.service.LocationTrackingService;
 import com.grouprace.feature.tracking.domain.CreateActivityUseCase;
 import com.grouprace.feature.tracking.domain.FinishActivityUseCase;
@@ -21,6 +23,7 @@ import com.mapbox.geojson.Point;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -46,11 +49,13 @@ public class TrackingViewModel extends AndroidViewModel {
     private final List<Point> routePointsCache = new ArrayList<>();
     private long currentActivityId = -1;
     private double totalDistanceMeters = 0;
+    private static final double MIN_DISPLACEMENT_METERS = 2.0; // Filter out jitter
     private long trackingStartTime = 0;
     private long totalPausedTime = 0;
     private long pauseStartTime = 0;
     private Location lastLocation = null;
-
+    private Location lastSavedLocation = null;
+ 
     private final Handler timerHandler = new Handler(Looper.getMainLooper());
     private final ExecutorService backgroundExecutor = Executors.newSingleThreadExecutor();
     private Observer<Location> locationObserver;
@@ -74,17 +79,29 @@ public class TrackingViewModel extends AndroidViewModel {
     public LiveData<Double> getDistanceKm() { return distanceKm; }
     public LiveData<String> getPace() { return pace; }
     public LiveData<Long> getFinishedActivityId() { return finishedActivityId; }
-
+ 
+    public void resetFinishedActivityId() {
+        finishedActivityId.setValue(null);
+    }
+ 
     // --- Actions ---
 
+    /**
+     * Phase 1: Start Tracking.
+     * Clears unassigned points, creates a placeholder activity (ID 0), and starts GPS service.
+     */
     public void startTracking() {
         backgroundExecutor.execute(() -> {
-            currentActivityId = createActivityUseCase.execute(System.currentTimeMillis());
+            savePointUseCase.clearUnassignedPoints(); 
+            
+            // Note: createActivityUseCase currently returns 0 as a placeholder for unsynced records
+            currentActivityId = createActivityUseCase.execute();
             new Handler(Looper.getMainLooper()).post(() -> {
                 trackingStartTime = System.currentTimeMillis();
                 totalPausedTime = 0;
                 totalDistanceMeters = 0;
                 lastLocation = null;
+                lastSavedLocation = null;
                 routePointsCache.clear();
 
                 getApplication().startForegroundService(
@@ -101,6 +118,8 @@ public class TrackingViewModel extends AndroidViewModel {
         detachLocationObserver();
         stopTimer();
         pauseStartTime = System.currentTimeMillis();
+        lastLocation = null; // Reset baseline to prevent jumps on resume
+        lastSavedLocation = null;
         trackingState.setValue(TrackingState.PAUSED);
     }
 
@@ -111,6 +130,10 @@ public class TrackingViewModel extends AndroidViewModel {
         trackingState.setValue(TrackingState.TRACKING);
     }
 
+    /**
+     * Phase 4: Finish Tracking.
+     * Stops GPS, calculates final stats (subtracting pause), and syncs to backend.
+     */
     public void finishTracking() {
         detachLocationObserver();
         stopTimer();
@@ -126,14 +149,24 @@ public class TrackingViewModel extends AndroidViewModel {
         long endTime = System.currentTimeMillis();
         long elapsed = endTime - trackingStartTime - totalPausedTime;
         double distKm = totalDistanceMeters / 1000.0;
-        double paceVal = distKm > 0 ? (elapsed / 60000.0) / distKm : 0;
-
-        long activityId = currentActivityId;
-        backgroundExecutor.execute(() -> {
-            finishActivityUseCase.execute(activityId, endTime, distKm, elapsed, paceVal);
-            new Handler(Looper.getMainLooper()).post(() -> {
-                finishedActivityId.setValue(activityId);
-                trackingState.setValue(TrackingState.IDLE);
+        double speedKmH = (distKm > 0 && elapsed > 0) ? distKm / (elapsed / 3600000.0) : 0;
+ 
+        long startTime = trackingStartTime;
+        timerHandler.post(() -> {
+            LiveData<Result<Long>> resultLiveData = finishActivityUseCase.execute(startTime, endTime, distKm, elapsed, speedKmH);
+            resultLiveData.observeForever(new Observer<Result<Long>>() {
+                @Override
+                public void onChanged(Result<Long> result) {
+                    if (result instanceof Result.Success) {
+                        finishedActivityId.setValue(((Result.Success<Long>) result).data);
+                        trackingState.setValue(TrackingState.IDLE);
+                        resultLiveData.removeObserver(this);
+                    } else if (result instanceof Result.Error) {
+                        Log.e("TrackingViewModel", "Failed to finish record: " + ((Result.Error<Long>) result).message);
+                        trackingState.setValue(TrackingState.IDLE);
+                        resultLiveData.removeObserver(this);
+                    }
+                }
             });
         });
     }
@@ -144,30 +177,45 @@ public class TrackingViewModel extends AndroidViewModel {
         locationObserver = location -> {
             if (location == null) return;
 
-            // Update distance
-            if (lastLocation != null) {
-                totalDistanceMeters += lastLocation.distanceTo(location);
-                distanceKm.setValue(totalDistanceMeters / 1000.0);
-                updatePace();
+            // 1. Filter out stale locations from before the 'Start' button was clicked
+            if (location.getTime() < trackingStartTime) {
+                return;
             }
-            lastLocation = location;
 
-            // Add to polyline
-            Point point = Point.fromLngLat(location.getLongitude(), location.getLatitude());
-            routePointsCache.add(point);
-            polylinePoints.setValue(new ArrayList<>(routePointsCache));
-
-            // Save to DB via use case
-            savePointUseCase.execute(new RoutePoint(
-                    currentActivityId,
-                    location.getLatitude(),
-                    location.getLongitude(),
-                    location.getAltitude(),
-                    location.getTime(),
-                    location.getAccuracy()
-            ));
+            // 2. Initial point or significant displacement check
+            if (lastSavedLocation == null) {
+                // First valid point of the session
+                lastSavedLocation = location;
+                saveAndRecordPoint(location);
+            } else {
+                float displacement = lastSavedLocation.distanceTo(location);
+                if (displacement >= MIN_DISPLACEMENT_METERS) {
+                    totalDistanceMeters += displacement;
+                    distanceKm.setValue(totalDistanceMeters / 1000.0);
+                    lastSavedLocation = location;
+                    saveAndRecordPoint(location);
+                    updatePace();
+                }
+            }
         };
         LocationTrackingService.getLocationLiveData().observeForever(locationObserver);
+    }
+
+    private void saveAndRecordPoint(Location location) {
+        // Add to polyline
+        Point point = Point.fromLngLat(location.getLongitude(), location.getLatitude());
+        routePointsCache.add(point);
+        polylinePoints.setValue(new ArrayList<>(routePointsCache));
+
+        // Save to DB via use case
+        savePointUseCase.execute(new RoutePoint(
+                currentActivityId,
+                location.getLatitude(),
+                location.getLongitude(),
+                location.getAltitude(),
+                location.getTime(),
+                location.getAccuracy()
+        ));
     }
 
     private void detachLocationObserver() {
@@ -200,13 +248,11 @@ public class TrackingViewModel extends AndroidViewModel {
     private void updatePace() {
         double dist = totalDistanceMeters / 1000.0;
         Long elapsed = elapsedTimeMs.getValue();
-        if (dist > 0.01 && elapsed != null && elapsed > 0) {
-            double paceMinPerKm = (elapsed / 60000.0) / dist;
-            int minutes = (int) paceMinPerKm;
-            int seconds = (int) ((paceMinPerKm - minutes) * 60);
-            pace.setValue(String.format("%d:%02d", minutes, seconds));
+        if (dist > 0.001 && elapsed != null && elapsed > 0) {
+            double speedKmH = dist / (elapsed / 3600000.0);
+            pace.setValue(String.format(Locale.US, "%.1f", speedKmH));
         } else {
-            pace.setValue("--:--");
+            pace.setValue("0.0");
         }
     }
 

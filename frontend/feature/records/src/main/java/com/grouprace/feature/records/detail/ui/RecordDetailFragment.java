@@ -23,6 +23,7 @@ import com.grouprace.feature.records.R;
 
 public class RecordDetailFragment extends Fragment {
 
+    private static final String ARG_TITLE = "arg_title";
     private static final String ARG_ACTIVITY_TYPE = "arg_activity_type";
     private static final String ARG_START_TIME = "arg_start_time";
     private static final String ARG_DISTANCE = "arg_distance";
@@ -35,6 +36,7 @@ public class RecordDetailFragment extends Fragment {
     private ImageView ivImagePreview;
     private ProgressBar pbImageLoading;
     private TextView tvActivityTitle;
+    private TextView tvActivityType;
     private TextView tvStartTime;
     private TextView tvDistance;
     private TextView tvAvgSpeed;
@@ -46,11 +48,12 @@ public class RecordDetailFragment extends Fragment {
         super(R.layout.fragment_detail_record);
     }
 
-    public static RecordDetailFragment newInstance(String activityType, String startTime, String distance, String avgSpeed, String heartRate, String calories, int duration, String imageUrl) {
+    public static RecordDetailFragment newInstance(String title, String activityType, String startTime, String distance, String avgSpeed, String heartRate, String calories, int duration, String imageUrl) {
 
         RecordDetailFragment fragment = new RecordDetailFragment();
         Bundle args = new Bundle();
 
+        args.putString(ARG_TITLE, title);
         args.putString(ARG_ACTIVITY_TYPE, activityType);
         args.putString(ARG_START_TIME, DateUtils.formatStartTime(startTime));
         args.putString(ARG_DISTANCE, distance);
@@ -72,6 +75,7 @@ public class RecordDetailFragment extends Fragment {
         ivImagePreview = view.findViewById(R.id.iv_image_record);
         pbImageLoading = view.findViewById(R.id.pb_image_loading);
         tvActivityTitle = view.findViewById(R.id.tv_activity_title);
+        tvActivityType = view.findViewById(R.id.tv_activity_type);
         tvStartTime = view.findViewById(R.id.tv_start_time);
         tvDistance = view.findViewById(R.id.tv_distance);
         tvAvgSpeed = view.findViewById(R.id.tv_avg_speed);
@@ -80,7 +84,8 @@ public class RecordDetailFragment extends Fragment {
         tvDuration = view.findViewById(R.id.tv_duration);
 
         if (getArguments() != null) {
-            tvActivityTitle.setText(getArguments().getString(ARG_ACTIVITY_TYPE));
+            tvActivityTitle.setText(getArguments().getString(ARG_TITLE));
+            tvActivityType.setText(getArguments().getString(ARG_ACTIVITY_TYPE));
             tvStartTime.setText(getArguments().getString(ARG_START_TIME));
             tvDistance.setText(getArguments().getString(ARG_DISTANCE));
             tvAvgSpeed.setText(getArguments().getString(ARG_AVG_SPEED));

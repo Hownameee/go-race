@@ -21,6 +21,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.grouprace.feature.tracking.R;
+import com.grouprace.feature.records.list.ui.RecordsFragment;
 import com.mapbox.geojson.Point;
 import com.mapbox.maps.MapView;
 import com.mapbox.maps.Style;
@@ -61,6 +62,8 @@ public class TrackingFragment extends Fragment {
     private Button btnPause;
     private Button btnResume;
     private Button btnFinish;
+    private Button btnRecords;
+    private Button btnCompare;
 
     private static final long SNAP_BACK_DELAY_MS = 1000;
     private final Handler snapBackHandler = new Handler(Looper.getMainLooper());
@@ -114,6 +117,8 @@ public class TrackingFragment extends Fragment {
         btnPause = view.findViewById(R.id.btn_pause);
         btnResume = view.findViewById(R.id.btn_resume);
         btnFinish = view.findViewById(R.id.btn_finish);
+        btnRecords = view.findViewById(R.id.btn_records);
+        btnCompare = view.findViewById(R.id.btn_compare);
 
         mapView.getMapboxMap().loadStyle(Style.STANDARD, style -> {
             setupPolylineManager();
@@ -192,6 +197,7 @@ public class TrackingFragment extends Fragment {
         viewModel.getFinishedActivityId().observe(getViewLifecycleOwner(), activityId -> {
             if (activityId != null) {
                 navigateToSummary(activityId);
+                viewModel.resetFinishedActivityId();
             }
         });
     }
@@ -203,6 +209,8 @@ public class TrackingFragment extends Fragment {
         btnPause.setOnClickListener(v -> viewModel.pauseTracking());
         btnResume.setOnClickListener(v -> viewModel.resumeTracking());
         btnFinish.setOnClickListener(v -> viewModel.finishTracking());
+        btnRecords.setOnClickListener(v -> navigateToRecords());
+        btnCompare.setOnClickListener(v -> navigateToCompare());
     }
 
     private void updateButtonVisibility(TrackingViewModel.TrackingState state) {
@@ -211,6 +219,8 @@ public class TrackingFragment extends Fragment {
         boolean paused = state == TrackingViewModel.TrackingState.PAUSED;
 
         btnStart.setVisibility(idle ? View.VISIBLE : View.GONE);
+        btnRecords.setVisibility(idle ? View.VISIBLE : View.GONE);
+        btnCompare.setVisibility(idle ? View.VISIBLE : View.GONE);
         btnPause.setVisibility(tracking ? View.VISIBLE : View.GONE);
         btnResume.setVisibility(paused ? View.VISIBLE : View.GONE);
         btnFinish.setVisibility(!idle ? View.VISIBLE : View.GONE);
@@ -239,6 +249,28 @@ public class TrackingFragment extends Fragment {
                 .replace(containerId, ActivitySummaryFragment.newInstance(activityId))
                 .addToBackStack(null)
                 .commit();
+    }
+
+    private void navigateToRecords() {
+        requireActivity().getSupportFragmentManager().beginTransaction()
+                .replace(getId(), new RecordsFragment())
+                .addToBackStack(null)
+                .commit();
+    }
+
+    private void navigateToCompare() {
+        // We will create CompareRecordsFragment soon
+        // For now, it's a placeholder
+        try {
+            Class<?> compareFragmentClass = Class.forName("com.grouprace.feature.records.compare.ui.CompareRecordsFragment");
+            Fragment fragment = (Fragment) compareFragmentClass.newInstance();
+            requireActivity().getSupportFragmentManager().beginTransaction()
+                    .replace(getId(), fragment)
+                    .addToBackStack(null)
+                    .commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     // --- Lifecycle ---

@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.bumptech.glide.Glide;
@@ -27,58 +28,77 @@ import java.util.List;
 import java.util.Locale;
 
 public class RecordAdapter extends ArrayAdapter<Record> {
+
     public RecordAdapter(Context context, List<Record> records) {
         super(context, R.layout.item_record, records);
     }
 
+    private static class ViewHolder {
+        TextView start;
+        TextView speed;
+        TextView distance;
+        TextView duration;
+        TextView activityType;
+        ImageView ivIcon;
+        ProgressBar pbLoading;
+    }
+
+    @NonNull
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+        ViewHolder holder;
         Record currentRecord = getItem(position);
 
         if (convertView == null) {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_record, parent, false);
+            holder = new ViewHolder();
+            holder.start = convertView.findViewById(R.id.tv_start_time);
+            holder.speed = convertView.findViewById(R.id.tv_speed);
+            holder.distance = convertView.findViewById(R.id.distance);
+            holder.duration = convertView.findViewById(R.id.duration);
+            holder.activityType = convertView.findViewById(R.id.tv_activity_type);
+            holder.ivIcon = convertView.findViewById(R.id.iv_image_record);
+            holder.pbLoading = convertView.findViewById(R.id.pb_image_loading);
+            convertView.setTag(holder);
+        } else {
+            holder = (ViewHolder) convertView.getTag();
         }
 
         if (currentRecord != null) {
-            TextView start = convertView.findViewById(R.id.tv_start_time);
-            TextView speed = convertView.findViewById(R.id.tv_speed);
-            TextView distance = convertView.findViewById(R.id.distance);
-            TextView duration = convertView.findViewById(R.id.duration);
-            TextView activityType = convertView.findViewById(R.id.tv_activity_type);
-            ImageView ivIcon = convertView.findViewById(R.id.iv_image_record);
-            ProgressBar pbLoading = convertView.findViewById(R.id.pb_image_loading);
+            holder.start.setText(DateUtils.formatStartTime(currentRecord.getStartTime()));
+            holder.speed.setText(String.format(Locale.getDefault(), "%.1f km/h", currentRecord.getSpeed()));
+            holder.distance.setText(String.format(Locale.getDefault(), "%.2f km", currentRecord.getDistance()));
+            holder.duration.setText(TimeUtils.formatDuration(currentRecord.getDuration()));
+            holder.activityType.setText(currentRecord.getTitle());
 
-            start.setText(DateUtils.formatStartTime(currentRecord.getStartTime()));
-            speed.setText(String.format(Locale.getDefault(), "%.1f km/h", currentRecord.getSpeed()));
-            distance.setText(String.format(Locale.getDefault(), "%.2f km", currentRecord.getDistance()));
+            Glide.with(getContext()).clear(holder.ivIcon);
+            holder.ivIcon.setImageDrawable(null);
 
-            duration.setText(TimeUtils.formatDuration(currentRecord.getDuration()));
-
-            activityType.setText(currentRecord.getActivityType());
-            
             String imageUrl = currentRecord.getImageUrl();
             if (imageUrl != null && !imageUrl.isEmpty()) {
-                pbLoading.setVisibility(View.VISIBLE);
+                holder.pbLoading.setVisibility(View.VISIBLE);
+
                 Glide.with(getContext())
                         .load(imageUrl)
                         .diskCacheStrategy(DiskCacheStrategy.ALL)
                         .listener(new RequestListener<Drawable>() {
                             @Override
                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                                pbLoading.setVisibility(View.GONE);
+                                holder.pbLoading.setVisibility(View.GONE);
                                 return false;
                             }
 
                             @Override
                             public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                                pbLoading.setVisibility(View.GONE);
+                                holder.pbLoading.setVisibility(View.GONE);
                                 return false;
                             }
                         })
                         .centerCrop()
-                        .into(ivIcon);
+                        .into(holder.ivIcon);
             } else {
-                pbLoading.setVisibility(View.GONE);
+                holder.pbLoading.setVisibility(View.GONE);
+                holder.ivIcon.setImageDrawable(null);
             }
         }
 

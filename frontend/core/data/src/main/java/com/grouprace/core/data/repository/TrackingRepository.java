@@ -1,7 +1,9 @@
 package com.grouprace.core.data.repository;
 
-import com.grouprace.core.data.model.Activity;
-import com.grouprace.core.data.model.RoutePoint;
+import androidx.lifecycle.LiveData;
+import com.grouprace.core.common.result.Result;
+import com.grouprace.core.model.Record;
+import com.grouprace.core.model.RoutePoint;
 
 import java.util.List;
 
@@ -9,11 +11,15 @@ public interface TrackingRepository {
 
     void savePoint(RoutePoint point);
 
-    long createActivity(Activity activity);
+    LiveData<Result<Long>> createRecord(Record record);
+ 
+    LiveData<Result<Void>> updateRecord(Record record);
+ 
+    void updateRecordLocal(Record record);
 
-    void updateActivity(Activity activity);
+    Record getRecordById(long id);
 
-    Activity getActivityById(long id);
-
-    List<RoutePoint> getPointsForActivity(long activityId);
+    List<RoutePoint> getPointsForRecord(long recordId);
+ 
+    void clearUnassignedPoints();
 }

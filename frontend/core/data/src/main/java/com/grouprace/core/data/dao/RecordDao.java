@@ -5,6 +5,7 @@ import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Update;
 
 import com.grouprace.core.data.model.RecordEntity;
 
@@ -14,10 +15,16 @@ import java.util.List;
 public interface RecordDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insert(RecordEntity record);
+    long insert(RecordEntity record);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAll(List<RecordEntity> records);
+
+    @Update
+    void update(RecordEntity record);
+
+    @Query("SELECT * FROM record WHERE recordId = :id")
+    RecordEntity getById(int id);
 
     @Query("SELECT * FROM record ORDER BY recordId DESC LIMIT :limit")
     LiveData<List<RecordEntity>> getRecords(int limit);

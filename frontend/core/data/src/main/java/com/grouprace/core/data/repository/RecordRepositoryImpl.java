@@ -53,6 +53,7 @@ public class RecordRepositoryImpl implements RecordRepository {
                             .map(n -> new RecordEntity(
                                     n.getRecordId(),
                                     n.getActivityType(),
+                                    n.getTitle(),
                                     n.getStartTime(),
                                     n.getEndTime(),
                                     n.getOwnerId(),

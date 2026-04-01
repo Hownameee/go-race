@@ -7,23 +7,25 @@ import com.grouprace.core.model.Record;
 
 @Entity(tableName = "record")
 public class RecordEntity {
-    @PrimaryKey()
+    @PrimaryKey
     public int recordId;
     public String activityType;
+    public String title;
     public String startTime;
     public String endTime;
     public int ownerId;
-    public int duration;
-    public float distance;
+    public int duration;      // seconds
+    public double distance;   // km
     public float calories;
     public float heartRate;
-    public float speed;
+    public double speed;      // km/h
     public String imageUrl;
 
-    public RecordEntity(int recordId, String activityType, String startTime, String endTime, int ownerId, int duration, float distance, float calories, float heartRate, float speed, String imageUrl) {
+    public RecordEntity(int recordId, String activityType, String title, String startTime, String endTime, int ownerId, int duration, double distance, float calories, float heartRate, double speed, String imageUrl) {
         this.recordId = recordId;
         this.ownerId = ownerId;
         this.activityType = activityType;
+        this.title = title;
         this.startTime = startTime;
         this.endTime = endTime;
         this.duration = duration;
@@ -35,6 +37,6 @@ public class RecordEntity {
     }
 
     public Record asExternalModel() {
-        return new Record(recordId, activityType, startTime, endTime, ownerId, duration, distance, calories, heartRate, speed, imageUrl);
+        return new Record(recordId, activityType, title, startTime, endTime, ownerId, duration, distance, calories, heartRate, speed, imageUrl);
     }
 }

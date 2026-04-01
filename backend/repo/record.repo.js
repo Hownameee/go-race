@@ -28,11 +28,12 @@ const recordRepo = {
   },
 
   create: async function (userId, recordData) {
-    const sql = `INSERT INTO Record (owner_id, activity_type, start_time, end_time, duration_seconds, distance_km, calories_burned, heart_rate_avg, speed) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const sql = `INSERT INTO Record (owner_id, activity_type, title, start_time, end_time, duration_seconds, distance_km, calories_burned, heart_rate_avg, speed) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     const params = [
       userId,
       recordData.activityType,
+      recordData.title ?? null,
       recordData.startTime,
       recordData.endTime,
       recordData.duration,
@@ -42,7 +43,19 @@ const recordRepo = {
       recordData.speed,
     ];
 
-    await db.prepare(sql).run(...params);
+    const info = await db.prepare(sql).run(...params);
+    return info.lastInsertRowid;
+  },
+
+  update: async function (userId, recordId, updateData) {
+    const keys = Object.keys(updateData);
+    if (keys.length === 0) return;
+
+    const setClause = keys.map((key) => `${key} = ?`).join(', ');
+    const sql = `UPDATE Record SET ${setClause} WHERE owner_id = ? AND record_id = ?`;
+    const params = [...Object.values(updateData), userId, recordId];
+
+    const info = await db.prepare(sql).run(...params);
   },
 };
 

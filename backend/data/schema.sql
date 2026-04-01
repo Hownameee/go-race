@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS RECORD (
     activity_type TEXT NOT NULL CHECK (
         activity_type IN ('Walking', 'Running')
     ),
+    title TEXT,
     start_time DATETIME NOT NULL,
     end_time DATETIME NOT NULL,
     duration_seconds INTEGER,
@@ -121,3 +122,16 @@ CREATE INDEX IF NOT EXISTS idx_comment_post_created ON COMMENT(post_id, created_
 
 -- Index for efficient like lookups
 CREATE INDEX IF NOT EXISTS idx_like_post_user ON LIKE(post_id, user_id);
+
+CREATE TABLE IF NOT EXISTS ROUTE_POINTS (
+    point_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    record_id INTEGER NOT NULL,
+    latitude REAL NOT NULL,
+    longitude REAL NOT NULL,
+    altitude REAL,
+    timestamp DATETIME NOT NULL,
+    accuracy REAL,
+    FOREIGN KEY (record_id) REFERENCES RECORD(record_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_route_points_record ON ROUTE_POINTS(record_id);

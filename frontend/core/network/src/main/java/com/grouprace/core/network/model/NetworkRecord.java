@@ -9,6 +9,9 @@ public class NetworkRecord {
     @SerializedName("activity_type")
     private String activityType;
 
+    @SerializedName("title")
+    private String title;
+
     @SerializedName("start_time")
     private String startTime;
 
@@ -52,6 +55,14 @@ public class NetworkRecord {
 
     public void setActivityType(String activityType) {
         this.activityType = activityType;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public String getStartTime() {
@@ -128,6 +139,6 @@ public class NetworkRecord {
 
 
     public com.grouprace.core.model.Record asExternalModel() {
-        return new com.grouprace.core.model.Record(this.recordId, this.activityType, this.startTime, this.endTime, this.ownerId, this.duration, this.distance, this.calories, this.heartRate, this.speed, this.imageUrl);
+        return new com.grouprace.core.model.Record(this.recordId, this.activityType, this.title, this.startTime, this.endTime, this.ownerId, this.duration, this.distance, this.calories, this.heartRate, this.speed, this.imageUrl);
     }
 }

@@ -7,12 +7,14 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.grouprace.core.common.result.Result;
 import com.grouprace.feature.tracking.R;
 import com.mapbox.maps.MapView;
 import com.mapbox.maps.Style;
@@ -71,13 +73,33 @@ public class ActivitySummaryFragment extends Fragment {
         viewModel.getFormattedTime().observe(getViewLifecycleOwner(), tvTime::setText);
         viewModel.getFormattedPace().observe(getViewLifecycleOwner(), tvPace::setText);
 
+        viewModel.getRecord().observe(getViewLifecycleOwner(), record -> {
+            if (record != null && etTitle.getText().toString().isEmpty()) {
+                etTitle.setText(record.getTitle());
+            }
+        });
+
+        viewModel.getSaveResult().observe(getViewLifecycleOwner(), result -> {
+            if (result instanceof Result.Loading) {
+                btnSave.setEnabled(false);
+                btnSave.setText("Saving...");
+            } else if (result instanceof Result.Success) {
+                Toast.makeText(requireContext(), "Activity saved!", Toast.LENGTH_SHORT).show();
+                requireActivity().getSupportFragmentManager().popBackStack();
+            } else if (result instanceof Result.Error) {
+                btnSave.setEnabled(true);
+                btnSave.setText("Save");
+                String error = ((Result.Error<Void>) result).message;
+                Toast.makeText(requireContext(), "Error: " + error, Toast.LENGTH_LONG).show();
+            }
+        });
+
         btnSave.setOnClickListener(v -> {
             String title = etTitle.getText().toString().trim();
             if (title.isEmpty()) {
                 title = "Activity";
             }
             viewModel.saveTitle(title);
-            requireActivity().getSupportFragmentManager().popBackStack();
         });
     }
 
