@@ -5,7 +5,7 @@ import androidx.lifecycle.MediatorLiveData;
 
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.NotificationModel;
-import com.grouprace.core.network.model.NetworkNotification;
+import com.grouprace.core.network.model.notification.NetworkNotification;
 import com.grouprace.core.network.source.NotificationNetworkDataSource;
 
 import java.util.ArrayList;

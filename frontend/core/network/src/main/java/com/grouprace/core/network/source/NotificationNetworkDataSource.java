@@ -6,9 +6,9 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.grouprace.core.network.api.NotificationApiService;
-import com.grouprace.core.network.model.NetworkNotification;
-import com.grouprace.core.network.model.NotificationPayload;
-import com.grouprace.core.network.model.RegisterDeviceTokenRequest;
+import com.grouprace.core.network.model.notification.NetworkNotification;
+import com.grouprace.core.network.model.notification.NotificationPayload;
+import com.grouprace.core.network.model.notification.RegisterDeviceTokenRequest;
 import com.grouprace.core.network.utils.ApiResponse;
 import java.util.List;
 

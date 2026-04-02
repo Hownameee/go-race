@@ -35,19 +35,44 @@ const userRepo = {
       .lastInsertRowid;
   },
 
-  searchUsers: (search, limit) => {
-    // Case 1: empty search → get all users
-    if (!search || search.trim() === '') {
-      const sql = `
-        SELECT user_id, username, avatar_url
-        FROM USERS
-        ORDER BY created_at DESC
-        LIMIT ?
-      `;
-      return db.prepare(sql).all(limit); 
-    }
+  getSuggestUser: (currentUserId, limit) => {
+    const sql = `
+      SELECT 
+        u.user_id, 
+        u.fullname, 
+        u.address,
+        u.avatar_url,
+        (
+          -- 1. Mutual Connections: Count how many people the current user follows 
+          -- who ALSO follow this suggested user.
+          SELECT COUNT(*)
+          FROM FOLLOW f1
+          JOIN FOLLOW f2 ON f1.following_id = f2.follower_id
+          WHERE f1.follower_id = ? AND f2.following_id = u.user_id
+        ) AS mutual_count,
+        (
+          -- 2. Popularity Fallback: Total number of followers this user has.
+          SELECT COUNT(*)
+          FROM FOLLOW
+          WHERE following_id = u.user_id
+        ) AS follower_count
+      FROM USERS u
+      WHERE u.user_id != ? -- Exclude the current user
+        AND u.user_id NOT IN (
+          -- Exclude users the current user is already following
+          SELECT following_id 
+          FROM FOLLOW 
+          WHERE follower_id = ?
+        )
+      -- Rank by mutuals first, then popularity, then randomize ties to keep it fresh
+      ORDER BY mutual_count DESC, follower_count DESC, RANDOM()
+      LIMIT ?
+    `;
 
-    // Case 2: FTS search
+    return db.prepare(sql).all(currentUserId, currentUserId, currentUserId, limit);
+  },
+
+  searchUsersByName: (currentUserId, search, limit) => {
     const keyword = search
       .trim()
       .split(/\s+/)
@@ -56,15 +81,38 @@ const userRepo = {
       .join(' ');
 
     const sql = `
-      SELECT u.user_id, u.username, u.avatar_url
+      SELECT 
+          u.user_id, 
+          u.fullname, 
+          u.address, 
+          u.avatar_url,
+          EXISTS (
+              SELECT 1 FROM FOLLOW 
+              WHERE follower_id = ? AND following_id = u.user_id
+          ) AS is_following
       FROM USERS u
       JOIN USER_FTS fts ON u.user_id = fts.rowid
       WHERE USER_FTS MATCH ?
+      AND u.user_id != ? -- Loại bỏ chính mình khỏi kết quả tìm kiếm
       ORDER BY bm25(USER_FTS)
       LIMIT ?
     `;
 
-    return db.prepare(sql).all(keyword, limit); 
+    return db.prepare(sql).all(currentUserId, keyword, currentUserId, limit);
+  },
+
+  follow: (followerId, followingId) => {
+    const sql = `
+      INSERT OR IGNORE INTO FOLLOW (follower_id, following_id) 
+      VALUES (?, ?)`;
+    return db.prepare(sql).run(followerId, followingId);
+  },
+
+  unfollow: (followerId, followingId) => {
+    const sql = `
+    DELETE FROM FOLLOW 
+    WHERE follower_id = ? AND following_id = ?`;
+    return db.prepare(sql).run(followerId, followingId);
   }
 };
 

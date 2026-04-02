@@ -4,63 +4,96 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import com.google.android.material.imageview.ShapeableImageView;
-import com.grouprace.core.model.User;
+
+import com.grouprace.core.model.UserSearchResult;
 import com.grouprace.feature.search.R;
+
 import java.util.List;
 
-public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.UserViewHolder> {
+public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchViewHolder> {
 
-    private List<User> userList;
+    private List<UserSearchResult> users;
+    private boolean isClubTab = false;
+    private final OnUserActionListener listener;
 
-    public SearchAdapter(List<User> userList) {
-        this.userList = userList;
+    public interface OnUserActionListener {
+        void onActionClick(int userId, boolean isFollowing);
+    }
+
+    public SearchAdapter(List<UserSearchResult> users, OnUserActionListener listener) {
+        this.users = users;
+        this.listener = listener;
+    }
+
+    public void updateData(List<UserSearchResult> newData, boolean isClubTab) {
+        this.users = newData;
+        this.isClubTab = isClubTab;
+        notifyDataSetChanged();
+    }
+    public void updateUserStatus(int userId, boolean isFollowing) {
+        if (users == null) return;
+        for (int i = 0; i < users.size(); i++) {
+            if (users.get(i).getUserId() == userId) {
+                users.get(i).setFollowing(isFollowing);
+                notifyItemChanged(i); // Chỉ vẽ lại item này
+                break;
+            }
+        }
     }
 
     @NonNull
     @Override
-    public UserViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_suggested_user, parent, false);
-        return new UserViewHolder(view);
+    public SearchViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_suggested_user, parent, false);
+        return new SearchViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
-        User user = userList.get(position);
+    public void onBindViewHolder(@NonNull SearchViewHolder holder, int position) {
+        UserSearchResult user = users.get(position);
 
-        holder.tvName.setText(user.getName());
-        holder.tvLocation.setText(user.getLocation());
-        
-        // Logic hiển thị viền cam (stroke) cho Avatar nếu có Badge
-        if (user.isHasBadge()) {
-            holder.ivAvatar.setStrokeWidth(4f); // Chỉnh độ dày viền
+        holder.tvUserName.setText(user.getFullname());
+        holder.tvLocation.setText(user.getAddress());
+
+        if (isClubTab) {
+            holder.btnFollow.setVisibility(View.GONE);
         } else {
-            holder.ivAvatar.setStrokeWidth(0f);
+            holder.btnFollow.setVisibility(View.VISIBLE);
+            if (user.isFollowing()) {
+                holder.btnFollow.setText("Following");
+                holder.btnFollow.setAlpha(0.6f);
+            } else {
+                holder.btnFollow.setText("Follow");
+                holder.btnFollow.setAlpha(1.0f);
+            }
         }
 
         holder.btnFollow.setOnClickListener(v -> {
-            holder.btnFollow.setText("Following");
+            if (listener != null) {
+                listener.onActionClick(user.getUserId(), user.isFollowing());
+            }
         });
     }
 
     @Override
     public int getItemCount() {
-        return userList.size();
+        return users != null ? users.size() : 0;
     }
 
-    static class UserViewHolder extends RecyclerView.ViewHolder {
-        ShapeableImageView ivAvatar;
-        TextView tvName, tvLocation;
+    static class SearchViewHolder extends RecyclerView.ViewHolder {
+        ImageView ivAvatar;
+        TextView tvUserName, tvLocation;
         Button btnFollow;
 
-        public UserViewHolder(@NonNull View itemView) {
+        public SearchViewHolder(@NonNull View itemView) {
             super(itemView);
             ivAvatar = itemView.findViewById(R.id.ivAvatar);
-            tvName = itemView.findViewById(R.id.tvUserName);
+            tvUserName = itemView.findViewById(R.id.tvUserName);
             tvLocation = itemView.findViewById(R.id.tvLocation);
             btnFollow = itemView.findViewById(R.id.btnFollow);
         }

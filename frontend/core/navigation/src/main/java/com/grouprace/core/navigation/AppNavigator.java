@@ -4,4 +4,6 @@ import androidx.fragment.app.Fragment;
 
 public interface AppNavigator {
     void navigateToNotification(Fragment currentFragment);
+
+    void navigateToSearch(Fragment currentFragment);
 }

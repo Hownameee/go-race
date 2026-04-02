@@ -50,6 +50,7 @@ dependencies {
     implementation(project(":core:data"))
     implementation(project(":core:system"))
     implementation(project(":core:navigation"))
+    implementation(project(":feature:search"))
     implementation(libs.hilt.android)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)

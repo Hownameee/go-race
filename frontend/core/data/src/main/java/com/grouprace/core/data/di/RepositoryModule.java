@@ -6,6 +6,8 @@ import com.grouprace.core.data.repository.NotificationRepository;
 import com.grouprace.core.data.repository.NotificationRepositoryImpl;
 import com.grouprace.core.data.repository.PostRepository;
 import com.grouprace.core.data.repository.PostRepositoryImpl;
+import com.grouprace.core.data.repository.SearchRepository;
+import com.grouprace.core.data.repository.SearchRepositoryImpl;
 import com.grouprace.core.data.repository.TrackingRepository;
 import com.grouprace.core.data.repository.TrackingRepositoryImpl;
 
@@ -29,4 +31,7 @@ public abstract class RepositoryModule {
 
     @Binds
     public abstract NotificationRepository bindNotificationRepository(NotificationRepositoryImpl impl);
+
+    @Binds
+    public abstract SearchRepository bindSearchRepository(SearchRepositoryImpl impl);
 }

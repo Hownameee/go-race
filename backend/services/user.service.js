@@ -26,9 +26,22 @@ const userService = {
     });
   },
 
-  searchUsers: async function (search, limit) {
-    const data = await userRepo.searchUsers(search, limit);
-    return {searchUsers: data }
+  getSuggestedUsers: async function (currentUserId, limit) {
+    return await userRepo.getSuggestUser(currentUserId, limit);
+   
+  },
+
+  searchUsersByName: async function (currentUserId, searchQuery, limit) {
+    const safeQuery = searchQuery || '';
+    return await userRepo.searchUsersByName(currentUserId, safeQuery, limit);
+  },
+
+  followUser: async (followerId, followingId) => {
+    return await userRepo.follow(followerId, followingId);
+  },
+
+  unfollowUser: async (followerId, followingId) => {
+    return  await userRepo.unfollow(followerId, followingId);
   }
 };
 
