@@ -3,7 +3,8 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/black">
 
     <com.mapbox.maps.MapView
         android:id="@+id/map_view"
@@ -14,7 +15,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- History button (shown when IDLE) -->
+    <!-- History button (top-right, shown when IDLE) -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_records"
         style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
@@ -22,35 +23,44 @@
         android:layout_height="48dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
+        app:backgroundTint="@color/surface_dark"
+        app:iconTint="@color/text_primary"
         app:icon="@drawable/ic_history"
         app:iconGravity="textStart"
         app:iconPadding="0dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Compare button (shown when IDLE) -->
+    <!-- Compare button (top-right, shown when IDLE) -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_compare"
         style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="8dp"
+        app:backgroundTint="@color/surface_dark"
+        app:iconTint="@color/text_primary"
         app:icon="@drawable/ic_compare"
         app:iconGravity="textStart"
         app:iconPadding="0dp"
         app:layout_constraintTop_toBottomOf="@id/btn_records"
         app:layout_constraintEnd_toEndOf="@id/btn_records" />
- 
-    <!-- Stats overlay -->
+
+    <!-- Stats overlay (shown when TRACKING or PAUSED) -->
     <LinearLayout
         android:id="@+id/stats_bar"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="#CC000000"
-        android:padding="12dp"
+        android:background="@color/surface_dark"
+        android:padding="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="12dp"
         android:visibility="gone"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintBottom_toTopOf="@id/btn_row"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
             android:layout_width="0dp"
@@ -63,14 +73,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="0.00"
-                android:textColor="@android:color/white"
+                android:textColor="@color/text_primary"
                 android:textSize="24sp"
                 android:textStyle="bold" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/label_km"
-                android:textColor="#AAAAAA"
+                android:textColor="@color/text_secondary"
                 android:textSize="12sp" />
         </LinearLayout>
 
@@ -85,14 +95,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="00:00"
-                android:textColor="@android:color/white"
+                android:textColor="@color/text_primary"
                 android:textSize="24sp"
                 android:textStyle="bold" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/label_time"
-                android:textColor="#AAAAAA"
+                android:textColor="@color/text_secondary"
                 android:textSize="12sp" />
         </LinearLayout>
 
@@ -107,66 +117,73 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="--:--"
-                android:textColor="@android:color/white"
+                android:textColor="@color/text_primary"
                 android:textSize="24sp"
                 android:textStyle="bold" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/label_pace"
-                android:textColor="#AAAAAA"
+                android:textColor="@color/text_secondary"
                 android:textSize="12sp" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Start button (shown when IDLE) -->
-    <Button
-        android:id="@+id/btn_start"
+    <!-- Button row — single anchor at the bottom, buttons swap visibility inside -->
+    <LinearLayout
+        android:id="@+id/btn_row"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/start_tracking"
+        android:orientation="horizontal"
+        android:gravity="center"
         android:layout_marginBottom="32dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <!-- Pause button (shown when TRACKING) -->
-    <Button
-        android:id="@+id/btn_pause"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/pause_tracking"
-        android:visibility="gone"
-        android:layout_marginBottom="32dp"
-        android:layout_marginEnd="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/btn_finish" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_start"
+            android:layout_width="160dp"
+            android:layout_height="52dp"
+            android:text="@string/start_tracking"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            app:backgroundTint="@color/error_red"
+            app:cornerRadius="26dp" />
 
-    <!-- Resume button (shown when PAUSED) -->
-    <Button
-        android:id="@+id/btn_resume"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/resume_tracking"
-        android:visibility="gone"
-        android:layout_marginBottom="32dp"
-        android:layout_marginEnd="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/btn_finish" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_pause"
+            android:layout_width="130dp"
+            android:layout_height="52dp"
+            android:text="@string/pause_tracking"
+            android:textColor="@color/text_primary"
+            app:backgroundTint="@color/surface_medium"
+            app:cornerRadius="26dp"
+            android:visibility="gone"
+            android:layout_marginEnd="8dp" />
 
-    <!-- Finish button (shown when TRACKING or PAUSED) -->
-    <Button
-        android:id="@+id/btn_finish"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/finish_tracking"
-        android:visibility="gone"
-        android:layout_marginBottom="32dp"
-        android:layout_marginStart="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@id/btn_pause"
-        app:layout_constraintEnd_toEndOf="parent" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_resume"
+            android:layout_width="130dp"
+            android:layout_height="52dp"
+            android:text="@string/resume_tracking"
+            android:textColor="@color/text_primary"
+            app:backgroundTint="@color/surface_medium"
+            app:cornerRadius="26dp"
+            android:visibility="gone"
+            android:layout_marginEnd="8dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_finish"
+            android:layout_width="130dp"
+            android:layout_height="52dp"
+            android:text="@string/finish_tracking"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            app:backgroundTint="@color/error_red"
+            app:cornerRadius="26dp"
+            android:visibility="gone" />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

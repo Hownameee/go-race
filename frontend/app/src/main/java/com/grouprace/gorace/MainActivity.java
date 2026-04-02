@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
             if (itemId == R.id.nav_home) {
                 fragment = new PostFragment();
             } else if (itemId == R.id.nav_maps) {
-                fragment = new PlaceholderFragment();
+                fragment = new TrackingFragment();
             } else if (itemId == R.id.nav_record) {
                 fragment = new TrackingFragment();
             } else if (itemId == R.id.nav_clubs) {

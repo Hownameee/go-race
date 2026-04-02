@@ -25,8 +25,8 @@ import com.grouprace.feature.records.list.ui.RecordsFragment;
 import com.mapbox.geojson.Point;
 import com.mapbox.maps.MapView;
 import com.mapbox.maps.Style;
+import com.mapbox.maps.Style;
 import com.mapbox.maps.plugin.Plugin;
-import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationManager;
 import com.mapbox.maps.plugin.locationcomponent.LocationComponentPlugin;
 import com.mapbox.maps.plugin.viewport.ViewportPlugin;
 import com.mapbox.maps.plugin.viewport.ViewportStatus;
@@ -46,8 +46,8 @@ import dagger.hilt.android.AndroidEntryPoint;
 public class TrackingFragment extends Fragment {
 
     private MapView mapView;
+    private Style mapStyle;
     private TrackingViewModel viewModel;
-    private PolylineAnnotationManager polylineManager;
     private ViewportPlugin viewport;
     private FollowPuckViewportState followState;
 
@@ -120,8 +120,9 @@ public class TrackingFragment extends Fragment {
         btnRecords = view.findViewById(R.id.btn_records);
         btnCompare = view.findViewById(R.id.btn_compare);
 
-        mapView.getMapboxMap().loadStyle(Style.STANDARD, style -> {
-            setupPolylineManager();
+        mapView.getMapboxMap().loadStyle(Style.DARK, style -> {
+            mapStyle = style;
+            RouteMapHelper.setupRouteLayer(style);
             requestLocationPermission();
         });
 
@@ -175,10 +176,6 @@ public class TrackingFragment extends Fragment {
         viewport.addStatusObserver(statusObserver);
     }
 
-    private void setupPolylineManager() {
-        polylineManager = RouteMapHelper.createPolylineManager(mapView);
-    }
-
     // --- Observe ViewModel ---
 
     private void observeViewModel() {
@@ -230,7 +227,7 @@ public class TrackingFragment extends Fragment {
     // --- Map updates ---
 
     private void drawPolyline(List<Point> points) {
-        RouteMapHelper.drawPolyline(polylineManager, points);
+        RouteMapHelper.drawRoute(mapStyle, points);
     }
 
     private void updateTimeDisplay(Long millis) {

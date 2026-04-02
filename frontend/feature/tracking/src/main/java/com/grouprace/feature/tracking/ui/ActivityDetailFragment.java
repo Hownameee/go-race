@@ -14,7 +14,6 @@ import androidx.lifecycle.ViewModelProvider;
 import com.grouprace.feature.tracking.R;
 import com.mapbox.maps.MapView;
 import com.mapbox.maps.Style;
-import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationManager;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -29,7 +28,6 @@ public class ActivityDetailFragment extends Fragment {
 
     private MapView mapView;
     private ActivityDetailViewModel viewModel;
-    private PolylineAnnotationManager polylineManager;
 
     public static ActivityDetailFragment newInstance(long activityId) {
         ActivityDetailFragment fragment = new ActivityDetailFragment();
@@ -58,11 +56,11 @@ public class ActivityDetailFragment extends Fragment {
  
         viewModel = new ViewModelProvider(this).get(ActivityDetailViewModel.class);
  
-        mapView.getMapboxMap().loadStyle(Style.STANDARD, style -> {
-            polylineManager = RouteMapHelper.createPolylineManager(mapView);
- 
+        mapView.getMapboxMap().loadStyle(Style.DARK, style -> {
+            RouteMapHelper.setupRouteLayer(style);
+
             viewModel.getRoutePoints().observe(getViewLifecycleOwner(), points -> {
-                RouteMapHelper.drawPolyline(polylineManager, points);
+                RouteMapHelper.drawRoute(style, points);
                 RouteMapHelper.zoomToFitRoute(mapView, points);
             });
         });
