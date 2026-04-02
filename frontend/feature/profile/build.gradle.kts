@@ -33,9 +33,6 @@ android {
 dependencies {
     implementation(libs.appcompat)
     implementation(libs.material)
-    implementation(libs.legacy.support.v4)
-    implementation(libs.lifecycle.livedata.ktx)
-    implementation(libs.lifecycle.viewmodel.ktx)
 
     implementation(project(":core:common"))
     implementation(project(":core:service"))
