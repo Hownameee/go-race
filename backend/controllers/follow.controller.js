@@ -1,4 +1,4 @@
-import followService from "../services/follow.service.js";
+import followService from '../services/follow.service.js';
 
 const followController = {
   async follow(req, res, next) {
@@ -6,7 +6,7 @@ const followController = {
       const followerId = req.user.userId;
       const followingId = parseInt(req.body.followingId);
       const newFollow = await followService.followUser(followerId, followingId);
-      return res.created(newFollow, "Followed successfully.");
+      return res.created(newFollow, 'Followed successfully.');
     } catch (error) {
       if (error.status === 409) {
         console.error(error);
@@ -21,7 +21,7 @@ const followController = {
       const followerId = req.user.userId;
       const followingId = parseInt(req.body.followingId);
       await followService.unfollowUser(followerId, followingId);
-      return res.ok(null, "Unfollowed successfully.");
+      return res.ok(null, 'Unfollowed successfully.');
     } catch (error) {
       if (error.status === 409) {
         console.error(error);
@@ -36,7 +36,7 @@ const followController = {
       const userId = req.user.userId;
       const { cursor, limit } = req.query;
       const result = await followService.getFollowers(userId, cursor, limit);
-      return res.ok(result, "Get followers successfully.");
+      return res.ok(result, 'Get followers successfully.');
     } catch (error) {
       if (error.status === 409) {
         console.error(error);
@@ -51,7 +51,7 @@ const followController = {
       const userId = req.user.userId;
       const { cursor, limit } = req.query;
       const result = await followService.getFollowing(userId, cursor, limit);
-      return res.ok(result, "Get following successfully.");
+      return res.ok(result, 'Get following successfully.');
     } catch (error) {
       if (error.status === 409) {
         console.error(error);

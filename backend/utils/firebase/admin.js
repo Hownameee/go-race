@@ -8,7 +8,7 @@ try {
   admin = require('firebase-admin');
 } catch (e) {
   // ignore; FCM will be disabled
-  console.warn("FCM disabled: firebase-admin could not be loaded.", e.message);
+  console.warn('FCM disabled: firebase-admin could not be loaded.', e.message);
 }
 
 let initialized = false;

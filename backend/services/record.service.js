@@ -1,10 +1,11 @@
 import recordRepo from '../repo/record.repo.js';
 import routePointRepo from '../repo/route-point.repo.js';
-import { getImageUrlS3 } from '../utils/s3/s3.js';
+import getImageFromRoutePoints from '../utils/map/map.js';
+import { getImageUrlS3, uploadImageS3 } from '../utils/s3/s3.js';
 
 const recordService = {
-  getList: async function (userId, offset = 0, quantity = 8) {
-    const list = await recordRepo.findRecordsByUserId(userId, offset, quantity);
+  getList: async function (userId) {
+    const list = await recordRepo.findAllRecordsByUserId(userId);
     const result = await Promise.all(
       list.map(async (item) => {
         const { s3_key, ...itemWithoutS3Key } = item;
@@ -23,7 +24,7 @@ const recordService = {
   },
 
   getNewList: async function (userId, currentId) {
-    const list = await recordRepo.findNewRecordsByCurrentId(userId, currentId);
+    const list = await recordRepo.findAroundRecordsByCurrentId(userId, currentId);
     const result = await Promise.all(
       list.map(async (item) => {
         const { s3_key, ...itemWithoutS3Key } = item;
@@ -42,7 +43,14 @@ const recordService = {
   },
 
   getRecord: async function (userId, recordId) {
-    return await recordRepo.findRecordByRecordId(userId, recordId);
+    const item = await recordRepo.findRecordByRecordId(userId, recordId);
+    if (!item) return null;
+    const { s3_key, ...itemWithoutS3Key } = item;
+    if (s3_key) {
+      const image_url = await getImageUrlS3(s3_key);
+      return { ...itemWithoutS3Key, image_url };
+    }
+    return itemWithoutS3Key;
   },
 
   /**
@@ -75,11 +83,23 @@ const recordService = {
     };
 
     const recordId = await recordRepo.create(userId, dbRecordData);
- 
+
     if (routePoints && routePoints.length > 0) {
+      const imagePromise = getImageFromRoutePoints(routePoints)
+        .then((imageBuffer) => {
+          const key = `records-image/${recordId + Date.now() + crypto.randomUUID()}.png`;
+          return uploadImageS3(imageBuffer, key);
+        })
+        .then(({ key }) => {
+          return recordRepo.update(userId, recordId, { s3_key: key });
+        })
+        .catch((err) => {
+          console.error(`[record.service] Failed to generate/upload image for record ${recordId}:`, err);
+        });
+
       await routePointRepo.createMany(recordId, routePoints);
     }
- 
+
     return {
       record_id: recordId,
       owner_id: userId,

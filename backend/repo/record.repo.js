@@ -1,6 +1,16 @@
 import db from '../utils/db/db.js';
 
 const recordRepo = {
+  findAllRecordsByUserId: async function (userId) {
+    const sql = `
+        SELECT * FROM Record 
+        WHERE owner_id = ?
+        ORDER BY record_id DESC
+        `;
+
+    return await db.prepare(sql).all(userId);
+  },
+
   findRecordsByUserId: async function (userId, offset, quantity) {
     const sql = `
         SELECT * FROM Record 
@@ -12,14 +22,15 @@ const recordRepo = {
     return await db.prepare(sql).all(userId, quantity, offset);
   },
 
-  findNewRecordsByCurrentId: async function (userId, currentId) {
+  findAroundRecordsByCurrentId: async function (userId, currentId) {
     const sql = `
         SELECT * FROM Record 
-        WHERE owner_id = ? AND record_id > ?
+        WHERE owner_id = ? AND (record_id > ? OR record_id < ?)
         ORDER BY record_id DESC
+        LIMIT 100
         `;
 
-    return await db.prepare(sql).all(userId, currentId);
+    return await db.prepare(sql).all(userId, currentId, currentId);
   },
 
   findRecordByRecordId: async function (userId, recordId) {
@@ -55,7 +66,7 @@ const recordRepo = {
     const sql = `UPDATE Record SET ${setClause} WHERE owner_id = ? AND record_id = ?`;
     const params = [...Object.values(updateData), userId, recordId];
 
-    const info = await db.prepare(sql).run(...params);
+    await db.prepare(sql).run(...params);
   },
 };
 

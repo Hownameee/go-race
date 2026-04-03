@@ -29,11 +29,7 @@ public class RecordRepositoryImpl implements RecordRepository {
 
     @Override
     public LiveData<List<Record>> getRecords(int limit) {
-        return Transformations.map(recordDao.getRecords(limit), entities ->
-                entities.stream()
-                        .map(RecordEntity::asExternalModel)
-                        .collect(Collectors.toList())
-        );
+        return Transformations.map(recordDao.getRecords(limit), entities -> entities.stream().map(RecordEntity::asExternalModel).collect(Collectors.toList()));
     }
 
     @Override
@@ -41,30 +37,15 @@ public class RecordRepositoryImpl implements RecordRepository {
         MutableLiveData<Result<Boolean>> resultData = new MutableLiveData<>();
         resultData.postValue(new Result.Loading<>());
 
-        // userId is hardcoded to 1 for now as per current project state
-        LiveData<Result<List<NetworkRecord>>> networkCall = recordNetworkDataSource.getRecords(currentId);
+        LiveData<Result<List<NetworkRecord>>> networkCall = recordNetworkDataSource.getAllRecords();
+//        LiveData<Result<List<NetworkRecord>>> networkCall = recordNetworkDataSource.getRecords(currentId);
 
         networkCall.observeForever(result -> {
             if (result instanceof Result.Success) {
                 List<NetworkRecord> networkRecords = ((Result.Success<List<NetworkRecord>>) result).data;
 
                 if (networkRecords != null) {
-                    List<RecordEntity> entities = networkRecords.stream()
-                            .map(n -> new RecordEntity(
-                                    n.getRecordId(),
-                                    n.getActivityType(),
-                                    n.getTitle(),
-                                    n.getStartTime(),
-                                    n.getEndTime(),
-                                    n.getOwnerId(),
-                                    n.getDuration(),
-                                    n.getDistance(),
-                                    n.getCalories(),
-                                    n.getHeartRate(),
-                                    n.getSpeed(),
-                                    n.getImageUrl()
-                            ))
-                            .collect(Collectors.toList());
+                    List<RecordEntity> entities = networkRecords.stream().map(n -> new RecordEntity(n.getRecordId(), n.getActivityType(), n.getTitle(), n.getStartTime(), n.getEndTime(), n.getOwnerId(), n.getDuration(), n.getDistance(), n.getCalories(), n.getHeartRate(), n.getSpeed(), n.getImageUrl())).collect(Collectors.toList());
 
                     new Thread(() -> {
                         recordDao.insertAll(entities);

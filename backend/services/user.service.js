@@ -6,7 +6,7 @@ const userService = {
     return userRepo.getAllUsers(offset, limit);
   },
 
-  getUserById: async function (userId) { 
+  getUserById: async function (userId) {
     return await userRepo.getUserById(userId);
   },
 
@@ -15,7 +15,7 @@ const userService = {
   },
 
   createUser: async function (userData) {
-    const hashedPassword = await authService.hashPassword(userData.password); 
+    const hashedPassword = await authService.hashPassword(userData.password);
 
     return userRepo.createUser({
       username: userData.username,

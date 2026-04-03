@@ -14,6 +14,9 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface RecordApiService {
+    @GET("api/records")
+    Call<ApiResponse<RecordPayload>> getAllRecords();
+
     @GET("api/records/sync")
     Call<ApiResponse<RecordPayload>> getRecords(@Query("recordId") int currentId);
 
@@ -23,3 +26,4 @@ public interface RecordApiService {
     @PATCH("api/records/{recordId}")
     Call<ApiResponse<Void>> updateRecord(@Path("recordId") long recordId, @Body java.util.Map<String, Object> updateData);
 }
+

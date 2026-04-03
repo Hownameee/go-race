@@ -3,8 +3,7 @@ import recordService from '../services/record.service.js';
 const recordController = {
   getList: async function (req, res) {
     const userId = req.user.userId;
-    const offset = req.query.offset;
-    const data = await recordService.getList(userId, offset);
+    const data = await recordService.getList(userId);
     res.ok({ records: data });
   },
 
@@ -35,7 +34,7 @@ const recordController = {
     const updateData = req.body;
 
     try {
-      const result = await recordService.update(userId, recordId, updateData);
+      await recordService.update(userId, recordId, updateData);
       res.ok();
     } catch (error) {
       res.error(null, error.message);

@@ -13,8 +13,7 @@ const notificationController = {
 
   createNotification: async function (req, res) {
     try {
-      const { user_id, type, actor_id, activity_id, title, message } =
-        req.body;
+      const { user_id, type, actor_id, activity_id, title, message } = req.body;
 
       // Tạo notification trong DB
       const notification = await notificationService.create({
@@ -27,7 +26,9 @@ const notificationController = {
       });
 
       const shouldSendAll = type === 'system';
-      console.log(`Notification created for user_id=${user_id}, type=${type}, shouldSendAll=${shouldSendAll}`);
+      console.log(
+        `Notification created for user_id=${user_id}, type=${type}, shouldSendAll=${shouldSendAll}`,
+      );
       if (shouldSendAll) {
         // Send push (FCM) so all users receive when app is inactive
         await notificationService.sendPushAllUsers(notification);

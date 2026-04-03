@@ -33,16 +33,6 @@ public class RecordAdapter extends ArrayAdapter<Record> {
         super(context, R.layout.item_record, records);
     }
 
-    private static class ViewHolder {
-        TextView start;
-        TextView speed;
-        TextView distance;
-        TextView duration;
-        TextView activityType;
-        ImageView ivIcon;
-        ProgressBar pbLoading;
-    }
-
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
@@ -78,24 +68,19 @@ public class RecordAdapter extends ArrayAdapter<Record> {
             if (imageUrl != null && !imageUrl.isEmpty()) {
                 holder.pbLoading.setVisibility(View.VISIBLE);
 
-                Glide.with(getContext())
-                        .load(imageUrl)
-                        .diskCacheStrategy(DiskCacheStrategy.ALL)
-                        .listener(new RequestListener<Drawable>() {
-                            @Override
-                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                                holder.pbLoading.setVisibility(View.GONE);
-                                return false;
-                            }
+                Glide.with(getContext()).load(imageUrl).diskCacheStrategy(DiskCacheStrategy.ALL).listener(new RequestListener<Drawable>() {
+                    @Override
+                    public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                        holder.pbLoading.setVisibility(View.GONE);
+                        return false;
+                    }
 
-                            @Override
-                            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                                holder.pbLoading.setVisibility(View.GONE);
-                                return false;
-                            }
-                        })
-                        .centerCrop()
-                        .into(holder.ivIcon);
+                    @Override
+                    public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                        holder.pbLoading.setVisibility(View.GONE);
+                        return false;
+                    }
+                }).centerCrop().into(holder.ivIcon);
             } else {
                 holder.pbLoading.setVisibility(View.GONE);
                 holder.ivIcon.setImageDrawable(null);
@@ -103,5 +88,15 @@ public class RecordAdapter extends ArrayAdapter<Record> {
         }
 
         return convertView;
+    }
+
+    private static class ViewHolder {
+        TextView start;
+        TextView speed;
+        TextView distance;
+        TextView duration;
+        TextView activityType;
+        ImageView ivIcon;
+        ProgressBar pbLoading;
     }
 }

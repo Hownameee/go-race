@@ -1,19 +1,19 @@
-import followRepo from "../repo/follow.repo.js";
+import followRepo from '../repo/follow.repo.js';
 
 const DEFAULT_LIMIT = 20;
-const FAR_FUTURE = "9999-12-31T23:59:59.999Z";
+const FAR_FUTURE = '9999-12-31T23:59:59.999Z';
 
 const followService = {
   async followUser(followerId, followingId) {
     if (followerId === followingId) {
-      const error = new Error("You cannot follow yourself.");
+      const error = new Error('You cannot follow yourself.');
       error.status = 409;
       throw error;
     }
     const newFollow = await followRepo.insertFollow(followerId, followingId);
 
     if (!newFollow) {
-      throw new Error("Already following this user.");
+      throw new Error('Already following this user.');
     }
 
     return newFollow;

@@ -23,7 +23,6 @@ const notificationService = {
     await notificationRepository.markAsRead(id);
   },
 
-
   sendPushByUserId: async function (userId, data) {
     const admin = getFirebaseAdmin();
     if (!admin) return;
@@ -60,39 +59,37 @@ const notificationService = {
     }
   },
 
-
   sendPushAllUsers: async function (data) {
     const admin = getFirebaseAdmin();
     if (!admin) return;
 
     const message = {
-        topic: 'system-notifications', 
-        android: {
-            priority: 'high',
-        },
-        data: {
-            id: String(data?.id ?? ''),
-            user_id: String(data?.user_id ?? ''),
-            type: String(data?.type ?? 'system'),
-            actor_id: data?.actor_id == null ? '' : String(data.actor_id),
-            activity_id: data?.activity_id == null ? '' : String(data.activity_id),
-            title: String(data?.title ?? ''),
-            message: String(data?.message ?? ''),
-        },
-        notification: {
-            title: String(data?.title ?? 'Thông báo hệ thống'),
-            body: String(data?.message ?? ''),
-        },
+      topic: 'system-notifications',
+      android: {
+        priority: 'high',
+      },
+      data: {
+        id: String(data?.id ?? ''),
+        user_id: String(data?.user_id ?? ''),
+        type: String(data?.type ?? 'system'),
+        actor_id: data?.actor_id == null ? '' : String(data.actor_id),
+        activity_id: data?.activity_id == null ? '' : String(data.activity_id),
+        title: String(data?.title ?? ''),
+        message: String(data?.message ?? ''),
+      },
+      notification: {
+        title: String(data?.title ?? 'Thông báo hệ thống'),
+        body: String(data?.message ?? ''),
+      },
     };
 
     try {
-        const response = await admin.messaging().send(message);
-        console.log('[fcm] Topic broadcast sent successfully:', response);
+      const response = await admin.messaging().send(message);
+      console.log('[fcm] Topic broadcast sent successfully:', response);
     } catch (e) {
-        console.warn('[fcm] Topic broadcast failed:', e?.message || e);
+      console.warn('[fcm] Topic broadcast failed:', e?.message || e);
     }
   },
-
 };
 
 export default notificationService;

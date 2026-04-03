@@ -25,10 +25,10 @@ app.use(cors());
 app.use(restResponse);
 app.use('/public', express.static('public'));
 
-app.use("/auth", authRoute);
+app.use('/auth', authRoute);
 
 const apiRoute = express.Router();
-app.use(auth)
+app.use(auth);
 apiRoute.use('/records', recordRouter);
 apiRoute.use('/notifications', notificationRouter);
 apiRoute.use('/device-tokens', deviceTokenRouter);

@@ -11,7 +11,6 @@ const recordRouter = express.Router();
 
 recordRouter.get(
   '/',
-  validation(recordIdSchema, 'query'),
   recordController.getList,
 );
 
