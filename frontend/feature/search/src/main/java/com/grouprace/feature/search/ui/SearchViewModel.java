@@ -54,7 +54,6 @@ public class SearchViewModel extends ViewModel {
                 searchRepository.searchClubs(query)
         );
 
-        // Khởi tạo dữ liệu mặc định
         fetchSuggestedFriends();
     }
 

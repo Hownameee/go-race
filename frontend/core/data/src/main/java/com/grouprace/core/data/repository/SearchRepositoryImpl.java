@@ -1,5 +1,7 @@
 package com.grouprace.core.data.repository;
 
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Transformations;
 
@@ -43,6 +45,7 @@ public class SearchRepositoryImpl implements SearchRepository {
 
     @Override
     public LiveData<Result<List<UserSearchResult>>> getSuggestedUsers() {
+        Log.d("search suggest", "yes");
         return Transformations.map(searchNetworkDataSource.getSuggestedUsers(), result -> {
             if (result instanceof Result.Success) {
                 List<NetworkUserSearch> networkUsers = ((Result.Success<List<NetworkUserSearch>>) result).data;

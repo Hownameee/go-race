@@ -24,18 +24,18 @@ app.use(bodyParser.json());
 app.use(cors());
 app.use(restResponse);
 
-
 // routes here
-app.use('/api/notifications', notificationRouter);
-app.use('/api/device-tokens', deviceTokenRouter);
-app.use("/auth", authRoute);
-app.use(userRoutes)
+app.use('/auth', authRoute);
 
-// app.use(auth)
+app.use(auth);
 app.use(followRoutes);
 app.use(postRoutes);
+app.use(userRoutes);
 
-// app.use(notFound);
+app.use('/api/notifications', notificationRouter);
+app.use('/api/device-tokens', deviceTokenRouter);
+
+app.use(notFound);
 app.use(errorHandler);
 
 export default app;

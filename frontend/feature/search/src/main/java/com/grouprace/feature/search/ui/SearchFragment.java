@@ -83,17 +83,17 @@ public class SearchFragment extends Fragment {
             if (isFollowingNow) {
                 viewModel.unfollowUser(userId).observe(getViewLifecycleOwner(), result -> {
                     if (result instanceof Result.Success) {
-                        adapter.updateUserStatus(userId, false); // Chuyển về trạng thái Follow
+                        adapter.updateUserStatus(userId, false);
                     } else if (result instanceof Result.Error) {
-                        Toast.makeText(requireContext(), "Lỗi khi hủy follow", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), "Error unfollow", Toast.LENGTH_SHORT).show();
                     }
                 });
             } else {
                 viewModel.followUser(userId).observe(getViewLifecycleOwner(), result -> {
                     if (result instanceof Result.Success) {
-                        adapter.updateUserStatus(userId, true); // Chuyển về trạng thái Following
+                        adapter.updateUserStatus(userId, true);
                     } else if (result instanceof Result.Error) {
-                        Toast.makeText(requireContext(), "Lỗi khi follow", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), "Error follow", Toast.LENGTH_SHORT).show();
                     }
                 });
             }

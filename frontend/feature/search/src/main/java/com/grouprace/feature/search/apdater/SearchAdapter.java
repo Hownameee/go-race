@@ -66,10 +66,8 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
             holder.btnFollow.setVisibility(View.VISIBLE);
             if (user.isFollowing()) {
                 holder.btnFollow.setText("Following");
-                holder.btnFollow.setAlpha(0.6f);
             } else {
                 holder.btnFollow.setText("Follow");
-                holder.btnFollow.setAlpha(1.0f);
             }
         }
 

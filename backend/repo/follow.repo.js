@@ -1,4 +1,4 @@
-import db from "../utils/db/db.js";
+import db from '../utils/db/db.js';
 
 const followRepo = {
   async insertFollow(followerId, followingId) {

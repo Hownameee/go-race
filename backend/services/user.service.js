@@ -6,7 +6,7 @@ const userService = {
     return userRepo.getAllUsers(offset, limit);
   },
 
-  getUserById: async function (userId) { 
+  getUserById: async function (userId) {
     return await userRepo.getUserById(userId);
   },
 
@@ -15,7 +15,7 @@ const userService = {
   },
 
   createUser: async function (userData) {
-    const hashedPassword = await authService.hashPassword(userData.password); 
+    const hashedPassword = await authService.hashPassword(userData.password);
 
     return userRepo.createUser({
       username: userData.username,
@@ -28,21 +28,12 @@ const userService = {
 
   getSuggestedUsers: async function (currentUserId, limit) {
     return await userRepo.getSuggestUser(currentUserId, limit);
-   
   },
 
   searchUsersByName: async function (currentUserId, searchQuery, limit) {
     const safeQuery = searchQuery || '';
     return await userRepo.searchUsersByName(currentUserId, safeQuery, limit);
   },
-
-  followUser: async (followerId, followingId) => {
-    return await userRepo.follow(followerId, followingId);
-  },
-
-  unfollowUser: async (followerId, followingId) => {
-    return  await userRepo.unfollow(followerId, followingId);
-  }
 };
 
 export default userService;

@@ -33,14 +33,14 @@ public interface SearchApiService {
     /**
      * Theo dõi (Follow) một người dùng.
      */
-    @POST("api/users/{userId}/follow")
-    Call<ApiResponse<Void>> followUser(@Path("userId") int targetUserId);
+    @POST("api/users/{followingId}/follow")
+    Call<ApiResponse<Void>> followUser(@Path("followingId") int targetUserId);
 
     /**
      * Hủy theo dõi (Unfollow) một người dùng.
      */
-    @DELETE("api/users/{userId}/follow")
-    Call<ApiResponse<Void>> unfollowUser(@Path("userId") int targetUserId);
+    @DELETE("api/users/{followingId}/follow")
+    Call<ApiResponse<Void>> unfollowUser(@Path("followingId") int targetUserId);
 
 
     // --- CLUB ENDPOINTS (Thêm mới) ---

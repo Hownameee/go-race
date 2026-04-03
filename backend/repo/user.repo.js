@@ -69,7 +69,9 @@ const userRepo = {
       LIMIT ?
     `;
 
-    return db.prepare(sql).all(currentUserId, currentUserId, currentUserId, limit);
+    return db
+      .prepare(sql)
+      .all(currentUserId, currentUserId, currentUserId, limit);
   },
 
   searchUsersByName: (currentUserId, search, limit) => {
@@ -77,7 +79,7 @@ const userRepo = {
       .trim()
       .split(/\s+/)
       .filter(Boolean)
-      .map(w => w + '*')
+      .map((w) => w + '*')
       .join(' ');
 
     const sql = `
@@ -100,20 +102,6 @@ const userRepo = {
 
     return db.prepare(sql).all(currentUserId, keyword, currentUserId, limit);
   },
-
-  follow: (followerId, followingId) => {
-    const sql = `
-      INSERT OR IGNORE INTO FOLLOW (follower_id, following_id) 
-      VALUES (?, ?)`;
-    return db.prepare(sql).run(followerId, followingId);
-  },
-
-  unfollow: (followerId, followingId) => {
-    const sql = `
-    DELETE FROM FOLLOW 
-    WHERE follower_id = ? AND following_id = ?`;
-    return db.prepare(sql).run(followerId, followingId);
-  }
 };
 
 export default userRepo;

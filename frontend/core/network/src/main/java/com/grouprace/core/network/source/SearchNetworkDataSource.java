@@ -27,8 +27,6 @@ public class SearchNetworkDataSource {
         this.apiService = apiService;
     }
 
-    // --- USER METHODS (Giữ nguyên) ---
-
     public LiveData<Result<List<NetworkUserSearch>>> searchUsers(String query) {
         MutableLiveData<Result<List<NetworkUserSearch>>> liveData = new MutableLiveData<>();
         liveData.postValue(new Result.Loading<>());
@@ -68,8 +66,6 @@ public class SearchNetworkDataSource {
         apiService.getSuggestedClubs().enqueue(new ListCallback(liveData, "getSuggestedClubs"));
         return liveData;
     }
-
-    // --- FOLLOW METHODS (Giữ nguyên) ---
 
     public LiveData<Result<Boolean>> followUser(int targetUserId) {
         MutableLiveData<Result<Boolean>> liveData = new MutableLiveData<>();
