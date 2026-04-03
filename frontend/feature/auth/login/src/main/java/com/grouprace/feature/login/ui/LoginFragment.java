@@ -22,6 +22,10 @@ import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class LoginFragment extends Fragment {
+    public interface NavigationHost {
+        void openRegister();
+    }
+
     private EditText editEmail, editPassword;
     private Button buttonLogin, buttonBack, buttonGoToRegister;
 
@@ -63,7 +67,11 @@ public class LoginFragment extends Fragment {
 
     private void setupListeners() {
         buttonBack.setOnClickListener(v -> requireActivity().onBackPressed());
-        buttonGoToRegister.setOnClickListener(v -> requireActivity().onBackPressed());
+        buttonGoToRegister.setOnClickListener(v -> {
+            if (requireActivity() instanceof NavigationHost) {
+                ((NavigationHost) requireActivity()).openRegister();
+            }
+        });
 
         buttonLogin.setOnClickListener(v -> {
             String email = editEmail.getText().toString().trim();

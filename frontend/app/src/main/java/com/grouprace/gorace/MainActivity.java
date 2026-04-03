@@ -7,8 +7,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import com.grouprace.feature.login.ui.LoginFragment;
-import com.grouprace.feature.profile.ui.EditProfileFragment;
-import com.grouprace.feature.notification.ui.NotificationFragment;
 import com.grouprace.feature.profile.ui.ProfileFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.grouprace.core.system.ui.PlaceholderFragment;
@@ -18,7 +16,8 @@ import com.grouprace.feature.register.ui.RegisterFragment;
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity
+        implements LoginFragment.NavigationHost, RegisterFragment.NavigationHost {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
 
         if (savedInstanceState == null) {
-            loadFragment(new PostFragment());
+            loadFragment(new RegisterFragment());
         }
 
         bottomNav.setOnItemSelectedListener(item -> {
@@ -53,6 +52,22 @@ public class MainActivity extends AppCompatActivity {
             }
             return true;
         });
+    }
+
+    @Override
+    public void openRegister() {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, new RegisterFragment())
+                .addToBackStack(null)
+                .commit();
+    }
+
+    @Override
+    public void openLogin() {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, new LoginFragment())
+                .addToBackStack(null)
+                .commit();
     }
 
     private void loadFragment(Fragment fragment) {

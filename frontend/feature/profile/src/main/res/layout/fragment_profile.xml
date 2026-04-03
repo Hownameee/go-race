@@ -3,21 +3,26 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="@color/black"
     android:orientation="vertical">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:background="@color/white"
+        android:background="@color/black"
         android:paddingHorizontal="16dp">
 
-        <View
+        <ImageButton
+            android:id="@+id/button_back"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
-            android:background="@color/black" />
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_back"
+            android:contentDescription="Back"
+            android:tint="@color/text_primary" />
+
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -26,13 +31,29 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <View android:layout_width="24dp" android:layout_height="24dp" android:layout_marginEnd="16dp" android:background="@color/black" />
-            <View android:layout_width="24dp" android:layout_height="24dp" android:layout_marginEnd="16dp" android:background="@color/black" />
-            <View android:layout_width="24dp" android:layout_height="24dp" android:background="@color/black" />
+            <View
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginEnd="16dp"
+                android:background="@color/text_secondary" />
+
+            <View
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginEnd="16dp"
+                android:background="@color/text_secondary" />
+
+            <View
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:background="@color/text_secondary" />
         </LinearLayout>
     </RelativeLayout>
 
-    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/purple_200" />
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/surface_medium" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -50,7 +71,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="16dp"
+                android:background="@drawable/bg_stat_card">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -61,7 +83,7 @@
                     <View
                         android:layout_width="80dp"
                         android:layout_height="80dp"
-                        android:background="@color/purple_500" />
+                        android:background="@drawable/bg_avatar_placeholder" />
 
                     <LinearLayout
                         android:layout_width="wrap_content"
@@ -73,7 +95,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="TRUNG KIEN LE"
-                            android:textColor="@color/black"
+                            android:textColor="@color/text_primary"
                             android:textSize="20sp"
                             android:textStyle="bold" />
 
@@ -81,7 +103,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Ho Chi Minh City,\nVietnam"
-                            android:textColor="@color/purple_700"
+                            android:textColor="@color/text_secondary"
                             android:textSize="16sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -92,14 +114,46 @@
                     android:layout_marginTop="24dp"
                     android:orientation="horizontal">
 
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Following" android:textColor="@color/purple_700" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="@color/black" android:textSize="20sp" android:textStyle="bold" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Following"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="@color/text_primary"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
                     </LinearLayout>
 
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Followers" android:textColor="@color/purple_700" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="@color/black" android:textSize="20sp" android:textStyle="bold" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Followers"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="@color/text_primary"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -111,30 +165,46 @@
 
                     <Button
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="55dp"
                         android:layout_weight="1"
                         android:layout_marginStart="8dp"
-                        android:backgroundTint="@color/white"
+                        android:background="@drawable/bg_button_rounded"
                         android:text="Edit"
-                        android:textColor="@color/teal_700"
-                        style="?android:attr/borderlessButtonStyle"/>
+                        android:textColor="@color/black" />
                 </LinearLayout>
             </LinearLayout>
 
-            <View android:layout_width="match_parent" android:layout_height="8dp" android:background="@color/purple_200" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="8dp"
+                android:background="@color/black" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="16dp"
+                android:background="@drawable/bg_stat_card">
 
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
-                    <Button android:layout_width="wrap_content" android:layout_height="40dp" android:backgroundTint="@color/white" android:text="Run" android:textColor="@color/teal_700" style="?android:attr/borderlessButtonStyle" />
-                    <Button android:layout_width="wrap_content" android:layout_height="40dp" android:layout_marginStart="8dp" android:backgroundTint="@color/white" android:text="Walk" android:textColor="@color/black" style="?android:attr/borderlessButtonStyle"/>
+
+                    <Button
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_button_rounded"
+                        android:text="Run"
+                        android:textColor="@color/black" />
+
+                    <Button
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_button_secondary_rounded"
+                        android:text="Walk"
+                        android:textColor="@color/black" />
                 </LinearLayout>
 
                 <TextView
@@ -142,7 +212,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:text="This Week"
-                    android:textColor="@color/black"
+                    android:textColor="@color/text_primary"
                     android:textSize="22sp"
                     android:textStyle="bold" />
 
@@ -152,17 +222,67 @@
                     android:layout_marginTop="12dp"
                     android:orientation="horizontal">
 
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Distance" android:textColor="@color/purple_700" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0 km" android:textColor="@color/black" android:textSize="18sp" android:textStyle="bold" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Distance"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0 km"
+                            android:textColor="@color/text_primary"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
                     </LinearLayout>
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Time" android:textColor="@color/purple_700" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0 h" android:textColor="@color/black" android:textSize="18sp" android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Time"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0 h"
+                            android:textColor="@color/text_primary"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
                     </LinearLayout>
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Elev Gain" android:textColor="@color/purple_700" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0 m" android:textColor="@color/black" android:textSize="18sp" android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Elev Gain"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0 m"
+                            android:textColor="@color/text_primary"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -170,85 +290,93 @@
                     android:layout_width="match_parent"
                     android:layout_height="150dp"
                     android:layout_marginTop="16dp"
-                    android:background="@color/purple_200" />
+                    android:background="@color/surface_medium" />
             </LinearLayout>
 
-            <View android:layout_width="match_parent" android:layout_height="8dp" android:background="@color/purple_200" />
-
-            <LinearLayout
+            <View
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
-                    <View android:id="@+id/icon_activities" android:layout_width="24dp" android:layout_height="24dp" android:background="@color/black" android:layout_centerVertical="true" />
-                    <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_activities" android:layout_marginStart="16dp" android:orientation="vertical">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Activities" android:textColor="@color/black" android:textSize="16sp" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Feb 2, 2026" android:textColor="@color/purple_700" android:textSize="14sp" />
-                    </LinearLayout>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text=">" android:textColor="@color/purple_700" android:textSize="20sp" />
-                </RelativeLayout>
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="56dp" android:background="@color/purple_200" />
-
-                <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
-                    <View android:id="@+id/icon_stats" android:layout_width="24dp" android:layout_height="24dp" android:background="@color/black" android:layout_centerVertical="true" />
-                    <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_stats" android:layout_marginStart="16dp" android:orientation="vertical">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Statistics" android:textColor="@color/black" android:textSize="16sp" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="This year: 3.5 km" android:textColor="@color/purple_700" android:textSize="14sp" />
-                    </LinearLayout>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text=">" android:textColor="@color/purple_700" android:textSize="20sp" />
-                </RelativeLayout>
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="56dp" android:background="@color/purple_200" />
-
-                <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
-                    <View android:id="@+id/icon_routes" android:layout_width="24dp" android:layout_height="24dp" android:background="@color/black" android:layout_centerVertical="true" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_routes" android:layout_marginStart="16dp" android:layout_centerVertical="true" android:text="Routes" android:textColor="@color/black" android:textSize="16sp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text=">" android:textColor="@color/purple_700" android:textSize="20sp" />
-                </RelativeLayout>
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="56dp" android:background="@color/purple_200" />
-
-                <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
-                    <View android:id="@+id/icon_segments" android:layout_width="24dp" android:layout_height="24dp" android:background="@color/black" android:layout_centerVertical="true" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_segments" android:layout_marginStart="16dp" android:layout_centerVertical="true" android:text="Segments" android:textColor="@color/black" android:textSize="16sp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text=">" android:textColor="@color/purple_700" android:textSize="20sp" />
-                </RelativeLayout>
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="56dp" android:background="@color/purple_200" />
-
-                <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
-                    <View android:id="@+id/icon_best_efforts" android:layout_width="24dp" android:layout_height="24dp" android:background="@color/black" android:layout_centerVertical="true" />
-                    <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_best_efforts" android:layout_marginStart="16dp" android:orientation="vertical">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Best Efforts" android:textColor="@color/black" android:textSize="16sp" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="View all" android:textColor="@color/purple_700" android:textSize="14sp" />
-                    </LinearLayout>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text=">" android:textColor="@color/purple_700" android:textSize="20sp" />
-                </RelativeLayout>
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="56dp" android:background="@color/purple_200" />
-
-                <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
-                    <View android:id="@+id/icon_posts" android:layout_width="24dp" android:layout_height="24dp" android:background="@color/black" android:layout_centerVertical="true" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_posts" android:layout_marginStart="16dp" android:layout_centerVertical="true" android:text="Posts" android:textColor="@color/black" android:textSize="16sp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text=">" android:textColor="@color/purple_700" android:textSize="20sp" />
-                </RelativeLayout>
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="56dp" android:background="@color/purple_200" />
-
-                <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
-                    <View android:id="@+id/icon_gear" android:layout_width="24dp" android:layout_height="24dp" android:background="@color/black" android:layout_centerVertical="true" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_gear" android:layout_marginStart="16dp" android:layout_centerVertical="true" android:text="Gear" android:textColor="@color/black" android:textSize="16sp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text=">" android:textColor="@color/purple_700" android:textSize="20sp" />
-                </RelativeLayout>
-            </LinearLayout>
-
-            <View android:layout_width="match_parent" android:layout_height="8dp" android:background="@color/purple_200" />
+                android:layout_height="8dp"
+                android:background="@color/black" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:background="@drawable/bg_stat_card">
+
+                <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
+                    <View android:id="@+id/icon_activities" android:layout_width="24dp" android:layout_height="24dp" android:background="@color/text_secondary" android:layout_centerVertical="true" />
+                    <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_activities" android:layout_marginStart="16dp" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Activities" android:textColor="@color/text_primary" android:textSize="16sp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Feb 2, 2026" android:textColor="@color/text_secondary" android:textSize="14sp" />
+                    </LinearLayout>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text=">" android:textColor="@color/text_secondary" android:textSize="20sp" />
+                </RelativeLayout>
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="56dp" android:background="@color/surface_medium" />
+
+                <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
+                    <View android:id="@+id/icon_stats" android:layout_width="24dp" android:layout_height="24dp" android:background="@color/text_secondary" android:layout_centerVertical="true" />
+                    <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_stats" android:layout_marginStart="16dp" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Statistics" android:textColor="@color/text_primary" android:textSize="16sp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="This year: 3.5 km" android:textColor="@color/text_secondary" android:textSize="14sp" />
+                    </LinearLayout>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text=">" android:textColor="@color/text_secondary" android:textSize="20sp" />
+                </RelativeLayout>
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="56dp" android:background="@color/surface_medium" />
+
+                <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
+                    <View android:id="@+id/icon_routes" android:layout_width="24dp" android:layout_height="24dp" android:background="@color/text_secondary" android:layout_centerVertical="true" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_routes" android:layout_marginStart="16dp" android:layout_centerVertical="true" android:text="Routes" android:textColor="@color/text_primary" android:textSize="16sp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text=">" android:textColor="@color/text_secondary" android:textSize="20sp" />
+                </RelativeLayout>
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="56dp" android:background="@color/surface_medium" />
+
+                <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
+                    <View android:id="@+id/icon_segments" android:layout_width="24dp" android:layout_height="24dp" android:background="@color/text_secondary" android:layout_centerVertical="true" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_segments" android:layout_marginStart="16dp" android:layout_centerVertical="true" android:text="Segments" android:textColor="@color/text_primary" android:textSize="16sp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text=">" android:textColor="@color/text_secondary" android:textSize="20sp" />
+                </RelativeLayout>
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="56dp" android:background="@color/surface_medium" />
+
+                <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
+                    <View android:id="@+id/icon_best_efforts" android:layout_width="24dp" android:layout_height="24dp" android:background="@color/text_secondary" android:layout_centerVertical="true" />
+                    <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_best_efforts" android:layout_marginStart="16dp" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Best Efforts" android:textColor="@color/text_primary" android:textSize="16sp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="View all" android:textColor="@color/text_secondary" android:textSize="14sp" />
+                    </LinearLayout>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text=">" android:textColor="@color/text_secondary" android:textSize="20sp" />
+                </RelativeLayout>
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="56dp" android:background="@color/surface_medium" />
+
+                <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
+                    <View android:id="@+id/icon_posts" android:layout_width="24dp" android:layout_height="24dp" android:background="@color/text_secondary" android:layout_centerVertical="true" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_posts" android:layout_marginStart="16dp" android:layout_centerVertical="true" android:text="Posts" android:textColor="@color/text_primary" android:textSize="16sp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text=">" android:textColor="@color/text_secondary" android:textSize="20sp" />
+                </RelativeLayout>
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="56dp" android:background="@color/surface_medium" />
+
+                <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
+                    <View android:id="@+id/icon_gear" android:layout_width="24dp" android:layout_height="24dp" android:background="@color/text_secondary" android:layout_centerVertical="true" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_gear" android:layout_marginStart="16dp" android:layout_centerVertical="true" android:text="Gear" android:textColor="@color/text_primary" android:textSize="16sp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text=">" android:textColor="@color/text_secondary" android:textSize="20sp" />
+                </RelativeLayout>
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="8dp"
+                android:background="@color/black" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:background="@drawable/bg_stat_card">
 
                 <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Trophy Cabinet" android:textColor="@color/black" android:textSize="20sp" android:textStyle="bold" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="2" android:textColor="@color/purple_700" android:textSize="16sp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Trophy Cabinet" android:textColor="@color/text_primary" android:textSize="20sp" android:textStyle="bold" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="2" android:textColor="@color/text_secondary" android:textSize="16sp" />
                 </RelativeLayout>
 
                 <LinearLayout
@@ -258,13 +386,13 @@
                     android:orientation="horizontal">
 
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
-                        <View android:layout_width="50dp" android:layout_height="50dp" android:background="@color/purple_200" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Activity\nBadge" android:gravity="center" android:textColor="@color/black" android:textSize="12sp" />
+                        <View android:layout_width="50dp" android:layout_height="50dp" android:background="@color/surface_medium" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Activity&#10;Badge" android:gravity="center" android:textColor="@color/text_primary" android:textSize="12sp" />
                     </LinearLayout>
 
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
-                        <View android:layout_width="50dp" android:layout_height="50dp" android:background="@color/purple_200" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Activity\nBadge" android:gravity="center" android:textColor="@color/black" android:textSize="12sp" />
+                        <View android:layout_width="50dp" android:layout_height="50dp" android:background="@color/surface_medium" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Activity&#10;Badge" android:gravity="center" android:textColor="@color/text_primary" android:textSize="12sp" />
                     </LinearLayout>
 
                     <View android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
@@ -276,21 +404,25 @@
                     android:layout_marginTop="16dp"
                     android:paddingTop="16dp"
                     android:text="All trophies >"
-                    android:textColor="@color/teal_700"
+                    android:textColor="@color/text_secondary"
                     android:textSize="16sp" />
             </LinearLayout>
 
-            <View android:layout_width="match_parent" android:layout_height="8dp" android:background="@color/purple_200" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="8dp"
+                android:background="@color/black" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="16dp"
+                android:background="@drawable/bg_stat_card">
 
                 <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Clubs" android:textColor="@color/black" android:textSize="20sp" android:textStyle="bold" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="1" android:textColor="@color/purple_700" android:textSize="16sp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Clubs" android:textColor="@color/text_primary" android:textSize="20sp" android:textStyle="bold" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="1" android:textColor="@color/text_secondary" android:textSize="16sp" />
                 </RelativeLayout>
 
                 <LinearLayout
@@ -300,7 +432,8 @@
                     android:orientation="horizontal">
 
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
-                        <View android:layout_width="60dp" android:layout_height="60dp" android:background="@color/black" /> <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="2026\nkm in..." android:gravity="center" android:textColor="@color/black" android:textSize="12sp" />
+                        <View android:layout_width="60dp" android:layout_height="60dp" android:background="@color/surface_medium" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="2026&#10;km in..." android:gravity="center" android:textColor="@color/text_primary" android:textSize="12sp" />
                     </LinearLayout>
 
                     <View android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
@@ -313,7 +446,7 @@
                     android:layout_marginTop="16dp"
                     android:gravity="end"
                     android:text="All clubs"
-                    android:textColor="@color/teal_700"
+                    android:textColor="@color/text_secondary"
                     android:textSize="16sp"
                     android:textStyle="bold" />
             </LinearLayout>

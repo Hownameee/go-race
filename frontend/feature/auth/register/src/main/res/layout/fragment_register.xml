@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
+    android:background="@color/black"
     tools:context="com.grouprace.feature.register.ui.RegisterFragment">
 
     <LinearLayout
@@ -18,9 +19,20 @@
             android:layout_height="wrap_content"
             android:text="Create Account"
             android:textAlignment="center"
-            android:textColor="@color/purple_700"
+            android:gravity="center_horizontal"
+            android:textColor="@color/text_primary"
             android:textSize="28sp"
             android:textStyle="bold"
+            android:layout_marginBottom="5dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Join us for the ultimate sporty experience"
+            android:textAlignment="center"
+            android:gravity="center_horizontal"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
             android:layout_marginBottom="32dp" />
 
         <TextView
@@ -28,13 +40,20 @@
             android:layout_height="wrap_content"
             android:text="Username"
             android:textStyle="bold"
-            android:textColor="@color/black" />
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="5dp"/>
+
         <EditText
             android:id="@+id/username_edit_text"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="wrap_content"
+            android:paddingVertical="14dp"
+            android:paddingHorizontal="12dp"
             android:inputType="text"
             android:hint="e.g. nguyenvana"
+            android:background="@drawable/bg_input_rounded"
+            android:textColor="@android:color/black"
+            android:textColorHint="@color/text_tertiary"
             android:layout_marginBottom="16dp" />
 
         <TextView
@@ -42,13 +61,20 @@
             android:layout_height="wrap_content"
             android:text="Fullname"
             android:textStyle="bold"
-            android:textColor="@color/black" />
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="5dp"/>
+
         <EditText
             android:id="@+id/fullname_edit_text"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="wrap_content"
+            android:paddingVertical="14dp"
+            android:paddingHorizontal="12dp"
             android:inputType="textPersonName"
             android:hint="e.g. Nguyễn Văn A"
+            android:background="@drawable/bg_input_rounded"
+            android:textColor="@android:color/black"
+            android:textColorHint="@color/text_tertiary"
             android:layout_marginBottom="16dp" />
 
         <TextView
@@ -56,13 +82,20 @@
             android:layout_height="wrap_content"
             android:text="Email"
             android:textStyle="bold"
-            android:textColor="@color/black" />
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="5dp"/>
+
         <EditText
             android:id="@+id/email_edit_text"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="wrap_content"
+            android:paddingVertical="14dp"
+            android:paddingHorizontal="12dp"
             android:inputType="textEmailAddress"
             android:hint="name@example.com"
+            android:background="@drawable/bg_input_rounded"
+            android:textColor="@android:color/black"
+            android:textColorHint="@color/text_tertiary"
             android:layout_marginBottom="16dp" />
 
         <TextView
@@ -70,13 +103,20 @@
             android:layout_height="wrap_content"
             android:text="Birthdate"
             android:textStyle="bold"
-            android:textColor="@color/black" />
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="5dp"/>
+
         <EditText
             android:id="@+id/birthdate_edit_text"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="wrap_content"
+            android:paddingVertical="14dp"
+            android:paddingHorizontal="12dp"
             android:inputType="date"
-            android:hint="YYYY/MM/DD"
+            android:hint="YYYY-MM-DD"
+            android:background="@drawable/bg_input_rounded"
+            android:textColor="@android:color/black"
+            android:textColorHint="@color/text_tertiary"
             android:layout_marginBottom="16dp" />
 
         <TextView
@@ -84,13 +124,20 @@
             android:layout_height="wrap_content"
             android:text="Password"
             android:textStyle="bold"
-            android:textColor="@color/black" />
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="5dp"/>
+
         <EditText
             android:id="@+id/password_edit_text"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="wrap_content"
+            android:paddingVertical="14dp"
+            android:paddingHorizontal="12dp"
             android:inputType="textPassword"
             android:hint="••••••••"
+            android:background="@drawable/bg_input_rounded"
+            android:textColor="@android:color/black"
+            android:textColorHint="@color/text_tertiary"
             android:layout_marginBottom="16dp" />
 
         <TextView
@@ -98,13 +145,20 @@
             android:layout_height="wrap_content"
             android:text="Confirm Password"
             android:textStyle="bold"
-            android:textColor="@color/black" />
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="5dp"/>
+
         <EditText
             android:id="@+id/confirm_password_edit_text"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="wrap_content"
+            android:paddingVertical="14dp"
+            android:paddingHorizontal="12dp"
             android:inputType="textPassword"
             android:hint="••••••••"
+            android:background="@drawable/bg_input_rounded"
+            android:textColor="@android:color/black"
+            android:textColorHint="@color/text_tertiary"
             android:layout_marginBottom="32dp" />
 
         <LinearLayout
@@ -115,13 +169,13 @@
 
             <Button
                 android:id="@+id/back_button"
-                style="?attr/materialButtonOutlinedStyle"
                 android:layout_width="0dp"
                 android:layout_height="55dp"
                 android:layout_weight="1"
                 android:layout_marginEnd="8dp"
                 android:text="Back"
-                android:textColor="@color/purple_500" />
+                android:background="@drawable/bg_button_secondary_rounded"
+                android:textColor="@color/black" />
 
             <Button
                 android:id="@+id/register_button"
@@ -130,7 +184,8 @@
                 android:layout_weight="1"
                 android:layout_marginStart="8dp"
                 android:text="Register"
-                android:backgroundTint="@color/purple_500" />
+                android:background="@drawable/bg_button_rounded"
+                android:textColor="@color/black" />
         </LinearLayout>
 
         <LinearLayout
@@ -144,7 +199,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Already have an account?"
-                android:textColor="@color/black" />
+                android:textColor="@color/text_tertiary" />
 
             <Button
                 android:id="@+id/goto_login_button"
@@ -152,7 +207,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Login"
-                android:textColor="@color/purple_700"
+                android:backgroundTint="@color/black"
+                android:textColor="@color/text_primary"
                 android:textStyle="bold" />
         </LinearLayout>
 

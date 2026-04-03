@@ -21,6 +21,10 @@ import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class RegisterFragment extends Fragment {
+    public interface NavigationHost {
+        void openLogin();
+    }
+
     private EditText editUsername, editFullname, editEmail, editBirthdate, editPassword, editConfirmPassword;
     private Button buttonRegister, buttonBack, buttonGoToLogin;
     private RegisterViewModel viewModel;
@@ -64,7 +68,11 @@ public class RegisterFragment extends Fragment {
 
     private void setupListeners() {
         buttonBack.setOnClickListener(v -> requireActivity().onBackPressed());
-        buttonGoToLogin.setOnClickListener(v -> requireActivity().onBackPressed());
+        buttonGoToLogin.setOnClickListener(v -> {
+            if (requireActivity() instanceof NavigationHost) {
+                ((NavigationHost) requireActivity()).openLogin();
+            }
+        });
         buttonRegister.setOnClickListener(this::register);
     }
 
@@ -92,7 +100,9 @@ public class RegisterFragment extends Fragment {
                         Toast.makeText(requireContext(), "Registration Successful!", Toast.LENGTH_SHORT).show();
 
                         // Đăng ký thành công thì quay lại trang Login
-                        requireActivity().onBackPressed();
+                        if (requireActivity() instanceof NavigationHost) {
+                            ((NavigationHost) requireActivity()).openLogin();
+                        }
 
                     } else if (result instanceof Result.Error) {
                         // Lỗi -> Mở lại nút và báo lỗi
