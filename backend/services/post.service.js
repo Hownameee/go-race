@@ -38,6 +38,18 @@ const postService = {
         return { posts: rows, nextCursor };
     },
 
+    async getMyPosts(userId, cursor, limit) {
+        const effectiveCursor = cursor || FAR_FUTURE;
+        const effectiveLimit = Math.min(parseInt(limit) || DEFAULT_LIMIT, 100);
+
+        const rows = await postRepo.selectMyPosts(userId, effectiveCursor, effectiveLimit);
+
+        const nextCursor =
+            rows.length === effectiveLimit ? rows[rows.length - 1].created_at : null;
+
+        return { posts: rows, nextCursor };
+    },
+
     async likePost(postId, userId) {
         const changes = await postRepo.insertLike(postId, userId);
         return { liked: changes > 0 };

@@ -35,6 +35,18 @@ const postRepo = {
         return stmt.all(userId, cursor, limit);
     },
 
+    async selectMyPosts(userId, cursor, limit) {
+        const stmt = db.prepare(
+            `SELECT p.*, u.username, u.fullname, u.avatar_url
+       FROM POST p
+       JOIN USERS u ON u.user_id = p.owner_id
+       WHERE p.owner_id = ? AND p.created_at < ?
+       ORDER BY p.created_at DESC
+       LIMIT ?`,
+        );
+        return stmt.all(userId, cursor, limit);
+    },
+
     updateLikeCount(postId, delta) {
         const stmt = db.prepare(
             `UPDATE POST SET like_count = like_count + ? WHERE post_id = ?`,

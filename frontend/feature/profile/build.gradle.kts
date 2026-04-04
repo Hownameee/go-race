@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.library)
+    alias(libs.plugins.hilt)
 }
 
 android {
@@ -33,10 +34,23 @@ android {
 dependencies {
     implementation(libs.appcompat)
     implementation(libs.material)
+    implementation(libs.mpandroidchart)
+
+    implementation(project(":core:data"))
+    implementation(project(":core:model"))
+
+    // Lifecycle
+    implementation(libs.lifecycle.viewmodel)
+    implementation(libs.lifecycle.livedata)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    annotationProcessor(libs.hilt.compiler)
 
     implementation(project(":core:common"))
     implementation(project(":core:service"))
     implementation(project(":core:network"))
+    implementation(project(":core:map"))
     implementation(project(":core:system"))
 
     testImplementation(libs.junit)

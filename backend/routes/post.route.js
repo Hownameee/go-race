@@ -1,6 +1,7 @@
 import { Router } from "express";
 import postController from "../controllers/post.controller.js";
 import validation from "../middlewares/validation.js";
+import { auth } from "../middlewares/auth.middleware.js";
 import {
     createPostSchema,
     getPostFeedQuerySchema,
@@ -26,8 +27,16 @@ router.get(
 
 router.get(
     "/api/posts/following/feed",
+    auth,
     validation(getPostFeedQuerySchema, "query"),
     postController.getFollowingFeed,
+);
+
+router.get(
+    "/api/posts/me",
+    auth,
+    validation(getPostFeedQuerySchema, "query"),
+    postController.getMyPosts,
 );
 
 // Likes

@@ -54,6 +54,14 @@ const followService = {
 
     return { following: rows, nextCursor };
   },
+
+  async countFollowers(userId) {
+    return await followRepo.countFollowers(userId);
+  },
+
+  async countFollowings(userId) {
+    return await followRepo.countFollowings(userId);
+  }
 };
 
 export default followService;

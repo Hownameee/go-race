@@ -1,19 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/black"
     android:orientation="vertical">
 
+    <!-- Header -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:background="@color/black"
-        android:paddingHorizontal="16dp">
+        android:paddingHorizontal="16dp"
+        android:layout_margin="10dp">
 
         <ImageButton
-            android:id="@+id/button_back"
+            android:id="@+id/profile_back_button"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_alignParentStart="true"
@@ -21,7 +24,7 @@
             android:background="@android:color/transparent"
             android:src="@drawable/ic_back"
             android:contentDescription="Back"
-            android:tint="@color/text_primary" />
+            app:tint="@color/text_primary" />
 
 
         <LinearLayout
@@ -31,42 +34,75 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <View
+            <ImageButton
+                android:id="@+id/profile_search_button"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:layout_marginEnd="16dp"
-                android:background="@color/text_secondary" />
+                android:background="@android:color/transparent"
+                android:contentDescription="Search"
+                android:src="@drawable/ic_search"
+                app:tint="@color/text_primary" />
 
-            <View
+            <ImageButton
+                android:id="@+id/profile_share_button"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:layout_marginEnd="16dp"
-                android:background="@color/text_secondary" />
+                android:background="@android:color/transparent"
+                android:contentDescription="Share"
+                android:src="@drawable/ic_share"
+                app:tint="@color/text_primary" />
 
-            <View
+            <ImageButton
+                android:id="@+id/profile_setting_button"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:background="@color/text_secondary" />
+                android:background="@android:color/transparent"
+                android:contentDescription="Setting"
+                android:src="@drawable/ic_settings"
+                app:tint="@color/text_primary" />
         </LinearLayout>
     </RelativeLayout>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/surface_medium" />
-
+    <!-- Main -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:scrollbars="none">
+        android:scrollbars="none"
+        android:layout_margin="10dp">
 
         <LinearLayout
+            android:id="@+id/profile_root_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingBottom="40dp">
 
+            <!-- Message: error / warning,.... -->
+            <TextView
+                android:id="@+id/profile_message"
+                android:text="Your message goes here"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="16dp"
+                android:layout_marginBottom="16dp"
+                android:textColor="@color/error_red"/>
+
+            <Button
+                android:id="@+id/profile_login_button"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:layout_marginBottom="16dp"
+                android:backgroundTint="@null"
+                app:backgroundTint="@null"
+                android:background="@drawable/bg_button_rounded"
+                android:text="Login"
+                android:textColor="@color/black" />
+
+
+            <!-- Overview -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -80,10 +116,13 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                    <View
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/avatar"
                         android:layout_width="80dp"
                         android:layout_height="80dp"
-                        android:background="@drawable/bg_avatar_placeholder" />
+                        android:background="@drawable/bg_avatar_placeholder"
+                        android:scaleType="centerCrop"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Profile.Circle" />
 
                     <LinearLayout
                         android:layout_width="wrap_content"
@@ -92,17 +131,26 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/profile_fullname"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="TRUNG KIEN LE"
+                            android:text="@string/fullname"
                             android:textColor="@color/text_primary"
                             android:textSize="20sp"
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/profile_city"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Ho Chi Minh City,\nVietnam"
+                            android:text="@string/city"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="16sp" />
+                        <TextView
+                            android:id="@+id/profile_country"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/country"
                             android:textColor="@color/text_secondary"
                             android:textSize="16sp" />
                     </LinearLayout>
@@ -127,9 +175,10 @@
                             android:textColor="@color/text_secondary" />
 
                         <TextView
+                            android:id="@+id/profile_total_followings"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="0"
+                            android:text="@string/default_number"
                             android:textColor="@color/text_primary"
                             android:textSize="20sp"
                             android:textStyle="bold" />
@@ -148,9 +197,10 @@
                             android:textColor="@color/text_secondary" />
 
                         <TextView
+                            android:id="@+id/profile_total_followers"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="0"
+                            android:text="@string/default_number"
                             android:textColor="@color/text_primary"
                             android:textSize="20sp"
                             android:textStyle="bold" />
@@ -164,13 +214,18 @@
                     android:orientation="horizontal">
 
                     <Button
+                        android:id="@+id/profile_edit_button"
                         android:layout_width="0dp"
                         android:layout_height="55dp"
                         android:layout_weight="1"
                         android:layout_marginStart="8dp"
+                        android:backgroundTint="@null"
+                        app:backgroundTint="@null"
                         android:background="@drawable/bg_button_rounded"
                         android:text="Edit"
                         android:textColor="@color/black" />
+
+
                 </LinearLayout>
             </LinearLayout>
 
@@ -179,119 +234,10 @@
                 android:layout_height="8dp"
                 android:background="@color/black" />
 
-            <LinearLayout
+            <androidx.fragment.app.FragmentContainerView
+                android:id="@+id/profile_stats_fragment_container"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp"
-                android:background="@drawable/bg_stat_card">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <Button
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:background="@drawable/bg_button_rounded"
-                        android:text="Run"
-                        android:textColor="@color/black" />
-
-                    <Button
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:layout_marginStart="8dp"
-                        android:background="@drawable/bg_button_secondary_rounded"
-                        android:text="Walk"
-                        android:textColor="@color/black" />
-                </LinearLayout>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="This Week"
-                    android:textColor="@color/text_primary"
-                    android:textSize="22sp"
-                    android:textStyle="bold" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:orientation="horizontal">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Distance"
-                            android:textColor="@color/text_secondary" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="0 km"
-                            android:textColor="@color/text_primary"
-                            android:textSize="18sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Time"
-                            android:textColor="@color/text_secondary" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="0 h"
-                            android:textColor="@color/text_primary"
-                            android:textSize="18sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Elev Gain"
-                            android:textColor="@color/text_secondary" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="0 m"
-                            android:textColor="@color/text_primary"
-                            android:textSize="18sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="150dp"
-                    android:layout_marginTop="16dp"
-                    android:background="@color/surface_medium" />
-            </LinearLayout>
+                android:layout_height="wrap_content" />
 
             <View
                 android:layout_width="match_parent"
@@ -304,8 +250,8 @@
                 android:orientation="vertical"
                 android:background="@drawable/bg_stat_card">
 
-                <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
-                    <View android:id="@+id/icon_activities" android:layout_width="24dp" android:layout_height="24dp" android:background="@color/text_secondary" android:layout_centerVertical="true" />
+                <RelativeLayout android:id="@+id/profile_activities_link" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:clickable="true" android:focusable="true">
+                    <ImageView android:id="@+id/icon_activities" android:layout_width="24dp" android:layout_height="24dp" android:layout_centerVertical="true" android:src="@drawable/ic_profile_activities" app:tint="@color/text_secondary" />
                     <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_activities" android:layout_marginStart="16dp" android:orientation="vertical">
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Activities" android:textColor="@color/text_primary" android:textSize="16sp" />
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Feb 2, 2026" android:textColor="@color/text_secondary" android:textSize="14sp" />
@@ -314,8 +260,8 @@
                 </RelativeLayout>
                 <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="56dp" android:background="@color/surface_medium" />
 
-                <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
-                    <View android:id="@+id/icon_stats" android:layout_width="24dp" android:layout_height="24dp" android:background="@color/text_secondary" android:layout_centerVertical="true" />
+                <RelativeLayout android:id="@+id/profile_statistics_link" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:clickable="true" android:focusable="true">
+                    <ImageView android:id="@+id/icon_stats" android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_profile_statistics" android:layout_centerVertical="true" app:tint="@color/text_secondary" />
                     <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_stats" android:layout_marginStart="16dp" android:orientation="vertical">
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Statistics" android:textColor="@color/text_primary" android:textSize="16sp" />
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="This year: 3.5 km" android:textColor="@color/text_secondary" android:textSize="14sp" />
@@ -324,22 +270,22 @@
                 </RelativeLayout>
                 <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="56dp" android:background="@color/surface_medium" />
 
-                <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
-                    <View android:id="@+id/icon_routes" android:layout_width="24dp" android:layout_height="24dp" android:background="@color/text_secondary" android:layout_centerVertical="true" />
+                <RelativeLayout android:id="@+id/profile_routes_link" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:clickable="true" android:focusable="true">
+                    <ImageView android:id="@+id/icon_routes" android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_profile_routes" android:layout_centerVertical="true" app:tint="@color/text_secondary" />
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_routes" android:layout_marginStart="16dp" android:layout_centerVertical="true" android:text="Routes" android:textColor="@color/text_primary" android:textSize="16sp" />
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text=">" android:textColor="@color/text_secondary" android:textSize="20sp" />
                 </RelativeLayout>
                 <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="56dp" android:background="@color/surface_medium" />
 
-                <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
-                    <View android:id="@+id/icon_segments" android:layout_width="24dp" android:layout_height="24dp" android:background="@color/text_secondary" android:layout_centerVertical="true" />
+                <RelativeLayout android:id="@+id/profile_segments_link" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:clickable="true" android:focusable="true">
+                    <ImageView android:id="@+id/icon_segments" android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_profile_segments" android:layout_centerVertical="true" app:tint="@color/text_secondary" />
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_segments" android:layout_marginStart="16dp" android:layout_centerVertical="true" android:text="Segments" android:textColor="@color/text_primary" android:textSize="16sp" />
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text=">" android:textColor="@color/text_secondary" android:textSize="20sp" />
                 </RelativeLayout>
                 <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="56dp" android:background="@color/surface_medium" />
 
-                <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
-                    <View android:id="@+id/icon_best_efforts" android:layout_width="24dp" android:layout_height="24dp" android:background="@color/text_secondary" android:layout_centerVertical="true" />
+                <RelativeLayout android:id="@+id/profile_best_efforts_link" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:clickable="true" android:focusable="true">
+                    <ImageView android:id="@+id/icon_best_efforts" android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_profile_best_efforts" android:layout_centerVertical="true" app:tint="@color/text_secondary" />
                     <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_best_efforts" android:layout_marginStart="16dp" android:orientation="vertical">
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Best Efforts" android:textColor="@color/text_primary" android:textSize="16sp" />
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="View all" android:textColor="@color/text_secondary" android:textSize="14sp" />
@@ -348,15 +294,15 @@
                 </RelativeLayout>
                 <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="56dp" android:background="@color/surface_medium" />
 
-                <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
-                    <View android:id="@+id/icon_posts" android:layout_width="24dp" android:layout_height="24dp" android:background="@color/text_secondary" android:layout_centerVertical="true" />
+                <RelativeLayout android:id="@+id/profile_posts_link" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:clickable="true" android:focusable="true">
+                    <ImageView android:id="@+id/icon_posts" android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_profile_posts" android:layout_centerVertical="true" app:tint="@color/text_secondary" />
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_posts" android:layout_marginStart="16dp" android:layout_centerVertical="true" android:text="Posts" android:textColor="@color/text_primary" android:textSize="16sp" />
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text=">" android:textColor="@color/text_secondary" android:textSize="20sp" />
                 </RelativeLayout>
                 <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="56dp" android:background="@color/surface_medium" />
 
-                <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
-                    <View android:id="@+id/icon_gear" android:layout_width="24dp" android:layout_height="24dp" android:background="@color/text_secondary" android:layout_centerVertical="true" />
+                <RelativeLayout android:id="@+id/profile_gear_link" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:clickable="true" android:focusable="true">
+                    <ImageView android:id="@+id/icon_gear" android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_profile_gear" android:layout_centerVertical="true" app:tint="@color/text_secondary" />
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_gear" android:layout_marginStart="16dp" android:layout_centerVertical="true" android:text="Gear" android:textColor="@color/text_primary" android:textSize="16sp" />
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text=">" android:textColor="@color/text_secondary" android:textSize="20sp" />
                 </RelativeLayout>

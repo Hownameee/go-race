@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS DEVICE_TOKENS (
 -- just demo table will change in the future
 CREATE TABLE IF NOT EXISTS RECORD (
     record_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
     activity_type TEXT NOT NULL CHECK (
         activity_type IN ('Walking', 'Running')
     ),
@@ -32,8 +33,10 @@ CREATE TABLE IF NOT EXISTS RECORD (
     end_time DATETIME,
     duration_seconds INTEGER,
     distance_km REAL,
+    elevation_gain_m REAL DEFAULT 0,
     calories_burned INTEGER,
-    heart_rate_avg INTEGER
+    heart_rate_avg INTEGER,
+    FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS USERS (

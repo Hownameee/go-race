@@ -1,20 +1,18 @@
 package com.grouprace.feature.login.ui;
 
-import androidx.lifecycle.ViewModelProvider;
-
 import android.content.Intent;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.grouprace.core.common.result.Result;
 
@@ -24,11 +22,14 @@ import dagger.hilt.android.AndroidEntryPoint;
 public class LoginFragment extends Fragment {
     public interface NavigationHost {
         void openRegister();
+        void openForgotPassword();
     }
 
-    private EditText editEmail, editPassword;
-    private Button buttonLogin, buttonBack, buttonGoToRegister;
-
+    private EditText editEmail;
+    private EditText editPassword;
+    private Button buttonLogin;
+    private Button buttonGoToRegister;
+    private Button resetPasswordButton;
     private LoginViewModel viewModel;
 
     public static LoginFragment newInstance() {
@@ -57,19 +58,22 @@ public class LoginFragment extends Fragment {
     }
 
     private void initViews(View view) {
-        editEmail = view.findViewById(R.id.email_edit_text);
-        editPassword = view.findViewById(R.id.password_edit_text);
-
-        buttonLogin = view.findViewById(R.id.login_button);
-        buttonBack = view.findViewById(R.id.back_button);
-        buttonGoToRegister = view.findViewById(R.id.goto_register_button);
+        editEmail = view.findViewById(R.id.login_email_input);
+        editPassword = view.findViewById(R.id.login_password_input);
+        buttonLogin = view.findViewById(R.id.login_submit_button);
+        buttonGoToRegister = view.findViewById(R.id.login_goto_register_button);
+        resetPasswordButton = view.findViewById(R.id.login_reset_password_button);
     }
 
     private void setupListeners() {
-        buttonBack.setOnClickListener(v -> requireActivity().onBackPressed());
         buttonGoToRegister.setOnClickListener(v -> {
             if (requireActivity() instanceof NavigationHost) {
                 ((NavigationHost) requireActivity()).openRegister();
+            }
+        });
+        resetPasswordButton.setOnClickListener(v -> {
+            if (requireActivity() instanceof NavigationHost) {
+                ((NavigationHost) requireActivity()).openForgotPassword();
             }
         });
 
@@ -77,12 +81,10 @@ public class LoginFragment extends Fragment {
             String email = editEmail.getText().toString().trim();
             String password = editPassword.getText().toString().trim();
 
-            // Observe theo chuẩn Result mới
             viewModel.login(email, password).observe(getViewLifecycleOwner(), result -> {
                 if (result instanceof Result.Loading) {
                     buttonLogin.setEnabled(false);
                     buttonLogin.setText("Logging in...");
-
                 } else if (result instanceof Result.Success) {
                     buttonLogin.setEnabled(true);
                     buttonLogin.setText("Login");
@@ -95,12 +97,9 @@ public class LoginFragment extends Fragment {
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);
                         requireActivity().finish();
-
                     } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                        Toast.makeText(requireContext(), "Lỗi chuyển trang!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), "Navigation error!", Toast.LENGTH_SHORT).show();
                     }
-
                 } else if (result instanceof Result.Error) {
                     buttonLogin.setEnabled(true);
                     buttonLogin.setText("Login");

@@ -44,6 +44,21 @@ const postController = {
         }
     },
 
+    async getMyPosts(req, res, next) {
+        try {
+            const userId = req.user.userId;
+            const { cursor, limit } = req.query;
+            const result = await postService.getMyPosts(userId, cursor, limit);
+            return res.ok(result, "My posts retrieved successfully.");
+        } catch (error) {
+            if (error.status === 409) {
+                console.error(error);
+                return res.violate(null, error.message);
+            }
+            return next(error);
+        }
+    },
+
     async likePost(req, res, next) {
         try {
             const postId = parseInt(req.params.postId);
