@@ -5,7 +5,7 @@ import androidx.lifecycle.MediatorLiveData;
 
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.NotificationModel;
-import com.grouprace.core.network.model.NetworkNotification;
+import com.grouprace.core.network.model.notification.NetworkNotification;
 import com.grouprace.core.network.source.NotificationNetworkDataSource;
 
 import java.util.ArrayList;
@@ -52,8 +52,8 @@ public class NotificationRepositoryImpl implements NotificationRepository {
     }
 
     @Override
-    public void registerDeviceToken(int userId, String token) {
-        networkDataSource.registerDeviceToken(userId, token);
+    public void registerDeviceToken(String token) {
+        networkDataSource.registerDeviceToken(token);
     }
 
     @Override
@@ -84,5 +84,8 @@ public class NotificationRepositoryImpl implements NotificationRepository {
                         n.isRead()
                 ))
                 .collect(Collectors.toList());
+    }
+    public LiveData<Result<Boolean>> markAsRead(int notificationId) {
+        return networkDataSource.markAsRead(notificationId);
     }
 }

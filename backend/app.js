@@ -10,6 +10,7 @@ import errorHandler from './middlewares/errorHandler.js';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 
+import { auth } from './middlewares/auth.middleware.js';
 import authRoute from './routes/auth.route.js';
 import followRoutes from './routes/follow.route.js';
 import postRoutes from './routes/post.route.js';
@@ -29,6 +30,9 @@ app.use(restResponse);
 app.use('/uploads', express.static(path.resolve(__dirname, 'uploads')));
 
 app.use('/api/auth', authRoute);
+
+app.use(auth);
+
 app.use('/api/users', userRoute);
 app.use('/api/records', recordRoute);
 app.use('/api/notifications', notificationRouter);
@@ -36,6 +40,7 @@ app.use('/api/device-tokens', deviceTokenRouter);
 
 app.use(followRoutes);
 app.use(postRoutes);
+app.use(userRoute);
 
 app.use(notFound);
 app.use(errorHandler);

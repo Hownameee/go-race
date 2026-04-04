@@ -35,6 +35,43 @@ const userController = {
   //   }
   // }
 
+  getSuggestedUsers: async function (req, res, next) {
+    try {
+      const currentUserId = req.user.userId;
+      const limit = 10;
+      const result = await userService.getSuggestedUsers(currentUserId, limit);
+
+      return res.ok(result, 'Suggested users fetched successfully.');
+    } catch (error) {
+      if (error.status === 409) {
+        console.error(error);
+        return res.violate(null, error.message);
+      }
+      return next(error);
+    }
+  },
+
+  getUsersBySearch: async function (req, res, next) {
+    try {
+      const currentUserId = req.user.userId;
+      const search = req.query.search || '';
+      const limit = 10;
+      const result = await userService.searchUsersByName(
+        currentUserId,
+        search,
+        limit,
+      );
+
+      return res.ok(result, 'Search users successfully.');
+    } catch (error) {
+      if (error.status === 409) {
+        console.error(error);
+        return res.violate(null, error.message);
+      }
+      return next(error);
+    }
+  },
+
   // ===== PROFILE PAGES =====
   // Profile main page
   getMeOverview: async function (req, res, next) {

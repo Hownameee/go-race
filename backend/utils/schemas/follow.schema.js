@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const followCreateSchema = z.object({
-  followingId: z
+  followingId: z.coerce
     .number()
     .int()
     .positive('followingId must be a positive number'),

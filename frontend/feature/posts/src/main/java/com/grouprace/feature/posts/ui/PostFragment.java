@@ -161,7 +161,12 @@ public class PostFragment extends Fragment {
         return new TopAppBarConfig.Builder()
                 .setTitle("GORACE")
                 .setLeftIcon(com.grouprace.core.system.R.drawable.ic_app)
-                .setRightIcon(com.grouprace.core.system.R.drawable.ic_notification, v -> {
+                .addRightIcon(com.grouprace.core.system.R.drawable.ic_search, v -> {
+                    if (appNavigator != null) {
+                        appNavigator.navigateToSearch(PostFragment.this);
+                    }
+                })
+                .addRightIcon(com.grouprace.core.system.R.drawable.ic_notification, v -> {
                     if (appNavigator != null) {
                         appNavigator.navigateToNotification(PostFragment.this);
                     }
