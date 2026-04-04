@@ -93,7 +93,7 @@ public class MainActivity
     @Override
     public void openRegister() {
         bottomNav.setVisibility(android.view.View.GONE);
-        loadSubFragment(new RegisterFragment());
+        loadAuthRootFragment(new RegisterFragment());
     }
     @Override
     public void openForgotPassword() {
@@ -103,11 +103,7 @@ public class MainActivity
     @Override
     public void openLogin() {
         bottomNav.setVisibility(android.view.View.GONE);
-        if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
-            getSupportFragmentManager().popBackStack();
-        } else {
-            loadSubFragment(new LoginFragment());
-        }
+        loadAuthRootFragment(new LoginFragment());
     }
     @Override
     public void openEditProfile() {
@@ -176,6 +172,13 @@ public class MainActivity
                 .replace(R.id.fragment_container, fragment)
                 .addToBackStack(null) // For back button
                 .commit();
+    }
+
+    private void loadAuthRootFragment(Fragment fragment) {
+        if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+            getSupportFragmentManager().popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        }
+        loadFragment(fragment);
     }
 
     private void showAuthenticatedHome() {
