@@ -79,6 +79,17 @@ public class PostFragment extends Fragment {
                 CommentFragment.newInstance(post.getPostId())
                         .show(getChildFragmentManager(), "CommentBottomSheet");
             }
+
+            @Override
+            public void onShareClicked(Post post) {
+                ShareActivityFragment.newInstance(
+                        post.getTitle(),
+                        "8.15 km",
+                        "2.36 /km",
+                        "15m 15s",
+                        post.getDisplayName()
+                ).show(getChildFragmentManager(), "ShareBottomSheet");
+            }
         });
         rvPosts.setAdapter(postAdapter);
 

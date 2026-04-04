@@ -18,6 +18,7 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
     public interface OnPostActionListener {
         void onLikeClicked(Post post, int position);
         void onCommentClicked(Post post);
+        void onShareClicked(Post post);
     }
 
     private OnPostActionListener listener;
@@ -71,6 +72,12 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
         };
         holder.ivComment.setOnClickListener(commentClickListener);
         holder.tvComments.setOnClickListener(commentClickListener);
+
+        holder.ivShare.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onShareClicked(post);
+            }
+        });
     }
 
     public String getLastPostCreatedAt() {
@@ -91,6 +98,7 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
         final TextView tvComments;
         final ImageView ivLike;
         final ImageView ivComment;
+        final ImageView ivShare;
 
         public PostViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -104,6 +112,7 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
             tvComments = itemView.findViewById(R.id.tv_comments);
             ivLike = itemView.findViewById(R.id.iv_like);
             ivComment = itemView.findViewById(R.id.iv_comment);
+            ivShare = itemView.findViewById(R.id.iv_share);
         }
 
         public void bind(Post post) {
