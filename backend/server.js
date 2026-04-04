@@ -11,6 +11,6 @@ const server = http.createServer(app);
 initFirebaseAdmin();
 
 // Bắt đầu server
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`Backend server listening on port ${PORT}`);
 });

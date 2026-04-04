@@ -25,6 +25,15 @@ const userService = {
       birthdate: userData.birthdate,
     });
   },
+
+  getSuggestedUsers: async function (currentUserId, limit) {
+    return await userRepo.getSuggestUser(currentUserId, limit);
+  },
+
+  searchUsersByName: async function (currentUserId, searchQuery, limit) {
+    const safeQuery = searchQuery || '';
+    return await userRepo.searchUsersByName(currentUserId, safeQuery, limit);
+  },
 };
 
 export default userService;

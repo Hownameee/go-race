@@ -9,14 +9,14 @@ import {
 const router = Router();
 
 router.post(
-  '/api/users/follow',
-  validation(followCreateSchema, 'body'),
+  '/api/users/:followingId/follow',
+  validation(followCreateSchema, 'params'),
   followController.follow,
 );
 
 router.delete(
-  '/api/users/follow',
-  validation(followCreateSchema, 'body'),
+  '/api/users/:followingId/follow',
+  validation(followCreateSchema, 'params'),
   followController.unfollow,
 );
 

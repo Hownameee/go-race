@@ -16,6 +16,7 @@ import postRoutes from './routes/post.route.js';
 import notificationRouter from './routes/notification.route.js';
 import deviceTokenRouter from './routes/device-token.route.js';
 import { auth } from './middlewares/auth.middleware.js';
+import userRoutes from './routes/user.route.js';
 
 const app = express();
 initDatabase();
@@ -25,18 +26,17 @@ app.use(cors());
 app.use(restResponse);
 app.use('/public', express.static('public'));
 
+// routes here
 app.use('/auth', authRoute);
 
-const apiRoute = express.Router();
 app.use(auth);
-apiRoute.use('/records', recordRouter);
-apiRoute.use('/notifications', notificationRouter);
-apiRoute.use('/device-tokens', deviceTokenRouter);
-
-app.use('/api', apiRoute);
-
 app.use(followRoutes);
 app.use(postRoutes);
+app.use(userRoutes);
+app.use('/api/records', recordRouter);
+
+app.use('/api/notifications', notificationRouter);
+app.use('/api/device-tokens', deviceTokenRouter);
 
 app.use(notFound);
 app.use(errorHandler);

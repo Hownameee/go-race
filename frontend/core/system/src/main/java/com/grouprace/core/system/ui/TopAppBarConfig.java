@@ -3,21 +3,22 @@ package com.grouprace.core.system.ui;
 import android.view.View;
 import androidx.annotation.DrawableRes;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class TopAppBarConfig {
     private final String title;
     @DrawableRes
     private final int leftIconResId;
-    @DrawableRes
-    private final int rightIconResId;
     private final View.OnClickListener onLeftIconClick;
-    private final View.OnClickListener onRightIconClick;
+
+    private final List<ActionIcon> rightIcons;
 
     private TopAppBarConfig(Builder builder) {
         this.title = builder.title;
         this.leftIconResId = builder.leftIconResId;
-        this.rightIconResId = builder.rightIconResId;
         this.onLeftIconClick = builder.onLeftIconClick;
-        this.onRightIconClick = builder.onRightIconClick;
+        this.rightIcons = builder.rightIcons;
     }
 
     public String getTitle() {
@@ -29,27 +30,32 @@ public class TopAppBarConfig {
         return leftIconResId;
     }
 
-    @DrawableRes
-    public int getRightIconResId() {
-        return rightIconResId;
-    }
 
     public View.OnClickListener getOnLeftIconClick() {
         return onLeftIconClick;
     }
 
-    public View.OnClickListener getOnRightIconClick() {
-        return onRightIconClick;
+    public List<ActionIcon> getRightIcons() {
+        return rightIcons;
     }
 
+    public static class ActionIcon {
+        @DrawableRes
+        public final int iconResId;
+
+        public final View.OnClickListener onClickListener;
+
+        public ActionIcon(@DrawableRes int iconResId, View.OnClickListener onClickListener) {
+            this.iconResId = iconResId;
+            this.onClickListener = onClickListener;
+        }
+    }
     public static class Builder {
         private String title;
         @DrawableRes
-        private int leftIconResId = 0; // 0 means hidden or default if not supported
-        @DrawableRes
-        private int rightIconResId = 0; // 0 means hidden
+        private int leftIconResId = 0;
         private View.OnClickListener onLeftIconClick;
-        private View.OnClickListener onRightIconClick;
+        private List<ActionIcon> rightIcons = new ArrayList<>();
 
         public Builder setTitle(String title) {
             this.title = title;
@@ -72,22 +78,10 @@ public class TopAppBarConfig {
             return this;
         }
 
-        public Builder setRightIcon(@DrawableRes int iconResId) {
-            this.rightIconResId = iconResId;
+        public Builder addRightIcon(@DrawableRes int iconResId, View.OnClickListener onClickListener) {
+            this.rightIcons.add(new ActionIcon(iconResId, onClickListener));
             return this;
         }
-
-        public Builder setRightIcon(@DrawableRes int iconResId, View.OnClickListener onClickListener) {
-            this.rightIconResId = iconResId;
-            this.onRightIconClick = onClickListener;
-            return this;
-        }
-
-        public Builder setOnRightIconClick(View.OnClickListener onClickListener) {
-            this.onRightIconClick = onClickListener;
-            return this;
-        }
-
         public TopAppBarConfig build() {
             return new TopAppBarConfig(this);
         }

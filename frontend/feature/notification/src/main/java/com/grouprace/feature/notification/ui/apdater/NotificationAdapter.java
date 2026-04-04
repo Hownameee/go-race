@@ -78,7 +78,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         holder.itemView.setOnClickListener(v -> {
             if (clickListener != null) {
                 clickListener.onNotificationClick(item);
-                item.setRead(true);
             }
         });
     }

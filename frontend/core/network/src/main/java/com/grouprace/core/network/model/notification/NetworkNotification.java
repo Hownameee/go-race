@@ -1,4 +1,4 @@
-package com.grouprace.core.network.model;
+package com.grouprace.core.network.model.notification;
 
 import com.google.gson.annotations.SerializedName;
 //CREATE TABLE IF NOT EXISTS NOTIFICATIONS (

@@ -2,92 +2,133 @@ import notificationRepository from '../repo/notification.repo.js';
 import deviceTokenService from './device-token.service.js';
 import { getFirebaseAdmin } from '../utils/firebase/admin.js';
 
-const notificationService = {
-  // tạo notification trả về data
-  create: async function (data) {
-    const id = await notificationRepository.create(data);
+function buildPayload(data, fallbackUserId) {
+  return {
+    id: String(data?.id ?? ''),
+    user_id: String(data?.user_id ?? fallbackUserId ?? ''),
+    type: String(data?.type ?? 'system'),
+    actor_id: data?.actor_id == null ? '' : String(data.actor_id),
+    activity_id: data?.activity_id == null ? '' : String(data.activity_id),
+    title: String(data?.title ?? ''),
+    message: String(data?.message ?? ''),
+  };
+}
 
-    return {
+async function handleInvalidTokens(responses, tokens) {
+  const invalidTokens = [];
+
+  responses.forEach((r, idx) => {
+    if (!r.success) {
+      const errorCode = r.error?.code;
+
+      if (
+        errorCode === 'messaging/registration-token-not-registered' ||
+        errorCode === 'messaging/invalid-registration-token'
+      ) {
+        invalidTokens.push(tokens[idx]);
+      }
+    }
+  });
+
+  if (invalidTokens.length > 0) {
+    console.log('[fcm] removing invalid tokens:', invalidTokens.length);
+    await deviceTokenService.removeTokens(invalidTokens);
+  }
+}
+
+const notificationService = {
+  async createAndSend({
+    userId,
+    type,
+    actorId = null,
+    activityId = null,
+    title,
+    message,
+  }) {
+    const id = await notificationRepository.create({
+      user_id: userId,
+      type,
+      actor_id: actorId,
+      activity_id: activityId,
+      title,
+      message,
+    });
+
+    const notification = {
       id,
-      ...data,
+      user_id: userId,
+      type,
+      actor_id: actorId,
+      activity_id: activityId,
+      title,
+      message,
     };
+
+    if (type === 'system') {
+      await this.sendPushAllUsers(notification);
+    } else {
+      console.log("send firebase");
+      await this.sendPushByUserId(userId, notification);
+    }
+
+    return notification;
   },
 
-  // lấy danh sách notification của user theo id
-  getNotifications: async function (userId) {
+  async getNotifications(userId) {
     return await notificationRepository.findByUserId(userId);
   },
 
-  // đánh dấu notification đã đọc
-  markAsRead: async function (id) {
+  async markAsRead(id) {
     await notificationRepository.markAsRead(id);
   },
 
-  sendPushByUserId: async function (userId, data) {
+  async sendPushByUserId(userId, data) {
     const admin = getFirebaseAdmin();
     if (!admin) return;
 
     const tokens = await deviceTokenService.getTokensByUserId(userId);
+    console.log(tokens);
     if (!tokens.length) return;
 
     const message = {
       tokens,
-      android: {
-        priority: 'high',
-      },
-      data: {
-        id: String(data?.id ?? ''),
-        user_id: String(data?.user_id ?? userId),
-        type: String(data?.type ?? 'system'),
-        actor_id: data?.actor_id == null ? '' : String(data.actor_id),
-        activity_id: data?.activity_id == null ? '' : String(data.activity_id),
-        title: String(data?.title ?? ''),
-        message: String(data?.message ?? ''),
-      },
+      android: { priority: 'high' },
+      data: buildPayload(data, userId),
     };
+
+    console.log("vao");
 
     try {
       const resp = await admin.messaging().sendEachForMulticast(message);
-      console.log(
-        '[fcm] sent:',
-        resp.successCount,
-        'failed:',
-        resp.failureCount,
-      );
+
+      console.log('[fcm] success:', resp.successCount, 'fail:', resp.failureCount);
+
+      await handleInvalidTokens(resp.responses, tokens);
+
     } catch (e) {
       console.warn('[fcm] send failed:', e?.message || e);
     }
   },
 
-  sendPushAllUsers: async function (data) {
+  async sendPushAllUsers(data) {
     const admin = getFirebaseAdmin();
     if (!admin) return;
 
     const message = {
       topic: 'system-notifications',
-      android: {
-        priority: 'high',
-      },
-      data: {
-        id: String(data?.id ?? ''),
-        user_id: String(data?.user_id ?? ''),
-        type: String(data?.type ?? 'system'),
-        actor_id: data?.actor_id == null ? '' : String(data.actor_id),
-        activity_id: data?.activity_id == null ? '' : String(data.activity_id),
-        title: String(data?.title ?? ''),
-        message: String(data?.message ?? ''),
-      },
+      android: { priority: 'high' },
+      data: buildPayload(data),
       notification: {
-        title: String(data?.title ?? 'Thông báo hệ thống'),
+        title: String(data?.title ?? 'System'),
         body: String(data?.message ?? ''),
       },
     };
 
     try {
-      const response = await admin.messaging().send(message);
-      console.log('[fcm] Topic broadcast sent successfully:', response);
+      const res = await admin.messaging().send(message);
+      console.log('[fcm] broadcast success:', res);
     } catch (e) {
-      console.warn('[fcm] Topic broadcast failed:', e?.message || e);
+      console.warn('[fcm] broadcast failed:', e?.message || e);
     }
   },
 };

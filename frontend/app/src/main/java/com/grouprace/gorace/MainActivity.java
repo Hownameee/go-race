@@ -10,6 +10,7 @@ import com.grouprace.feature.notification.ui.NotificationFragment;
 import com.grouprace.feature.profile.ui.ProfileFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.grouprace.core.system.ui.PlaceholderFragment;
+import com.grouprace.feature.search.ui.SearchFragment;
 import com.grouprace.feature.tracking.ui.TrackingFragment;
 import com.grouprace.feature.posts.ui.PostFragment;
 import com.grouprace.feature.register.ui.RegisterFragment;
