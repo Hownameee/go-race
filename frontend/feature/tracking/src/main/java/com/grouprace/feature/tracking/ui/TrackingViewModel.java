@@ -16,7 +16,6 @@ import androidx.lifecycle.Observer;
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.RoutePoint;
 import com.grouprace.core.service.LocationTrackingService;
-import com.grouprace.feature.tracking.domain.CreateActivityUseCase;
 import com.grouprace.feature.tracking.domain.FinishActivityUseCase;
 import com.grouprace.feature.tracking.domain.SavePointUseCase;
 import com.mapbox.geojson.Point;
@@ -35,7 +34,6 @@ public class TrackingViewModel extends AndroidViewModel {
 
     public enum TrackingState { IDLE, TRACKING, PAUSED }
 
-    private final CreateActivityUseCase createActivityUseCase;
     private final SavePointUseCase savePointUseCase;
     private final FinishActivityUseCase finishActivityUseCase;
 
@@ -67,11 +65,9 @@ public class TrackingViewModel extends AndroidViewModel {
 
     @Inject
     public TrackingViewModel(@NonNull Application application,
-                             CreateActivityUseCase createActivityUseCase,
                              SavePointUseCase savePointUseCase,
                              FinishActivityUseCase finishActivityUseCase) {
         super(application);
-        this.createActivityUseCase = createActivityUseCase;
         this.savePointUseCase = savePointUseCase;
         this.finishActivityUseCase = finishActivityUseCase;
     }
@@ -99,8 +95,7 @@ public class TrackingViewModel extends AndroidViewModel {
         backgroundExecutor.execute(() -> {
             savePointUseCase.clearUnassignedPoints(); 
             
-            // Note: createActivityUseCase currently returns 0 as a placeholder for unsynced records
-            currentActivityId = createActivityUseCase.execute();
+            currentActivityId = 0;
             new Handler(Looper.getMainLooper()).post(() -> {
                 trackingStartTime = System.currentTimeMillis();
                 totalPausedTime = 0;
