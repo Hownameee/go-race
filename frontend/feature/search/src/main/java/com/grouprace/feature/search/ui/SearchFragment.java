@@ -16,6 +16,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.tabs.TabLayout;
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.system.ui.TopAppBarConfig;
+import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.feature.search.R;
 import com.grouprace.feature.search.apdater.SearchAdapter;
 
@@ -62,6 +64,13 @@ public class SearchFragment extends Fragment {
         tvTitle = view.findViewById(R.id.tvSectionTitle);
         progressBar = view.findViewById(R.id.progressBar);
         tabLayout = view.findViewById(R.id.tabLayout);
+
+        TopAppBarHelper.setupTopAppBar(view, new TopAppBarConfig.Builder()
+                .setTitle("Search")
+                .setLeftIcon(com.grouprace.core.system.R.drawable.ic_back, v -> {
+                    requireActivity().getOnBackPressedDispatcher().onBackPressed();
+                })
+                .build());
     }
 
     private void setupRecyclerView() {
