@@ -6,8 +6,13 @@ import com.grouprace.core.data.repository.NotificationRepository;
 import com.grouprace.core.data.repository.NotificationRepositoryImpl;
 import com.grouprace.core.data.repository.PostRepository;
 import com.grouprace.core.data.repository.PostRepositoryImpl;
+<<<<<<< HEAD
 import com.grouprace.core.data.repository.SearchRepository;
 import com.grouprace.core.data.repository.SearchRepositoryImpl;
+=======
+import com.grouprace.core.data.repository.RecordRepository;
+import com.grouprace.core.data.repository.RecordRepositoryImpl;
+>>>>>>> main
 import com.grouprace.core.data.repository.TrackingRepository;
 import com.grouprace.core.data.repository.TrackingRepositoryImpl;
 
@@ -25,6 +30,9 @@ public abstract class RepositoryModule {
 
     @Binds
     public abstract PostRepository bindPostRepository(PostRepositoryImpl impl);
+
+    @Binds
+    public abstract RecordRepository bindRecordRepository(RecordRepositoryImpl impl);
 
     @Binds
     public abstract AuthRepository bindAuthRepository(AuthRepositoryImpl impl);

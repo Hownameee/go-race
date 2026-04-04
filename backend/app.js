@@ -7,6 +7,7 @@ import notFound from './middlewares/notFound.js';
 import errorHandler from './middlewares/errorHandler.js';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import recordRouter from './routes/record.route.js';
 
 import authRoute from './routes/auth.route.js';
 import followRoutes from './routes/follow.route.js';
@@ -23,6 +24,7 @@ initDatabase();
 app.use(bodyParser.json());
 app.use(cors());
 app.use(restResponse);
+app.use('/public', express.static('public'));
 
 // routes here
 app.use('/auth', authRoute);
@@ -31,6 +33,7 @@ app.use(auth);
 app.use(followRoutes);
 app.use(postRoutes);
 app.use(userRoutes);
+
 
 app.use('/api/notifications', notificationRouter);
 app.use('/api/device-tokens', deviceTokenRouter);

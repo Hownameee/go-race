@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import z from 'zod';
 
 const STRONG_PASSWORD_REGEX =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;

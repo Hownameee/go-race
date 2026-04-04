@@ -48,6 +48,7 @@ dependencies {
     implementation(project(":feature:profile"))
     implementation(project(":feature:notification"))
     implementation(project(":core:data"))
+    implementation(project(":core:network"))
     implementation(project(":core:system"))
     implementation(project(":core:navigation"))
     implementation(project(":feature:search"))
@@ -55,6 +56,7 @@ dependencies {
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
     annotationProcessor(libs.hilt.compiler)
+    implementation(project(":feature:records"))
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
