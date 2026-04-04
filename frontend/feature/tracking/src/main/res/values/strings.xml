@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="start_tracking">Start</string>
+    <string name="stop_tracking">Stop</string>
+    <string name="pause_tracking">Pause</string>
+    <string name="resume_tracking">Resume</string>
+    <string name="finish_tracking">Finish</string>
+    <string name="label_km">km</string>
+    <string name="label_time">time</string>
+    <string name="label_pace">km/h</string>
+    <string name="save_activity">Save</string>
+    <string name="activity_title_hint">Name your activity</string>
+    <string name="history">History</string>
+    <string name="compare">Compare</string>
+
+</resources>

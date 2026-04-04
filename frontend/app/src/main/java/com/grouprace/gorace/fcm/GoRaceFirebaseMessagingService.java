@@ -76,4 +76,3 @@ public class GoRaceFirebaseMessagingService extends FirebaseMessagingService {
         manager.notify((int) System.currentTimeMillis(), builder.build());
     }
 }
-

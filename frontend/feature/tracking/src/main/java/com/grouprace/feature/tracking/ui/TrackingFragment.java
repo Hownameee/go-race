@@ -2,12 +2,15 @@ package com.grouprace.feature.tracking.ui;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -18,24 +21,78 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.grouprace.feature.tracking.R;
+import com.grouprace.feature.records.list.ui.RecordsFragment;
 import com.mapbox.geojson.Point;
-
-import dagger.hilt.android.AndroidEntryPoint;
-import com.mapbox.maps.CameraOptions;
 import com.mapbox.maps.MapView;
 import com.mapbox.maps.Style;
+import com.mapbox.maps.Style;
+import com.mapbox.maps.plugin.Plugin;
+import com.mapbox.maps.plugin.locationcomponent.LocationComponentPlugin;
+import com.mapbox.maps.plugin.viewport.ViewportPlugin;
+import com.mapbox.maps.plugin.viewport.ViewportStatus;
+import com.mapbox.maps.plugin.viewport.ViewportStatusObserver;
+import com.mapbox.maps.plugin.viewport.ViewportUtils;
+import com.mapbox.maps.plugin.viewport.data.DefaultViewportTransitionOptions;
+import com.mapbox.maps.plugin.viewport.data.FollowPuckViewportStateOptions;
+import com.mapbox.maps.plugin.viewport.data.ViewportStatusChangeReason;
+import com.mapbox.maps.plugin.viewport.state.FollowPuckViewportState;
+
+import java.util.List;
+import java.util.Locale;
+
+import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class TrackingFragment extends Fragment {
 
     private MapView mapView;
+    private Style mapStyle;
     private TrackingViewModel viewModel;
+    private ViewportPlugin viewport;
+    private FollowPuckViewportState followState;
+
+    // Stats views
+    private LinearLayout statsBar;
+    private TextView tvDistance;
+    private TextView tvTime;
+    private TextView tvPace;
+
+    // Buttons
+    private Button btnStart;
+    private Button btnPause;
+    private Button btnResume;
+    private Button btnFinish;
+    private Button btnRecords;
+    private Button btnCompare;
+
+    private static final long SNAP_BACK_DELAY_MS = 1000;
+    private final Handler snapBackHandler = new Handler(Looper.getMainLooper());
+    private final Runnable snapBackRunnable = () -> {
+        if (viewport != null && followState != null) {
+            viewport.transitionTo(followState,
+                    viewport.makeDefaultViewportTransition(
+                            new DefaultViewportTransitionOptions.Builder()
+                                    .maxDurationMs(1500)
+                                    .build()),
+                    null);
+        }
+    };
+
+    // When user pans the map, viewport goes Idle — snap back after a short delay
+    private final ViewportStatusObserver statusObserver = (from, to, reason) -> {
+        if (to instanceof ViewportStatus.Idle
+                && reason.equals(ViewportStatusChangeReason.USER_INTERACTION)
+                && followState != null) {
+            snapBackHandler.removeCallbacks(snapBackRunnable);
+            snapBackHandler.postDelayed(snapBackRunnable, SNAP_BACK_DELAY_MS);
+        }
+    };
 
     private final ActivityResultLauncher<String[]> locationPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
-                Boolean fine = result.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false);
-                if (Boolean.TRUE.equals(fine)) {
-                    viewModel.startTracking();
+                Boolean granted = result.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false);
+                if (Boolean.TRUE.equals(granted)) {
+                    enableLocationTracking();
                 }
             });
 
@@ -52,32 +109,35 @@ public class TrackingFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         mapView = view.findViewById(R.id.map_view);
-        mapView.getMapboxMap().loadStyle(Style.MAPBOX_STREETS);
+        statsBar = view.findViewById(R.id.stats_bar);
+        tvDistance = view.findViewById(R.id.tv_distance);
+        tvTime = view.findViewById(R.id.tv_time);
+        tvPace = view.findViewById(R.id.tv_pace);
+        btnStart = view.findViewById(R.id.btn_start);
+        btnPause = view.findViewById(R.id.btn_pause);
+        btnResume = view.findViewById(R.id.btn_resume);
+        btnFinish = view.findViewById(R.id.btn_finish);
+        btnRecords = view.findViewById(R.id.btn_records);
+        btnCompare = view.findViewById(R.id.btn_compare);
 
-        Button btnStart = view.findViewById(R.id.btn_start);
-        Button btnStop = view.findViewById(R.id.btn_stop);
+        mapView.getMapboxMap().loadStyle(Style.DARK, style -> {
+            mapStyle = style;
+            RouteMapHelper.setupRouteLayer(style);
+            requestLocationPermission();
+        });
 
         viewModel = new ViewModelProvider(this).get(TrackingViewModel.class);
 
-        viewModel.getIsTracking().observe(getViewLifecycleOwner(), tracking -> {
-            btnStart.setVisibility(Boolean.TRUE.equals(tracking) ? View.GONE : View.VISIBLE);
-            btnStop.setVisibility(Boolean.TRUE.equals(tracking) ? View.VISIBLE : View.GONE);
-        });
-
-        viewModel.getCurrentLocation().observe(getViewLifecycleOwner(), location -> {
-            if (location != null) {
-                moveCamera(location);
-            }
-        });
-
-        btnStart.setOnClickListener(v -> requestLocationPermissionAndStart());
-        btnStop.setOnClickListener(v -> viewModel.stopTracking());
+        observeViewModel();
+        setupButtons();
     }
 
-    private void requestLocationPermissionAndStart() {
+    // --- Setup ---
+
+    private void requestLocationPermission() {
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
-            viewModel.startTracking();
+            enableLocationTracking();
         } else {
             locationPermissionLauncher.launch(new String[]{
                     Manifest.permission.ACCESS_FINE_LOCATION,
@@ -86,14 +146,131 @@ public class TrackingFragment extends Fragment {
         }
     }
 
-    private void moveCamera(Location location) {
-        mapView.getMapboxMap().setCamera(
-                new CameraOptions.Builder()
-                        .center(Point.fromLngLat(location.getLongitude(), location.getLatitude()))
+    private void enableLocationTracking() {
+        // Enable the blue location puck
+        LocationComponentPlugin locationPlugin =
+                mapView.getPlugin(Plugin.MAPBOX_LOCATION_COMPONENT_PLUGIN_ID);
+        if (locationPlugin != null) {
+            locationPlugin.updateSettings(settings -> {
+                settings.setEnabled(true);
+                settings.setPuckBearingEnabled(true);
+                return null;
+            });
+        }
+
+        // Use Viewport API to follow location puck
+        viewport = ViewportUtils.getViewport(mapView);
+
+        followState = viewport.makeFollowPuckViewportState(
+                new FollowPuckViewportStateOptions.Builder()
                         .zoom(15.0)
+                        .pitch(0.0)
+                        .bearing(null)
                         .build()
         );
+
+        // Start following immediately
+        viewport.transitionTo(followState, viewport.makeImmediateViewportTransition(), null);
+
+        // Re-follow after user pans the map
+        viewport.addStatusObserver(statusObserver);
     }
+
+    // --- Observe ViewModel ---
+
+    private void observeViewModel() {
+        viewModel.getTrackingState().observe(getViewLifecycleOwner(), this::updateButtonVisibility);
+
+        viewModel.getPolylinePoints().observe(getViewLifecycleOwner(), this::drawPolyline);
+
+        viewModel.getDistanceKm().observe(getViewLifecycleOwner(), distance ->
+                tvDistance.setText(String.format(Locale.US, "%.2f", distance)));
+
+        viewModel.getElapsedTimeMs().observe(getViewLifecycleOwner(), this::updateTimeDisplay);
+
+        viewModel.getPace().observe(getViewLifecycleOwner(), paceText ->
+                tvPace.setText(paceText));
+
+        viewModel.getFinishedActivityId().observe(getViewLifecycleOwner(), activityId -> {
+            if (activityId != null) {
+                navigateToSummary(activityId);
+                viewModel.resetFinishedActivityId();
+            }
+        });
+    }
+
+    // --- Button handling ---
+
+    private void setupButtons() {
+        btnStart.setOnClickListener(v -> viewModel.startTracking());
+        btnPause.setOnClickListener(v -> viewModel.pauseTracking());
+        btnResume.setOnClickListener(v -> viewModel.resumeTracking());
+        btnFinish.setOnClickListener(v -> viewModel.finishTracking());
+        btnRecords.setOnClickListener(v -> navigateToRecords());
+        btnCompare.setOnClickListener(v -> navigateToCompare());
+    }
+
+    private void updateButtonVisibility(TrackingViewModel.TrackingState state) {
+        boolean idle = state == TrackingViewModel.TrackingState.IDLE;
+        boolean tracking = state == TrackingViewModel.TrackingState.TRACKING;
+        boolean paused = state == TrackingViewModel.TrackingState.PAUSED;
+
+        btnStart.setVisibility(idle ? View.VISIBLE : View.GONE);
+        btnRecords.setVisibility(idle ? View.VISIBLE : View.GONE);
+        btnCompare.setVisibility(idle ? View.VISIBLE : View.GONE);
+        btnPause.setVisibility(tracking ? View.VISIBLE : View.GONE);
+        btnResume.setVisibility(paused ? View.VISIBLE : View.GONE);
+        btnFinish.setVisibility(!idle ? View.VISIBLE : View.GONE);
+        statsBar.setVisibility(!idle ? View.VISIBLE : View.GONE);
+    }
+
+    // --- Map updates ---
+
+    private void drawPolyline(List<Point> points) {
+        RouteMapHelper.drawRoute(mapStyle, points);
+    }
+
+    private void updateTimeDisplay(Long millis) {
+        if (millis == null) return;
+        long totalSeconds = millis / 1000;
+        long minutes = totalSeconds / 60;
+        long seconds = totalSeconds % 60;
+        tvTime.setText(String.format(Locale.US, "%02d:%02d", minutes, seconds));
+    }
+
+    // --- Navigation ---
+
+    private void navigateToSummary(long activityId) {
+        int containerId = ((ViewGroup) requireView().getParent()).getId();
+        requireActivity().getSupportFragmentManager().beginTransaction()
+                .replace(containerId, ActivitySummaryFragment.newInstance(activityId))
+                .addToBackStack(null)
+                .commit();
+    }
+
+    private void navigateToRecords() {
+        requireActivity().getSupportFragmentManager().beginTransaction()
+                .replace(getId(), new RecordsFragment())
+                .addToBackStack(null)
+                .commit();
+    }
+
+    private void navigateToCompare() {
+        // We will create CompareRecordsFragment soon
+        // For now, it's a placeholder
+        try {
+            Class<?> compareFragmentClass = Class.forName("com.grouprace.feature.records.compare.ui.CompareRecordsFragment");
+            Fragment fragment = (Fragment) compareFragmentClass.newInstance();
+            requireActivity().getSupportFragmentManager().beginTransaction()
+                    .replace(getId(), fragment)
+                    .addToBackStack(null)
+                    .commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // --- Lifecycle ---
 
     @Override
     public void onStart() {
@@ -109,7 +286,11 @@ public class TrackingFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
-        super.onDestroyView();
+        snapBackHandler.removeCallbacks(snapBackRunnable);
+        if (viewport != null) {
+            viewport.removeStatusObserver(statusObserver);
+        }
         mapView.onDestroy();
+        super.onDestroyView();
     }
 }

@@ -1,9 +1,22 @@
-import { z } from 'zod';
+import z from 'zod';
 
-const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
-const STRONG_PASSWORD_MSG = 'Password must be at least 8 characters and include uppercase, lowercase, numbers, and special characters';
+const STRONG_PASSWORD_REGEX =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+const STRONG_PASSWORD_MSG =
+  'Password must be at least 8 characters and include uppercase, lowercase, numbers, and special characters';
 
-const SHIRT_SIZES = ['2XS', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL'];
+const SHIRT_SIZES = [
+  '2XS',
+  'XS',
+  'S',
+  'M',
+  'L',
+  'XL',
+  '2XL',
+  '3XL',
+  '4XL',
+  '5XL',
+];
 
 export const registerSchema = z
   .object({

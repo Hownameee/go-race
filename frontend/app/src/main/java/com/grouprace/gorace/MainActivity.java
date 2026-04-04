@@ -2,7 +2,6 @@ package com.grouprace.gorace;
 
 import android.os.Bundle;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
@@ -15,6 +14,7 @@ import com.grouprace.feature.tracking.ui.TrackingFragment;
 import com.grouprace.feature.posts.ui.PostFragment;
 import com.grouprace.feature.register.ui.RegisterFragment;
 import dagger.hilt.android.AndroidEntryPoint;
+import com.grouprace.feature.records.list.ui.RecordsFragment;
 
 @AndroidEntryPoint
 public class MainActivity extends AppCompatActivity {
@@ -22,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
+//        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
             if (itemId == R.id.nav_home) {
                 fragment = new PostFragment();
             } else if (itemId == R.id.nav_maps) {
-                fragment = new PlaceholderFragment();
+                fragment = new TrackingFragment();
             } else if (itemId == R.id.nav_record) {
                 fragment = new TrackingFragment();
             } else if (itemId == R.id.nav_clubs) {
