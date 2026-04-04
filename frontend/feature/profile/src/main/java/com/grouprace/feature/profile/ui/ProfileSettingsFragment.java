@@ -15,7 +15,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.grouprace.core.common.result.Result;
-import com.grouprace.core.network.utils.SessionManager;
+import com.grouprace.core.data.repository.AuthRepository;
 import com.grouprace.feature.profile.R;
 
 import javax.inject.Inject;
@@ -32,7 +32,7 @@ public class ProfileSettingsFragment extends Fragment {
     }
 
     @Inject
-    SessionManager sessionManager;
+    AuthRepository authRepository;
 
     private ProfileSettingsViewModel viewModel;
 
@@ -112,14 +112,14 @@ public class ProfileSettingsFragment extends Fragment {
     }
 
     private void logout() {
-        sessionManager.clearSession();
+        authRepository.logout();
         restartMainActivity();
     }
 
     private void deleteMyAccount() {
         viewModel.deleteMyAccount().observe(getViewLifecycleOwner(), result -> {
             if (result instanceof Result.Success) {
-                sessionManager.clearSession();
+                authRepository.logout();
                 Toast.makeText(requireContext(), "Account deleted successfully", Toast.LENGTH_SHORT).show();
                 restartMainActivity();
             } else if (result instanceof Result.Error) {

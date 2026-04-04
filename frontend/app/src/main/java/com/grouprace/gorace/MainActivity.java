@@ -26,6 +26,8 @@ import com.grouprace.feature.records.list.ui.RecordsFragment;
 import com.grouprace.feature.register.ui.RegisterFragment;
 import com.grouprace.feature.tracking.ui.TrackingFragment;
 
+import androidx.lifecycle.ViewModelProvider;
+
 import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
@@ -43,9 +45,10 @@ public class MainActivity extends AppCompatActivity
         PasswordResetOtpFragment.NavigationHost {
 
     @Inject
-    SessionManager sessionManager;
+    SessionManager sessionManager; // Keep for some direct checks or remove if fully reactive
 
     private BottomNavigationView bottomNav;
+    private MainViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,8 +56,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         bottomNav = findViewById(R.id.bottom_navigation);
-        boolean isLoggedIn = sessionManager != null && sessionManager.isLoggedIn();
-        bottomNav.setVisibility(isLoggedIn ? android.view.View.VISIBLE : android.view.View.GONE);
+        viewModel = new ViewModelProvider(this).get(MainViewModel.class);
 
         bottomNav.setOnItemSelectedListener(item -> {
             Fragment fragment = null;
@@ -78,14 +80,25 @@ public class MainActivity extends AppCompatActivity
             return true;
         });
 
-        Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-        if (currentFragment == null) {
-            if (isLoggedIn) {
-                showAuthenticatedHome();
-            } else {
+        observeViewModel();
+    }
+
+    private void observeViewModel() {
+        viewModel.getIsLoggedIn().observe(this, isLoggedIn -> {
+            bottomNav.setVisibility(isLoggedIn ? android.view.View.VISIBLE : android.view.View.GONE);
+
+            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+            if (currentFragment == null) {
+                if (isLoggedIn) {
+                    showAuthenticatedHome();
+                } else {
+                    showLoginEntry();
+                }
+            } else if (!isLoggedIn && !(currentFragment instanceof LoginFragment) && !(currentFragment instanceof RegisterFragment)) {
+                // If logged out and not on auth screens, go to login
                 showLoginEntry();
             }
-        }
+        });
     }
 
     @Override
