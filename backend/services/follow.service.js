@@ -1,10 +1,11 @@
 import followRepo from '../repo/follow.repo.js';
+import notificationService from './notification.service.js';
 
 const DEFAULT_LIMIT = 20;
 const FAR_FUTURE = '9999-12-31T23:59:59.999Z';
 
 const followService = {
-  async followUser(followerId, followingId) {
+  async followUser(followerId, followingId, followerName) {
     if (followerId === followingId) {
       const error = new Error('You cannot follow yourself.');
       error.status = 409;
@@ -14,6 +15,18 @@ const followService = {
 
     if (!newFollow) {
       throw new Error('Already following this user.');
+    }
+
+    try {
+      await notificationService.createAndSend({
+        userId: followingId,          
+        type: "follow",
+        actorId: followerId,          
+        title: "New follower",
+        message: `${followerName} started following you`,
+      });
+    } catch (err) {
+      console.error("[follow][notification error]", err);
     }
 
     return newFollow;
