@@ -33,7 +33,7 @@ app.use(auth);
 app.use(followRoutes);
 app.use(postRoutes);
 app.use(userRoutes);
-
+app.use('/api/records', recordRouter);
 
 app.use('/api/notifications', notificationRouter);
 app.use('/api/device-tokens', deviceTokenRouter);

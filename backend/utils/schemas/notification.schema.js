@@ -15,5 +15,5 @@ export const createNotificationSchema = z.object({
 });
 
 export const markAsReadSchema = z.object({
-  id: z.number().int().positive(), 
+  id: z.coerce.number().int().positive()
 });

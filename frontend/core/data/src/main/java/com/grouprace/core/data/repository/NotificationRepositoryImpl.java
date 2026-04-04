@@ -52,8 +52,8 @@ public class NotificationRepositoryImpl implements NotificationRepository {
     }
 
     @Override
-    public void registerDeviceToken(int userId, String token) {
-        networkDataSource.registerDeviceToken(userId, token);
+    public void registerDeviceToken(String token) {
+        networkDataSource.registerDeviceToken(token);
     }
 
     @Override

@@ -70,8 +70,8 @@ public class NotificationViewModel extends ViewModel {
         notificationsResult.setValue(new Result.Success<>(new ArrayList<>(allNotifications)));
     }
 
-    public void registerDeviceToken(int userId, String token) {
-        repository.registerDeviceToken(userId, token);
+    public void registerDeviceToken(String token) {
+        repository.registerDeviceToken(token);
     }
 
     public LiveData<Result<List<NotificationModel>>> getNotifications() {
@@ -86,7 +86,6 @@ public class NotificationViewModel extends ViewModel {
         LiveData<Result<Boolean>> source = repository.markAsRead(notification.getId());
 
         notificationsResult.addSource(source, result -> {
-
             if (result instanceof Result.Error) {
                 notification.setRead(false);
                 notificationsResult.setValue(new Result.Success<>(new ArrayList<>(allNotifications)));

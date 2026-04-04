@@ -70,8 +70,8 @@ public class NotificationNetworkDataSource {
         return liveData;
     }
 
-    public void registerDeviceToken(int userId, String token) {
-        RegisterDeviceTokenRequest body = new RegisterDeviceTokenRequest(userId, token, "android");
+    public void registerDeviceToken(String token) {
+        RegisterDeviceTokenRequest body = new RegisterDeviceTokenRequest(token, "android");
         apiService.registerDeviceToken(body).enqueue(new Callback<ApiResponse<Object>>() {
             @Override
             public void onResponse(Call<ApiResponse<Object>> call, Response<ApiResponse<Object>> response) {

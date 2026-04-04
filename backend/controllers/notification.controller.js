@@ -4,9 +4,7 @@ const notificationController = {
   async getList(req, res) {
     try {
       const userId = req.user.userId;
-
       const data = await notificationService.getNotifications(userId);
-
       return res.ok({
         notifications: data,
         nextCursor: null, 
@@ -27,7 +25,7 @@ const notificationController = {
         activity_id,
         title,
         message,
-      } = req.validated;
+      } = req.body;
 
       const notification = await notificationService.createAndSend({
         userId: user_id,
@@ -48,9 +46,9 @@ const notificationController = {
 
   async markAsRead(req, res) {
     try {
-      const { id } = req.validated;
+      const { id } = req.params;
 
-      await notificationService.markAsRead(Number(id));
+      await notificationService.markAsRead(id);
 
       return res.ok({
         message: 'Marked as read',

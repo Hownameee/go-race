@@ -87,6 +87,7 @@ const notificationService = {
     if (!admin) return;
 
     const tokens = await deviceTokenService.getTokensByUserId(userId);
+    console.log(tokens);
     if (!tokens.length) return;
 
     const message = {
