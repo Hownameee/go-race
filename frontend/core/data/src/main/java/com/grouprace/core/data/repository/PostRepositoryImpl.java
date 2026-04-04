@@ -39,6 +39,22 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
+    public LiveData<Result<List<Post>>> getMyPosts(String cursor, int limit) {
+        return Transformations.map(postNetworkDataSource.getMyPosts(cursor, limit), result -> {
+            if (result instanceof Result.Success) {
+                List<Post> posts = ((Result.Success<List<NetworkPost>>) result).data.stream()
+                        .map(NetworkPost::asExternalModel)
+                        .collect(Collectors.toList());
+                return new Result.Success<>(posts);
+            } else if (result instanceof Result.Error) {
+                Result.Error<List<NetworkPost>> error = (Result.Error<List<NetworkPost>>) result;
+                return new Result.Error<>(error.exception, error.message);
+            }
+            return new Result.Loading<>();
+        });
+    }
+
+    @Override
     public LiveData<Result<Boolean>> syncPosts(String cursor, int limit) {
         MutableLiveData<Result<Boolean>> resultData = new MutableLiveData<>();
         resultData.postValue(new Result.Loading<>());

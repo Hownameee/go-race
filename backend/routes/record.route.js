@@ -1,29 +1,40 @@
 import express from 'express';
+import { auth } from '../middlewares/auth.middleware.js';
 import recordController from '../controllers/record.controller.js';
 import {
+  getWeeklySummarySchema,
   recordIdSchema,
   recordSchema,
   recordUpdateSchema,
 } from '../utils/schemas/record.schema.js';
 import validation from '../middlewares/validation.js';
 
-const recordRouter = express.Router();
+const router = express.Router();
 
-recordRouter.get('/', recordController.getList);
+router.get('/', auth, recordController.getList);
 
-recordRouter.get(
+router.get(
+  '/me/weekly-summary',
+  auth,
+  validation(getWeeklySummarySchema, 'query'),
+  recordController.getMyWeeklySummary,
+);
+
+router.get(
   '/:recordId',
+  auth,
   validation(recordIdSchema, 'params'),
   recordController.getRecord,
 );
 
-recordRouter.post('/', validation(recordSchema), recordController.createRecord);
+router.post('/', auth, validation(recordSchema), recordController.createRecord);
 
-recordRouter.patch(
+router.patch(
   '/:recordId',
+  auth,
   validation(recordIdSchema, 'params'),
   validation(recordUpdateSchema),
   recordController.updateRecord,
 );
 
-export default recordRouter;
+export default router;

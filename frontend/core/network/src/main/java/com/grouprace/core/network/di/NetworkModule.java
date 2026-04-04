@@ -4,6 +4,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.inject.Singleton;
 import com.grouprace.core.network.api.NotificationApiService;
+import com.grouprace.core.network.api.RecordApiService;
+import com.grouprace.core.network.api.UserApiService;
 
 import dagger.Module;
 import dagger.Provides;
@@ -89,5 +91,11 @@ public class NetworkModule {
     @Singleton
     public SearchApiService provideSearchApiService(Retrofit retrofit) {
         return retrofit.create(SearchApiService.class);
+    }
+
+    @Provides
+    @Singleton
+    public UserApiService provideUserApiService(Retrofit retrofit) {
+        return retrofit.create(UserApiService.class);
     }
 }

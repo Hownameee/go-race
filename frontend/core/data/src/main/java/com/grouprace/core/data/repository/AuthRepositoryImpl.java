@@ -49,4 +49,19 @@ public class AuthRepositoryImpl implements AuthRepository {
             }
         });
     }
+
+    @Override
+    public LiveData<Result<Void>> requestPasswordResetOtp(String email) {
+        return authNetworkDataSource.requestPasswordResetOtp(email);
+    }
+
+    @Override
+    public LiveData<Result<Void>> verifyPasswordResetOtp(String email, String otpCode) {
+        return authNetworkDataSource.verifyPasswordResetOtp(email, otpCode);
+    }
+
+    @Override
+    public LiveData<Result<Void>> resetPasswordWithOtp(String email, String otpCode, String newPassword, String confirmNewPassword) {
+        return authNetworkDataSource.resetPasswordWithOtp(email, otpCode, newPassword, confirmNewPassword);
+    }
 }

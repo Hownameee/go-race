@@ -1,13 +1,6 @@
 package com.grouprace.feature.register.ui;
 
-import androidx.lifecycle.ViewModelProvider;
-
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,17 +8,35 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.system.ui.DatePickerHelper;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class RegisterFragment extends Fragment {
-    private EditText editUsername, editFullname, editEmail, editBirthdate, editPassword, editConfirmPassword;
-    private Button buttonRegister, buttonBack, buttonGoToLogin;
+    public interface NavigationHost {
+        void openLogin();
+    }
+
+    private EditText editUsername;
+    private EditText editFullname;
+    private EditText editEmail;
+    private EditText editBirthdate;
+    private EditText editPassword;
+    private EditText editConfirmPassword;
+    private Button buttonRegister;
+    private Button buttonGoToLogin;
     private RegisterViewModel viewModel;
 
-    public static RegisterFragment newInstance() { return new RegisterFragment(); }
+    public static RegisterFragment newInstance() {
+        return new RegisterFragment();
+    }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -41,7 +52,6 @@ public class RegisterFragment extends Fragment {
         initViews(view);
         setupListeners();
 
-        // Lắng nghe các thông báo lỗi cơ bản (như chưa điền đủ form)
         viewModel.getToastMessage().observe(getViewLifecycleOwner(), message -> {
             if (message != null) {
                 Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
@@ -50,21 +60,24 @@ public class RegisterFragment extends Fragment {
     }
 
     private void initViews(View view) {
-        editUsername = view.findViewById(R.id.username_edit_text);
-        editFullname = view.findViewById(R.id.fullname_edit_text);
-        editEmail = view.findViewById(R.id.email_edit_text);
-        editBirthdate = view.findViewById(R.id.birthdate_edit_text);
-        editPassword = view.findViewById(R.id.password_edit_text);
-        editConfirmPassword = view.findViewById(R.id.confirm_password_edit_text);
-
-        buttonBack = view.findViewById(R.id.back_button);
-        buttonRegister = view.findViewById(R.id.register_button);
-        buttonGoToLogin = view.findViewById(R.id.goto_login_button);
+        editUsername = view.findViewById(R.id.register_username_input);
+        editFullname = view.findViewById(R.id.register_fullname_input);
+        editEmail = view.findViewById(R.id.register_email_input);
+        editBirthdate = view.findViewById(R.id.register_birthdate_input);
+        editPassword = view.findViewById(R.id.register_password_input);
+        editConfirmPassword = view.findViewById(R.id.register_confirm_password_input);
+        buttonRegister = view.findViewById(R.id.register_submit_button);
+        buttonGoToLogin = view.findViewById(R.id.register_goto_login_button);
     }
 
     private void setupListeners() {
-        buttonBack.setOnClickListener(v -> requireActivity().onBackPressed());
-        buttonGoToLogin.setOnClickListener(v -> requireActivity().onBackPressed());
+        buttonGoToLogin.setOnClickListener(v -> {
+            if (requireActivity() instanceof NavigationHost) {
+                ((NavigationHost) requireActivity()).openLogin();
+            }
+        });
+
+        DatePickerHelper.attachDatePicker(this, editBirthdate);
         buttonRegister.setOnClickListener(this::register);
     }
 
@@ -76,26 +89,21 @@ public class RegisterFragment extends Fragment {
         String password = editPassword.getText().toString().trim();
         String confirmPassword = editConfirmPassword.getText().toString().trim();
 
-        // Cập nhật: Observe LiveData trả về từ hàm register
         viewModel.register(username, fullname, email, birthdate, password, confirmPassword)
                 .observe(getViewLifecycleOwner(), result -> {
                     if (result instanceof Result.Loading) {
-                        // Khóa nút và đổi text để báo hiệu đang xử lý
                         buttonRegister.setEnabled(false);
                         buttonRegister.setText("Registering...");
-
                     } else if (result instanceof Result.Success) {
-                        // Mở lại nút
                         buttonRegister.setEnabled(true);
                         buttonRegister.setText("Register");
 
-                        Toast.makeText(requireContext(), "Registration Successful!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), "Registration successful!", Toast.LENGTH_SHORT).show();
 
-                        // Đăng ký thành công thì quay lại trang Login
-                        requireActivity().onBackPressed();
-
+                        if (requireActivity() instanceof NavigationHost) {
+                            ((NavigationHost) requireActivity()).openLogin();
+                        }
                     } else if (result instanceof Result.Error) {
-                        // Lỗi -> Mở lại nút và báo lỗi
                         buttonRegister.setEnabled(true);
                         buttonRegister.setText("Register");
 
