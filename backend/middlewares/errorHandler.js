@@ -2,9 +2,14 @@ import { ZodError } from 'zod';
 
 export default function errorHandler(error, req, res, next) {
   console.error(error);
+
   if (error instanceof ZodError) {
     const firstIssueMessage = error.issues?.[0]?.message || 'Validation failed';
     return res.badRequest(error.issues, firstIssueMessage);
+  }
+
+  if (error?.code === 'SQLITE_CONSTRAINT_CHECK') {
+    return res.badRequest(null, 'Invalid data');
   }
 
   if (error?.name === 'MulterError') {

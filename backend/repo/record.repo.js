@@ -10,20 +10,66 @@ const recordRepo = {
         COALESCE(SUM(r.duration_seconds), 0) AS total_duration_seconds,
         ROUND(COALESCE(SUM(r.elevation_gain_m), 0), 2) AS total_elevation_gain_m
       FROM RECORD r
-      LEFT JOIN POST p ON p.record_id = r.record_id
       WHERE
         r.activity_type = ?
         AND datetime(r.start_time) >= datetime(?)
         AND datetime(r.start_time) <= datetime(?)
         AND (
-          r.user_id = ?
-          OR (r.user_id IS NULL AND p.owner_id = ?)
+          r.owner_id = ?
+          OR r.user_id = ?
         )
       GROUP BY week_start, week_end
       ORDER BY week_start ASC
     `;
 
     return db.prepare(sql).all(activityType, fromDate, toDate, userId, userId);
+  },
+
+  findRecordsByUserId: async function (userId, offset, quantity) {
+    const sql = `
+      SELECT * FROM Record 
+      WHERE owner_id = ? 
+      ORDER BY record_id DESC 
+      LIMIT ? OFFSET ?
+    `;
+
+    return await db.prepare(sql).all(userId, quantity, offset);
+  },
+
+  findRecordByRecordId: async function (userId, recordId) {
+    const sql = `SELECT * FROM Record WHERE owner_id = ? AND record_id = ?`;
+    return await db.prepare(sql).get(userId, recordId);
+  },
+
+  create: async function (userId, recordData) {
+    const sql = `INSERT INTO Record (owner_id, activity_type, title, start_time, end_time, duration_seconds, distance_km, calories_burned, heart_rate_avg, speed) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const params = [
+      userId,
+      recordData.activityType,
+      recordData.title,
+      recordData.startTime,
+      recordData.endTime,
+      recordData.duration,
+      recordData.distance,
+      recordData.calories,
+      recordData.heartRate,
+      recordData.speed,
+    ];
+
+    const info = await db.prepare(sql).run(...params);
+    return info.lastInsertRowid;
+  },
+
+  update: async function (userId, recordId, updateData) {
+    const keys = Object.keys(updateData);
+    if (keys.length === 0) return;
+
+    const setClause = keys.map((key) => `${key} = ?`).join(', ');
+    const sql = `UPDATE Record SET ${setClause} WHERE owner_id = ? AND record_id = ?`;
+    const params = [...Object.values(updateData), userId, recordId];
+
+    await db.prepare(sql).run(...params);
   },
 };
 

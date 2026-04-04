@@ -2,5 +2,6 @@
 app.db
 node_modules/
 package-lock.json
+public/
 config/serviceAccountKey.json
 .vscode/

@@ -1,7 +1,9 @@
-import { z } from 'zod';
+import z from 'zod';
 
-const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
-const STRONG_PASSWORD_MSG = 'Password must be at least 8 characters and include uppercase, lowercase, numbers, and special characters';
+const STRONG_PASSWORD_REGEX =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+const STRONG_PASSWORD_MSG =
+  'Password must be at least 8 characters and include uppercase, lowercase, numbers, and special characters';
 
 export const registerSchema = z
   .object({
@@ -77,7 +79,10 @@ export const updateProfileSchema = z
       .positive('Weight must be a positive number')
       .max(500, 'Unrealistic weight value')
       .optional(),
-    password: z.string().regex(STRONG_PASSWORD_REGEX, STRONG_PASSWORD_MSG).optional(),
+    password: z
+      .string()
+      .regex(STRONG_PASSWORD_REGEX, STRONG_PASSWORD_MSG)
+      .optional(),
   })
   .strict()
   .transform((data) => ({
