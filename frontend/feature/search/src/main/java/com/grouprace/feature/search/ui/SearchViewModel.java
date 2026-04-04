@@ -2,7 +2,6 @@ package com.grouprace.feature.search.ui;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModel;
 
 import com.grouprace.core.common.result.Result;
@@ -11,95 +10,99 @@ import com.grouprace.core.model.UserSearchResult;
 
 import java.util.List;
 
-import javax.inject.Inject;
 import dagger.hilt.android.lifecycle.HiltViewModel;
+import jakarta.inject.Inject;
 
 @HiltViewModel
 public class SearchViewModel extends ViewModel {
 
-    private final SearchRepository searchRepository;
+    private final SearchRepository repository;
 
-    // --- Triggers ---
-    private final MutableLiveData<Void> suggestedFriendsTrigger = new MutableLiveData<>();
-    private final MutableLiveData<Void> suggestedClubsTrigger = new MutableLiveData<>();
-    private final MutableLiveData<String> searchFriendsTrigger = new MutableLiveData<>();
-    private final MutableLiveData<String> searchClubsTrigger = new MutableLiveData<>();
+    private final MutableLiveData<SearchUiState> uiState = new MutableLiveData<>();
 
-    // --- LiveData Kết quả ---
-    private final LiveData<Result<List<UserSearchResult>>> suggestedFriends;
-    private final LiveData<Result<List<UserSearchResult>>> suggestedClubs;
-    private final LiveData<Result<List<UserSearchResult>>> searchFriendsResults;
-    private final LiveData<Result<List<UserSearchResult>>> searchClubsResults;
-
-    // Trạng thái Tab (Friends = false, Clubs = true)
-    private final MutableLiveData<Boolean> isClubTab = new MutableLiveData<>(false);
+    private boolean isClubTab = false;
 
     @Inject
-    public SearchViewModel(SearchRepository searchRepository) {
-        this.searchRepository = searchRepository;
-
-        // 1. Listeners cho Tab Friends
-        this.suggestedFriends = Transformations.switchMap(suggestedFriendsTrigger, v ->
-                searchRepository.getSuggestedUsers()
-        );
-        this.searchFriendsResults = Transformations.switchMap(searchFriendsTrigger, query ->
-                searchRepository.searchUsers(query)
-        );
-
-        // 2. Listeners cho Tab Clubs
-        this.suggestedClubs = Transformations.switchMap(suggestedClubsTrigger, v ->
-                searchRepository.getSuggestedClubs()
-        );
-        this.searchClubsResults = Transformations.switchMap(searchClubsTrigger, query ->
-                searchRepository.searchClubs(query)
-        );
-
-        fetchSuggestedFriends();
+    public SearchViewModel(SearchRepository repository) {
+        this.repository = repository;
+        loadSuggested();
     }
 
-    // --- Getters ---
-    public LiveData<Boolean> getIsClubTab() { return isClubTab; }
-
-    public LiveData<Result<List<UserSearchResult>>> getSuggestedFriends() { return suggestedFriends; }
-    public LiveData<Result<List<UserSearchResult>>> getSuggestedClubs() { return suggestedClubs; }
-
-    public LiveData<Result<List<UserSearchResult>>> getSearchFriendsResults() { return searchFriendsResults; }
-    public LiveData<Result<List<UserSearchResult>>> getSearchClubsResults() { return searchClubsResults; }
-
-    // --- Actions ---
-
-    public void fetchSuggestedFriends() {
-        isClubTab.setValue(false);
-        suggestedFriendsTrigger.setValue(null);
+    public LiveData<SearchUiState> getUiState() {
+        return uiState;
     }
 
-    public void fetchSuggestedClubs() {
-        isClubTab.setValue(true);
-        suggestedClubsTrigger.setValue(null);
+    // --- Tab ---
+    public void switchTab(boolean isClub) {
+        this.isClubTab = isClub;
+        loadSuggested();
     }
 
+    // --- Suggested ---
+    private void loadSuggested() {
+        uiState.setValue(new SearchUiState(null, true, null, false));
+
+        LiveData<Result<List<UserSearchResult>>> source =
+                isClubTab ? repository.getSuggestedClubs()
+                        : repository.getSuggestedUsers();
+
+        source.observeForever(result -> {
+            if (result instanceof Result.Success) {
+                uiState.postValue(new SearchUiState(
+                        ((Result.Success<List<UserSearchResult>>) result).data,
+                        false,
+                        null,
+                        false
+                ));
+            } else if (result instanceof Result.Error) {
+                uiState.postValue(new SearchUiState(
+                        null,
+                        false,
+                        ((Result.Error<?>) result).message,
+                        false
+                ));
+            }
+        });
+    }
+
+    // --- Search ---
     public void search(String query) {
-        boolean isClub = Boolean.TRUE.equals(isClubTab.getValue());
-
         if (query == null || query.trim().isEmpty()) {
-            if (isClub) fetchSuggestedClubs();
-            else fetchSuggestedFriends();
+            loadSuggested();
             return;
         }
 
-        if (isClub) {
-            searchClubsTrigger.setValue(query);
-        } else {
-            searchFriendsTrigger.setValue(query);
-        }
+        uiState.setValue(new SearchUiState(null, true, null, true));
+
+        LiveData<Result<List<UserSearchResult>>> source =
+                isClubTab ? repository.searchClubs(query)
+                        : repository.searchUsers(query);
+
+        source.observeForever(result -> {
+            if (result instanceof Result.Success) {
+                uiState.postValue(new SearchUiState(
+                        ((Result.Success<List<UserSearchResult>>) result).data,
+                        false,
+                        null,
+                        true
+                ));
+            } else if (result instanceof Result.Error) {
+                uiState.postValue(new SearchUiState(
+                        null,
+                        false,
+                        ((Result.Error<?>) result).message,
+                        true
+                ));
+            }
+        });
     }
 
-    // --- Follow Actions ---
-    public LiveData<Result<Boolean>> followUser(int userId) {
-        return searchRepository.followUser(userId);
+    // --- Follow ---
+    public LiveData<Result<Boolean>> followUser(int id) {
+        return repository.followUser(id);
     }
 
-    public LiveData<Result<Boolean>> unfollowUser(int userId) {
-        return searchRepository.unfollowUser(userId);
+    public LiveData<Result<Boolean>> unfollowUser(int id) {
+        return repository.unfollowUser(id);
     }
 }

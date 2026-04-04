@@ -23,8 +23,6 @@ public class SearchRepositoryImpl implements SearchRepository {
         this.searchNetworkDataSource = searchNetworkDataSource;
     }
 
-    // --- USER METHODS ---
-
     @Override
     public LiveData<Result<List<UserSearchResult>>> searchUsers(String query) {
         return Transformations.map(searchNetworkDataSource.searchUsers(query), result -> {
@@ -45,7 +43,6 @@ public class SearchRepositoryImpl implements SearchRepository {
 
     @Override
     public LiveData<Result<List<UserSearchResult>>> getSuggestedUsers() {
-        Log.d("search suggest", "yes");
         return Transformations.map(searchNetworkDataSource.getSuggestedUsers(), result -> {
             if (result instanceof Result.Success) {
                 List<NetworkUserSearch> networkUsers = ((Result.Success<List<NetworkUserSearch>>) result).data;
@@ -76,10 +73,8 @@ public class SearchRepositoryImpl implements SearchRepository {
 
     @Override
     public LiveData<Result<List<UserSearchResult>>> searchClubs(String query) {
-        // Áp dụng logic tương tự như searchUsers nhưng gọi nguồn dữ liệu từ searchClubs
         return Transformations.map(searchNetworkDataSource.searchClubs(query), result -> {
             if (result instanceof Result.Success) {
-                // Giả định Network trả về List<NetworkUserSearch> hoặc một model tương tự có hàm asExternalModel()
                 List<NetworkUserSearch> networkClubs = ((Result.Success<List<NetworkUserSearch>>) result).data;
                 List<UserSearchResult> clubs = networkClubs.stream()
                         .map(NetworkUserSearch::asExternalModel)
