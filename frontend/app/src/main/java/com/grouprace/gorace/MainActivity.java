@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (itemId == R.id.nav_maps) {
                 fragment = new TrackingFragment();
             } else if (itemId == R.id.nav_record) {
-                fragment = new TrackingFragment();
+                fragment = new RecordsFragment();
             } else if (itemId == R.id.nav_clubs) {
                 fragment = new LoginFragment();
             } else if (itemId == R.id.nav_you) {
