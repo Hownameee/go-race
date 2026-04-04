@@ -20,7 +20,7 @@ public class CreateRecordRequest {
     private int duration;
 
     @SerializedName("distanceKm")
-    private double distance;
+    private float distance;
 
     @SerializedName("caloriesBurned")
     private float calories;
@@ -29,7 +29,7 @@ public class CreateRecordRequest {
     private float heartRate;
 
     @SerializedName("speed")
-    private double speed;
+    private float speed;
 
     @SerializedName("imageUrl")
     private String imageUrl;
@@ -38,8 +38,8 @@ public class CreateRecordRequest {
     private List<NetworkRoutePoint> routePoints;
 
     public CreateRecordRequest(String activityType, String title, String startTime, String endTime,
-                               int duration, double distance, float calories, float heartRate,
-                               double speed, String imageUrl, List<NetworkRoutePoint> routePoints) {
+                               int duration, float distance, float calories, float heartRate,
+                               float speed, String imageUrl, List<NetworkRoutePoint> routePoints) {
         this.activityType = activityType;
         this.title = title;
         this.startTime = startTime;
@@ -59,10 +59,10 @@ public class CreateRecordRequest {
     public String getStartTime() { return startTime; }
     public String getEndTime() { return endTime; }
     public int getDuration() { return duration; }
-    public double getDistance() { return distance; }
+    public float getDistance() { return distance; }
     public float getCalories() { return calories; }
     public float getHeartRate() { return heartRate; }
-    public double getSpeed() { return speed; }
+    public float getSpeed() { return speed; }
     public String getImageUrl() { return imageUrl; }
     public List<NetworkRoutePoint> getRoutePoints() { return routePoints; }
 }

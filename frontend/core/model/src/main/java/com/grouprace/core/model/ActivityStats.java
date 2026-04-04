@@ -4,11 +4,11 @@ import java.util.List;
 
 public class ActivityStats {
 
-    public final double distanceKm;
+    public final float distanceKm;
     public final long elapsedTimeMs;
-    public final double speedKmH;
+    public final float speedKmH;
  
-    public ActivityStats(double distanceKm, long elapsedTimeMs, double speedKmH) {
+    public ActivityStats(float distanceKm, long elapsedTimeMs, float speedKmH) {
         this.distanceKm = distanceKm;
         this.elapsedTimeMs = elapsedTimeMs;
         this.speedKmH = speedKmH;
@@ -28,8 +28,8 @@ public class ActivityStats {
         }
  
         long elapsedMs = points.get(points.size() - 1).timestamp - points.get(0).timestamp;
-        double distanceKm = totalMeters / 1000.0;
-        double speedKmH = (distanceKm > 0 && elapsedMs > 0) ? distanceKm / (elapsedMs / 3600000.0) : 0;
+        float distanceKm = (float) (totalMeters / 1000.0);
+        float speedKmH = (distanceKm > 0 && elapsedMs > 0) ? (float) (distanceKm / (elapsedMs / 3600000.0)) : 0f;
  
         return new ActivityStats(distanceKm, elapsedMs, speedKmH);
     }

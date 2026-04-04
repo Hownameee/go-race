@@ -12,7 +12,7 @@ export const recordSchema = z.object({
   durationSeconds: z.number().int().nonnegative(),
   distanceKm: z.number().nonnegative(),
   caloriesBurned: z.number().nonnegative(),
-  heartRateAvg: z.number().int().min(0).max(250).optional(),
+  heartRateAvg: z.number().min(0).max(500).nonnegative(),
   speed: z.number().nonnegative(),
   imageUrl: z.string().optional(),
   routePoints: z

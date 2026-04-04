@@ -8,6 +8,7 @@ import com.grouprace.core.model.Record;
 import java.util.List;
 
 public interface RecordRepository {
-    LiveData<List<Record>> getRecords(int limit);
-    LiveData<Result<Boolean>> syncRecords(int offset);
+    void getNetworkRecord(int recordId);
+    LiveData<List<Record>> getLocalRecords(int limit);
+    LiveData<Result<Boolean>> getNetworkRecords(int offset, int limit);
 }

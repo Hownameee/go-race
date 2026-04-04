@@ -15,9 +15,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.grouprace.core.model.Record;
 import com.grouprace.feature.records.R;
-import com.grouprace.feature.records.list.ui.RecordsViewModel;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,7 +29,7 @@ public class RecordPickerDialog extends DialogFragment {
     }
 
     private OnRecordSelectedListener listener;
-    private RecordsViewModel viewModel;
+    private RecordPickerViewModel viewModel;
 
     public void setOnRecordSelectedListener(OnRecordSelectedListener listener) {
         this.listener = listener;
@@ -46,8 +44,8 @@ public class RecordPickerDialog extends DialogFragment {
         View view = LayoutInflater.from(getContext()).inflate(R.layout.dialog_record_picker, null);
         ListView listView = view.findViewById(R.id.lv_picker);
 
-        viewModel = new ViewModelProvider(this).get(RecordsViewModel.class);
-        viewModel.fetchRecords(0); // Trigger initial data fetch
+        viewModel = new ViewModelProvider(this).get(RecordPickerViewModel.class);
+        viewModel.sync();
 
         viewModel.getRecords().observe(this, records -> {
             List<String> titles = records.stream()

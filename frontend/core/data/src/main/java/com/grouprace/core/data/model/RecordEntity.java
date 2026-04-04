@@ -15,13 +15,13 @@ public class RecordEntity {
     public String endTime;
     public int ownerId;
     public int duration;      // seconds
-    public double distance;   // km
+    public float distance;    // km
     public float calories;
     public float heartRate;
-    public double speed;      // km/h
+    public float speed;       // km/h
     public String imageUrl;
 
-    public RecordEntity(int recordId, String activityType, String title, String startTime, String endTime, int ownerId, int duration, double distance, float calories, float heartRate, double speed, String imageUrl) {
+    public RecordEntity(int recordId, String activityType, String title, String startTime, String endTime, int ownerId, int duration, float distance, float calories, float heartRate, float speed, String imageUrl) {
         this.recordId = recordId;
         this.ownerId = ownerId;
         this.activityType = activityType;

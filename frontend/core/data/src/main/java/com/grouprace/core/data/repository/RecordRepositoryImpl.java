@@ -28,17 +28,35 @@ public class RecordRepositoryImpl implements RecordRepository {
     }
 
     @Override
-    public LiveData<List<Record>> getRecords(int limit) {
-        return Transformations.map(recordDao.getRecords(limit), entities -> entities.stream().map(RecordEntity::asExternalModel).collect(Collectors.toList()));
+    public void getNetworkRecord(int recordId) {
+        LiveData<Result<List<NetworkRecord>>> networkCall = recordNetworkDataSource.getRecord(recordId);
+
+        networkCall.observeForever(result -> {
+            if (result instanceof Result.Success) {
+                List<NetworkRecord> networkRecords = ((Result.Success<List<NetworkRecord>>) result).data;
+
+                if (networkRecords != null) {
+                    List<RecordEntity> entities = networkRecords.stream().map(n -> new RecordEntity(n.getRecordId(), n.getActivityType(), n.getTitle(), n.getStartTime(), n.getEndTime(), n.getOwnerId(), n.getDuration(), n.getDistance(), n.getCalories(), n.getHeartRate(), n.getSpeed(), n.getImageUrl())).collect(Collectors.toList());
+
+                    new Thread(() -> {
+                        recordDao.insertAll(entities);
+                    }).start();
+                }
+            }
+        });
+
     }
 
     @Override
-    public LiveData<Result<Boolean>> syncRecords(int currentId) {
+    public LiveData<List<Record>> getLocalRecords(int limit) {
+        return Transformations.map(recordDao.getRecords(limit), entities -> entities.stream().map(RecordEntity::asExternalModel).collect(Collectors.toList()));
+    }
+
+    public LiveData<Result<Boolean>> getNetworkRecords(int offset, int limit) {
         MutableLiveData<Result<Boolean>> resultData = new MutableLiveData<>();
         resultData.postValue(new Result.Loading<>());
 
-        LiveData<Result<List<NetworkRecord>>> networkCall = recordNetworkDataSource.getAllRecords();
-//        LiveData<Result<List<NetworkRecord>>> networkCall = recordNetworkDataSource.getRecords(currentId);
+        LiveData<Result<List<NetworkRecord>>> networkCall = recordNetworkDataSource.getRecords(offset, limit);
 
         networkCall.observeForever(result -> {
             if (result instanceof Result.Success) {

@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS RECORD (
     duration_seconds INTEGER,
     distance_km REAL,
     calories_burned REAL,
-    heart_rate_avg INTEGER,
+    heart_rate_avg REAL,
     speed REAL,
     s3_key TEXT,
 

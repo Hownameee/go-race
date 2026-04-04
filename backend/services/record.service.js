@@ -4,27 +4,8 @@ import getImageFromRoutePoints from '../utils/map/map.js';
 import { getImageUrlS3, uploadImageS3 } from '../utils/s3/s3.js';
 
 const recordService = {
-  getList: async function (userId) {
-    const list = await recordRepo.findAllRecordsByUserId(userId);
-    const result = await Promise.all(
-      list.map(async (item) => {
-        const { s3_key, ...itemWithoutS3Key } = item;
-        if (s3_key) {
-          const image_url = await getImageUrlS3(s3_key);
-          return {
-            ...itemWithoutS3Key,
-            image_url,
-          };
-        }
-        return itemWithoutS3Key;
-      }),
-    );
-
-    return result;
-  },
-
-  getNewList: async function (userId, currentId) {
-    const list = await recordRepo.findAroundRecordsByCurrentId(userId, currentId);
+  getList: async function (userId, offset, limit) {
+    const list = await recordRepo.findRecordsByUserId(userId, offset, limit);
     const result = await Promise.all(
       list.map(async (item) => {
         const { s3_key, ...itemWithoutS3Key } = item;
@@ -53,14 +34,9 @@ const recordService = {
     return itemWithoutS3Key;
   },
 
-  /**
-   * Phase 6: Backend Storage.
-   * Creates the definitive record and links the received route points to it.
-   */
   createRecord: async function (userId, recordData) {
     const { distanceKm, durationSeconds, routePoints } = recordData;
 
-    // Use frontend's speed or calculate it as a fallback
     if (distanceKm && durationSeconds && !recordData.speed) {
       recordData.speed = (distanceKm / (durationSeconds / 3600)).toFixed(2);
     }
@@ -69,7 +45,6 @@ const recordService = {
       recordData.endTime = new Date().toISOString();
     }
 
-    // Mapping frontend fields to backend repo expectations
     const dbRecordData = {
       activityType: recordData.activityType,
       title: recordData.title,
@@ -85,7 +60,7 @@ const recordService = {
     const recordId = await recordRepo.create(userId, dbRecordData);
 
     if (routePoints && routePoints.length > 0) {
-      const imagePromise = getImageFromRoutePoints(routePoints)
+      getImageFromRoutePoints(routePoints)
         .then((imageBuffer) => {
           const key = `records-image/${recordId + Date.now() + crypto.randomUUID()}.png`;
           return uploadImageS3(imageBuffer, key);
@@ -94,7 +69,10 @@ const recordService = {
           return recordRepo.update(userId, recordId, { s3_key: key });
         })
         .catch((err) => {
-          console.error(`[record.service] Failed to generate/upload image for record ${recordId}:`, err);
+          console.error(
+            `[record.service] Failed to generate/upload image for record ${recordId}:`,
+            err,
+          );
         });
 
       await routePointRepo.createMany(recordId, routePoints);

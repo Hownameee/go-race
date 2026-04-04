@@ -55,6 +55,11 @@ public class TrackingViewModel extends AndroidViewModel {
     private long pauseStartTime = 0;
     private Location lastLocation = null;
     private Location lastSavedLocation = null;
+
+    private long totalHeartRate = 0;
+    private int hrMeasureCount = 0;
+    private static final double MET_RUNNING = 8.0;
+    private static final double DEFAULT_WEIGHT_KG = 70.0;
  
     private final Handler timerHandler = new Handler(Looper.getMainLooper());
     private final ExecutorService backgroundExecutor = Executors.newSingleThreadExecutor();
@@ -148,12 +153,15 @@ public class TrackingViewModel extends AndroidViewModel {
 
         long endTime = System.currentTimeMillis();
         long elapsed = endTime - trackingStartTime - totalPausedTime;
-        double distKm = totalDistanceMeters / 1000.0;
-        double speedKmH = (distKm > 0 && elapsed > 0) ? distKm / (elapsed / 3600000.0) : 0;
+        float distKm = (float) (totalDistanceMeters / 1000.0);
+        float speedKmH = (distKm > 0 && elapsed > 0) ? (float) (distKm / (elapsed / 3600000.0)) : 0f;
  
         long startTime = trackingStartTime;
+        float hrAvg = hrMeasureCount > 0 ? (float) totalHeartRate / hrMeasureCount : 0f;
+        float calories = (float) (MET_RUNNING * DEFAULT_WEIGHT_KG * (elapsed / 3600000.0));
+
         timerHandler.post(() -> {
-            LiveData<Result<Long>> resultLiveData = finishActivityUseCase.execute(startTime, endTime, distKm, elapsed, speedKmH);
+            LiveData<Result<Long>> resultLiveData = finishActivityUseCase.execute(startTime, endTime, distKm, elapsed, speedKmH, hrAvg, calories);
             resultLiveData.observeForever(new Observer<Result<Long>>() {
                 @Override
                 public void onChanged(Result<Long> result) {
@@ -195,6 +203,7 @@ public class TrackingViewModel extends AndroidViewModel {
                     lastSavedLocation = location;
                     saveAndRecordPoint(location);
                     updatePace();
+                    calculateSimulatedHeartRate();
                 }
             }
         };
@@ -253,6 +262,18 @@ public class TrackingViewModel extends AndroidViewModel {
             pace.setValue(String.format(Locale.US, "%.1f", speedKmH));
         } else {
             pace.setValue("0.0");
+        }
+    }
+
+    private void calculateSimulatedHeartRate() {
+        Double currentDist = distanceKm.getValue();
+        Long elapsed = elapsedTimeMs.getValue();
+        if (currentDist != null && elapsed != null && elapsed > 0) {
+            double speedKmH = currentDist / (elapsed / 3600000.0);
+            // Simulated HR formula: 70 + speedKmH * 5, capped at 190
+            long currentHR = Math.min(190, Math.round(70 + speedKmH * 5));
+            totalHeartRate += currentHR;
+            hrMeasureCount++;
         }
     }
 

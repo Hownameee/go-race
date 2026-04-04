@@ -1,7 +1,6 @@
 package com.grouprace.feature.records.list.ui;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -56,36 +55,30 @@ public class RecordsFragment extends Fragment {
         errorLayout = view.findViewById(R.id.ll_error);
         errorText = view.findViewById(R.id.tv_error_message);
         retryButton = view.findViewById(R.id.btn_retry);
-        retryButton.setOnClickListener(v -> viewModel.fetchRecords(0));
+        retryButton.setOnClickListener(v -> viewModel.sync());
 
         setupAdapter();
-        viewModel = new ViewModelProvider(this).get(RecordsViewModel.class);
         observeViewModel();
 
         setupScrollListener();
     }
 
     private void setupAdapter() {
-        adapter = new RecordAdapter(requireContext(), new ArrayList<>());
+        viewModel = new ViewModelProvider(this).get(RecordsViewModel.class);
+        adapter = new RecordAdapter(requireContext(), new ArrayList<>(), viewModel);
         listRecord.setAdapter(adapter);
         listRecord.setOnItemClickListener(this::onRecordClick);
     }
 
     private void observeViewModel() {
         viewModel.getRecords().observe(getViewLifecycleOwner(), records -> {
-            // Log d all records
-            for (Record record : records) {
-                Log.d("RecordsFragment", "Record: " + record.getRecordId());
-            }
             displayRecords(records);
             if (isFirst) {
                 isFirst = false;
                 if (!records.isEmpty()) {
                     Record topItem = records.get(0);
-                    viewModel.syncById(topItem.getRecordId());
-                } else {
-                    viewModel.syncById(0);
                 }
+                viewModel.sync();
             }
         });
 
@@ -136,17 +129,7 @@ public class RecordsFragment extends Fragment {
     private void onRecordClick(AdapterView<?> parent, View view, int position, long id) {
         Record clickedRecord = adapter.getItem(position);
         if (clickedRecord != null) {
-            RecordDetailFragment detailFragment = RecordDetailFragment.newInstance(
-                    clickedRecord.getTitle(),
-                    clickedRecord.getActivityType(),
-                    clickedRecord.getStartTime(),
-                    String.format(java.util.Locale.getDefault(), "%.2f km", clickedRecord.getDistance()),
-                    String.format(java.util.Locale.getDefault(), "%.1f km/h", clickedRecord.getSpeed()),
-                    String.format(java.util.Locale.getDefault(), "%.0f bpm", clickedRecord.getHeartRate()),
-                    String.format(java.util.Locale.getDefault(), "%.0f kcal", clickedRecord.getCalories()),
-                    clickedRecord.getDuration(),
-                    clickedRecord.getImageUrl()
-            );
+            RecordDetailFragment detailFragment = RecordDetailFragment.newInstance(clickedRecord.getTitle(), clickedRecord.getActivityType(), clickedRecord.getStartTime(), String.format(java.util.Locale.getDefault(), "%.2f km", clickedRecord.getDistance()), String.format(java.util.Locale.getDefault(), "%.1f km/h", clickedRecord.getSpeed()), String.format(java.util.Locale.getDefault(), "%.0f bpm", clickedRecord.getHeartRate()), String.format(java.util.Locale.getDefault(), "%.0f kcal", clickedRecord.getCalories()), clickedRecord.getDuration(), clickedRecord.getImageUrl());
             requireActivity().getSupportFragmentManager().beginTransaction().setCustomAnimations(R.anim.slide_in_right, android.R.anim.fade_out, android.R.anim.fade_in, android.R.anim.slide_out_right).replace(getId(), detailFragment).addToBackStack(null).commit();
         }
     }

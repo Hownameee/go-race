@@ -1,16 +1,6 @@
 import db from '../utils/db/db.js';
 
 const recordRepo = {
-  findAllRecordsByUserId: async function (userId) {
-    const sql = `
-        SELECT * FROM Record 
-        WHERE owner_id = ?
-        ORDER BY record_id DESC
-        `;
-
-    return await db.prepare(sql).all(userId);
-  },
-
   findRecordsByUserId: async function (userId, offset, quantity) {
     const sql = `
         SELECT * FROM Record 
@@ -20,17 +10,6 @@ const recordRepo = {
         `;
 
     return await db.prepare(sql).all(userId, quantity, offset);
-  },
-
-  findAroundRecordsByCurrentId: async function (userId, currentId) {
-    const sql = `
-        SELECT * FROM Record 
-        WHERE owner_id = ? AND (record_id > ? OR record_id < ?)
-        ORDER BY record_id DESC
-        LIMIT 100
-        `;
-
-    return await db.prepare(sql).all(userId, currentId, currentId);
   },
 
   findRecordByRecordId: async function (userId, recordId) {
@@ -44,7 +23,7 @@ const recordRepo = {
     const params = [
       userId,
       recordData.activityType,
-      recordData.title ?? null,
+      recordData.title,
       recordData.startTime,
       recordData.endTime,
       recordData.duration,

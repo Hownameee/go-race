@@ -29,12 +29,12 @@ public class RecordNetworkDataSource {
         this.apiService = apiService;
     }
 
-    public LiveData<Result<List<NetworkRecord>>> getAllRecords() {
+    public LiveData<Result<List<NetworkRecord>>> getRecord(int recordId) {
         MutableLiveData<Result<List<NetworkRecord>>> liveData = new MutableLiveData<>();
 
-        liveData.setValue(new Result.Loading<>());
+        liveData.postValue(new Result.Loading<>());
 
-        apiService.getAllRecords().enqueue(new Callback<ApiResponse<RecordPayload>>() {
+        apiService.getRecord(recordId).enqueue(new Callback<ApiResponse<RecordPayload>>() {
             @Override
             public void onResponse(Call<ApiResponse<RecordPayload>> call, Response<ApiResponse<RecordPayload>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -61,12 +61,13 @@ public class RecordNetworkDataSource {
 
         return liveData;
     }
-    public LiveData<Result<List<NetworkRecord>>> getRecords(int currentId) {
+
+    public LiveData<Result<List<NetworkRecord>>> getRecords(int offset, int limit) {
         MutableLiveData<Result<List<NetworkRecord>>> liveData = new MutableLiveData<>();
-        
+
         liveData.setValue(new Result.Loading<>());
 
-        apiService.getRecords(currentId).enqueue(new Callback<ApiResponse<RecordPayload>>() {
+        apiService.getRecords(offset, limit).enqueue(new Callback<ApiResponse<RecordPayload>>() {
             @Override
             public void onResponse(Call<ApiResponse<RecordPayload>> call, Response<ApiResponse<RecordPayload>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -97,7 +98,7 @@ public class RecordNetworkDataSource {
     public LiveData<Result<NetworkRecord>> createRecord(CreateRecordRequest request) {
         MutableLiveData<Result<NetworkRecord>> liveData = new MutableLiveData<>();
         liveData.setValue(new Result.Loading<>());
- 
+
         apiService.createRecord(request).enqueue(new Callback<ApiResponse<NetworkRecord>>() {
             @Override
             public void onResponse(Call<ApiResponse<NetworkRecord>> call, Response<ApiResponse<NetworkRecord>> response) {
@@ -112,20 +113,20 @@ public class RecordNetworkDataSource {
                     liveData.postValue(new Result.Error<>(null, "HTTP Error: " + response.code()));
                 }
             }
- 
+
             @Override
             public void onFailure(Call<ApiResponse<NetworkRecord>> call, Throwable t) {
                 liveData.postValue(new Result.Error<>(new Exception(t), t.getMessage()));
             }
         });
- 
+
         return liveData;
     }
- 
+
     public LiveData<Result<Void>> updateRecord(long recordId, java.util.Map<String, Object> updateData) {
         MutableLiveData<Result<Void>> liveData = new MutableLiveData<>();
         liveData.setValue(new Result.Loading<>());
- 
+
         apiService.updateRecord(recordId, updateData).enqueue(new Callback<ApiResponse<Void>>() {
             @Override
             public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
@@ -140,13 +141,13 @@ public class RecordNetworkDataSource {
                     liveData.postValue(new Result.Error<>(null, "HTTP Error: " + response.code()));
                 }
             }
- 
+
             @Override
             public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
                 liveData.postValue(new Result.Error<>(new Exception(t), t.getMessage()));
             }
         });
- 
+
         return liveData;
     }
 }

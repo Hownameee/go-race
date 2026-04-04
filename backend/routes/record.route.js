@@ -9,16 +9,7 @@ import validation from '../middlewares/validation.js';
 
 const recordRouter = express.Router();
 
-recordRouter.get(
-  '/',
-  recordController.getList,
-);
-
-recordRouter.get(
-  '/sync',
-  validation(recordIdSchema, 'query'),
-  recordController.getNewList,
-);
+recordRouter.get('/', recordController.getList);
 
 recordRouter.get(
   '/:recordId',

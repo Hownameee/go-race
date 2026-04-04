@@ -87,4 +87,3 @@ export default async function getImageFromRoutePoints(points) {
     throw error;
   }
 }
-

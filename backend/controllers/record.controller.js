@@ -3,14 +3,9 @@ import recordService from '../services/record.service.js';
 const recordController = {
   getList: async function (req, res) {
     const userId = req.user.userId;
-    const data = await recordService.getList(userId);
-    res.ok({ records: data });
-  },
-
-  getNewList: async function (req, res) {
-    const userId = req.user.userId;
-    const currentId = req.query.recordId;
-    const data = await recordService.getNewList(userId, currentId);
+    const offset = parseInt(req.query.offset) || 0;
+    const limit = parseInt(req.query.limit) || 10;
+    const data = await recordService.getList(userId, offset, limit);
     res.ok({ records: data });
   },
 
@@ -18,7 +13,7 @@ const recordController = {
     const userId = req.user.userId;
     const recordId = req.params.recordId;
     const data = await recordService.getRecord(userId, recordId);
-    res.ok(data);
+    res.ok({ records: [data] });
   },
 
   createRecord: async function (req, res) {

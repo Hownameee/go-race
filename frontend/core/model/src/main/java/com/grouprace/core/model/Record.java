@@ -8,13 +8,13 @@ public class Record {
     private final String endTime;
     private final int ownerId;
     private final int duration;     // seconds
-    private final double distance;  // km
+    private final float distance;  // km
     private final float calories;
     private final float heartRate;
-    private final double speed;     // km/h
+    private final float speed;     // km/h
     private final String imageUrl;
 
-    public Record(int recordId, String activityType, String title, String startTime, String endTime, int ownerId, int duration, double distance, float calories, float heartRate, double speed, String imageUrl) {
+    public Record(int recordId, String activityType, String title, String startTime, String endTime, int ownerId, int duration, float distance, float calories, float heartRate, float speed, String imageUrl) {
         this.recordId = recordId;
         this.activityType = activityType;
         this.title = title;
@@ -36,9 +36,9 @@ public class Record {
     public String getEndTime() { return endTime; }
     public int getOwnerId() { return ownerId; }
     public int getDuration() { return duration; }
-    public double getDistance() { return distance; }
+    public float getDistance() { return distance; }
     public float getCalories() { return calories; }
     public float getHeartRate() { return heartRate; }
-    public double getSpeed() { return speed; }
+    public float getSpeed() { return speed; }
     public String getImageUrl() { return imageUrl; }
 }

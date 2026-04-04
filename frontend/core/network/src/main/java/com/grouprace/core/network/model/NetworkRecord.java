@@ -109,7 +109,7 @@ public class NetworkRecord {
         return calories;
     }
 
-    public void setCalories(int calories) {
+    public void setCalories(float calories) {
         this.calories = calories;
     }
 
@@ -117,7 +117,7 @@ public class NetworkRecord {
         return heartRate;
     }
 
-    public void setHeartRate(int heartRate) {
+    public void setHeartRate(float heartRate) {
         this.heartRate = heartRate;
     }
 

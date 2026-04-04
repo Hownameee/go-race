@@ -14,11 +14,11 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface RecordApiService {
-    @GET("api/records")
-    Call<ApiResponse<RecordPayload>> getAllRecords();
+    @GET("api/records/{recordId}")
+    Call<ApiResponse<RecordPayload>> getRecord(@Path("recordId") int recordId);
 
-    @GET("api/records/sync")
-    Call<ApiResponse<RecordPayload>> getRecords(@Query("recordId") int currentId);
+    @GET("api/records")
+    Call<ApiResponse<RecordPayload>> getRecords(@Query("offset") int offset, @Query("limit") int limit);
 
     @POST("api/records")
     Call<ApiResponse<NetworkRecord>> createRecord(@Body CreateRecordRequest request);
@@ -26,4 +26,3 @@ public interface RecordApiService {
     @PATCH("api/records/{recordId}")
     Call<ApiResponse<Void>> updateRecord(@Path("recordId") long recordId, @Body java.util.Map<String, Object> updateData);
 }
-
