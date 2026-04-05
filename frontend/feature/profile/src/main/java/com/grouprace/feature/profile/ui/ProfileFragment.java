@@ -20,8 +20,11 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.Profile.ProfileOverview;
+import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.core.system.ui.ViewHelper;
 import com.grouprace.feature.profile.R;
+
+import javax.inject.Inject;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,12 +35,8 @@ import dagger.hilt.android.AndroidEntryPoint;
 @AndroidEntryPoint
 public class ProfileFragment extends Fragment {
 
-    public interface NavigationHost {
-        void openEditProfile();
-        void openProfileSettings();
-        void openProfileComingSoon(String title);
-        void openMyPosts();
-    }
+    @Inject
+    AppNavigator navigator;
 
     private ProfileViewModel viewModel;
 
@@ -106,15 +105,11 @@ public class ProfileFragment extends Fragment {
             // TODO: Write this if following Strava later
         });
         profileSettingButton.setOnClickListener(v -> {
-            if (requireActivity() instanceof NavigationHost) {
-                ((NavigationHost) requireActivity()).openProfileSettings();
-            }
+            navigator.openProfileSettings(this);
         });
 
         editProfileButton.setOnClickListener(v -> {
-            if (requireActivity() instanceof NavigationHost) {
-                ((NavigationHost) requireActivity()).openEditProfile();
-            }
+            navigator.openEditProfile(this);
         });
         activitiesLink.setOnClickListener(v -> openComingSoon("Activities"));
         statisticsLink.setOnClickListener(v -> openComingSoon("Statistics"));
@@ -123,9 +118,7 @@ public class ProfileFragment extends Fragment {
         bestEffortsLink.setOnClickListener(v -> openComingSoon("Best Efforts"));
         gearLink.setOnClickListener(v -> openComingSoon("Gear"));
         postsLink.setOnClickListener(v -> {
-            if (requireActivity() instanceof NavigationHost) {
-                ((NavigationHost) requireActivity()).openMyPosts();
-            }
+            navigator.openMyPosts(this);
         });
 
         observeOverview();
@@ -163,9 +156,7 @@ public class ProfileFragment extends Fragment {
     }
 
     private void openComingSoon(String title) {
-        if (requireActivity() instanceof NavigationHost) {
-            ((NavigationHost) requireActivity()).openProfileComingSoon(title);
-        }
+        navigator.openProfileComingSoon(this, title);
     }
 
     private void observeOverview() {

@@ -15,16 +15,17 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.feature.profile.R;
+
+import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class ChangePasswordFragment extends Fragment {
-    public interface NavigationHost {
-        void openPasswordResetRequest();
-        void openSetNewPassword();
-    }
+    @Inject
+    AppNavigator navigator;
 
     private ChangePasswordViewModel viewModel;
 
@@ -68,9 +69,7 @@ public class ChangePasswordFragment extends Fragment {
                     continueButton.setEnabled(true);
                     continueButton.setText("Continue");
                     viewModel.setVerifiedCurrentPassword(currentPassword);
-                    if (requireActivity() instanceof NavigationHost) {
-                        ((NavigationHost) requireActivity()).openSetNewPassword();
-                    }
+                    navigator.openSetNewPassword(this);
                 } else if (result instanceof Result.Error) {
                     continueButton.setEnabled(true);
                     continueButton.setText("Continue");
@@ -80,9 +79,7 @@ public class ChangePasswordFragment extends Fragment {
         });
 
         resetButton.setOnClickListener(v -> {
-            if (requireActivity() instanceof NavigationHost) {
-                ((NavigationHost) requireActivity()).openPasswordResetRequest();
-            }
+            navigator.openPasswordResetRequest(this);
         });
     }
 }

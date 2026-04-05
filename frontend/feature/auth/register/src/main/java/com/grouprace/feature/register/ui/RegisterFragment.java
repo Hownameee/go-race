@@ -14,15 +14,17 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.core.system.ui.DatePickerHelper;
+
+import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class RegisterFragment extends Fragment {
-    public interface NavigationHost {
-        void openLogin();
-    }
+    @Inject
+    AppNavigator navigator;
 
     private EditText editUsername;
     private EditText editFullname;
@@ -72,9 +74,7 @@ public class RegisterFragment extends Fragment {
 
     private void setupListeners() {
         buttonGoToLogin.setOnClickListener(v -> {
-            if (requireActivity() instanceof NavigationHost) {
-                ((NavigationHost) requireActivity()).openLogin();
-            }
+            navigator.openLogin(this);
         });
 
         DatePickerHelper.attachDatePicker(this, editBirthdate);
@@ -100,9 +100,7 @@ public class RegisterFragment extends Fragment {
 
                         Toast.makeText(requireContext(), "Registration successful!", Toast.LENGTH_SHORT).show();
 
-                        if (requireActivity() instanceof NavigationHost) {
-                            ((NavigationHost) requireActivity()).openLogin();
-                        }
+                        navigator.openLogin(this);
                     } else if (result instanceof Result.Error) {
                         buttonRegister.setEnabled(true);
                         buttonRegister.setText("Register");

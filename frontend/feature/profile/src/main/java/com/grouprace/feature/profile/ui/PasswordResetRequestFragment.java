@@ -15,15 +15,17 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.feature.profile.R;
+
+import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class PasswordResetRequestFragment extends Fragment {
-    public interface NavigationHost {
-        void openPasswordResetOtp();
-    }
+    @Inject
+    AppNavigator navigator;
 
     private ChangePasswordViewModel viewModel;
 
@@ -68,9 +70,7 @@ public class PasswordResetRequestFragment extends Fragment {
                         sendButton.setEnabled(true);
                         sendButton.setText("Send OTP");
                         Toast.makeText(requireContext(), "OTP sent successfully", Toast.LENGTH_SHORT).show();
-                        if (requireActivity() instanceof NavigationHost) {
-                            ((NavigationHost) requireActivity()).openPasswordResetOtp();
-                        }
+                        navigator.openPasswordResetOtp(this);
                     } else if (result instanceof Result.Error) {
                         sendButton.setEnabled(true);
                         sendButton.setText("Send OTP");
