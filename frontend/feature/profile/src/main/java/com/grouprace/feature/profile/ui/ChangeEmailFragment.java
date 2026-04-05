@@ -15,15 +15,17 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.feature.profile.R;
+
+import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class ChangeEmailFragment extends Fragment {
-    public interface NavigationHost {
-        void openChangeEmailOtp();
-    }
+    @Inject
+    AppNavigator navigator;
 
     private ChangeEmailViewModel viewModel;
 
@@ -68,9 +70,7 @@ public class ChangeEmailFragment extends Fragment {
                         sendOtpButton.setEnabled(true);
                         sendOtpButton.setText("Send OTP");
                         Toast.makeText(requireContext(), "OTP sent to your current email.", Toast.LENGTH_SHORT).show();
-                        if (requireActivity() instanceof NavigationHost) {
-                            ((NavigationHost) requireActivity()).openChangeEmailOtp();
-                        }
+                        navigator.openChangeEmailOtp(this);
                     } else if (result instanceof Result.Error) {
                         sendOtpButton.setEnabled(true);
                         sendOtpButton.setText("Send OTP");

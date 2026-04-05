@@ -8,44 +8,27 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.grouprace.core.network.utils.SessionManager;
 import com.grouprace.core.system.ui.PlaceholderFragment;
-import com.grouprace.feature.search.ui.SearchFragment;
-import com.grouprace.feature.login.ui.LoginFragment;
-import com.grouprace.feature.posts.ui.MyPostsFragment;
-import com.grouprace.feature.posts.ui.PostFragment;
-import com.grouprace.feature.profile.ui.ChangeEmailFragment;
-import com.grouprace.feature.profile.ui.ChangeEmailOtpFragment;
-import com.grouprace.feature.profile.ui.ChangePasswordFragment;
-import com.grouprace.feature.profile.ui.EditProfileFragment;
-import com.grouprace.feature.profile.ui.PasswordResetOtpFragment;
-import com.grouprace.feature.profile.ui.PasswordResetRequestFragment;
-import com.grouprace.feature.profile.ui.ProfileComingSoonFragment;
 import com.grouprace.feature.profile.ui.ProfileFragment;
-import com.grouprace.feature.profile.ui.ProfileSettingsFragment;
-import com.grouprace.feature.profile.ui.SetNewPasswordFragment;
+import com.grouprace.feature.login.ui.LoginFragment;
+import com.grouprace.feature.posts.ui.PostFragment;
 import com.grouprace.feature.records.list.ui.RecordsFragment;
 import com.grouprace.feature.register.ui.RegisterFragment;
 import com.grouprace.feature.tracking.ui.TrackingFragment;
+
+import androidx.lifecycle.ViewModelProvider;
 
 import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
-public class MainActivity extends AppCompatActivity
-        implements
-        LoginFragment.NavigationHost,
-        RegisterFragment.NavigationHost,
-        ProfileFragment.NavigationHost,
-        ProfileSettingsFragment.NavigationHost,
-        ChangeEmailFragment.NavigationHost,
-        ChangePasswordFragment.NavigationHost,
-        PasswordResetRequestFragment.NavigationHost,
-        PasswordResetOtpFragment.NavigationHost {
+public class MainActivity extends AppCompatActivity {
 
     @Inject
-    SessionManager sessionManager;
+    SessionManager sessionManager; // Keep for some direct checks or remove if fully reactive
 
     private BottomNavigationView bottomNav;
+    private MainViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,8 +36,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         bottomNav = findViewById(R.id.bottom_navigation);
-        boolean isLoggedIn = sessionManager != null && sessionManager.isLoggedIn();
-        bottomNav.setVisibility(isLoggedIn ? android.view.View.VISIBLE : android.view.View.GONE);
+        viewModel = new ViewModelProvider(this).get(MainViewModel.class);
 
         bottomNav.setOnItemSelectedListener(item -> {
             Fragment fragment = null;
@@ -78,131 +60,34 @@ public class MainActivity extends AppCompatActivity
             return true;
         });
 
-        Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-        if (currentFragment == null) {
-            if (isLoggedIn) {
-                showAuthenticatedHome();
-            } else {
-                showLoginEntry();
+        observeViewModel();
+    }
+
+    private void observeViewModel() {
+        viewModel.getIsLoggedIn().observe(this, isLoggedIn -> {
+            bottomNav.setVisibility(isLoggedIn ? android.view.View.VISIBLE : android.view.View.GONE);
+
+            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+            Fragment fragment = null;
+            if (currentFragment == null) {
+                if (isLoggedIn) {
+                    fragment = new PostFragment();
+                } else {
+                    fragment = new LoginFragment();
+                }
+            } else if (!isLoggedIn && !(currentFragment instanceof LoginFragment) && !(currentFragment instanceof RegisterFragment)) {
+                // If logged out and not on auth screens, go to login
+                fragment = new LoginFragment();
             }
-        }
-    }
-
-    @Override
-    public void openRegister() {
-        bottomNav.setVisibility(android.view.View.GONE);
-        loadAuthRootFragment(new RegisterFragment());
-    }
-
-    @Override
-    public void openForgotPassword() {
-        bottomNav.setVisibility(android.view.View.GONE);
-        loadSubFragment(PasswordResetRequestFragment.newInstance());
-    }
-
-    @Override
-    public void openLogin() {
-        bottomNav.setVisibility(android.view.View.GONE);
-        loadAuthRootFragment(new LoginFragment());
-    }
-
-    @Override
-    public void openEditProfile() {
-        bottomNav.setVisibility(android.view.View.VISIBLE);
-        loadSubFragment(new EditProfileFragment());
-    }
-
-    @Override
-    public void openProfileSettings() {
-        bottomNav.setVisibility(android.view.View.VISIBLE);
-        loadSubFragment(ProfileSettingsFragment.newInstance());
-    }
-
-    @Override
-    public void openChangeEmail() {
-        bottomNav.setVisibility(android.view.View.VISIBLE);
-        loadSubFragment(ChangeEmailFragment.newInstance());
-    }
-
-    @Override
-    public void openChangeEmailOtp() {
-        bottomNav.setVisibility(android.view.View.VISIBLE);
-        loadSubFragment(ChangeEmailOtpFragment.newInstance());
-    }
-
-    @Override
-    public void openChangePassword() {
-        bottomNav.setVisibility(android.view.View.VISIBLE);
-        loadSubFragment(ChangePasswordFragment.newInstance());
-    }
-
-    @Override
-    public void openPasswordResetRequest() {
-        bottomNav.setVisibility(android.view.View.VISIBLE);
-        loadSubFragment(PasswordResetRequestFragment.newInstance());
-    }
-
-    @Override
-    public void openPasswordResetOtp() {
-        bottomNav.setVisibility(android.view.View.VISIBLE);
-        loadSubFragment(PasswordResetOtpFragment.newInstance());
-    }
-
-    @Override
-    public void openSetNewPassword() {
-        bottomNav.setVisibility(android.view.View.VISIBLE);
-        loadSubFragment(SetNewPasswordFragment.newInstance());
-    }
-
-    @Override
-    public void openComingSoon(String title) {
-        bottomNav.setVisibility(android.view.View.VISIBLE);
-        loadSubFragment(ProfileComingSoonFragment.newInstance(title));
-    }
-
-    @Override
-    public void openProfileComingSoon(String title) {
-        bottomNav.setVisibility(android.view.View.VISIBLE);
-        loadSubFragment(ProfileComingSoonFragment.newInstance(title));
-    }
-
-    @Override
-    public void openMyPosts() {
-        bottomNav.setVisibility(android.view.View.VISIBLE);
-        loadSubFragment(MyPostsFragment.newInstance());
+            if (fragment != null) {
+                loadFragment(fragment);
+            }
+        });
     }
 
     private void loadFragment(Fragment fragment) {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, fragment)
                 .commit();
-    }
-
-    private void loadSubFragment(Fragment fragment) {
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, fragment)
-                .addToBackStack(null)
-                .commit();
-    }
-
-    private void loadAuthRootFragment(Fragment fragment) {
-        if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
-            getSupportFragmentManager().popBackStack(
-                    null,
-                    androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
-            );
-        }
-        loadFragment(fragment);
-    }
-
-    private void showAuthenticatedHome() {
-        bottomNav.setVisibility(android.view.View.VISIBLE);
-        bottomNav.setSelectedItemId(R.id.nav_home);
-        loadFragment(new PostFragment());
-    }
-
-    private void showLoginEntry() {
-        bottomNav.setVisibility(android.view.View.GONE);
-        loadFragment(new LoginFragment());
     }
 }

@@ -5,6 +5,18 @@ import androidx.fragment.app.Fragment;
 
 import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.feature.notification.ui.NotificationFragment;
+import com.grouprace.feature.posts.ui.MyPostsFragment;
+import com.grouprace.feature.profile.ui.ChangeEmailFragment;
+import com.grouprace.feature.profile.ui.ChangeEmailOtpFragment;
+import com.grouprace.feature.profile.ui.ChangePasswordFragment;
+import com.grouprace.feature.profile.ui.EditProfileFragment;
+import com.grouprace.feature.profile.ui.PasswordResetOtpFragment;
+import com.grouprace.feature.login.ui.LoginFragment;
+import com.grouprace.feature.profile.ui.PasswordResetRequestFragment;
+import com.grouprace.feature.profile.ui.ProfileComingSoonFragment;
+import com.grouprace.feature.profile.ui.ProfileSettingsFragment;
+import com.grouprace.feature.profile.ui.SetNewPasswordFragment;
+import com.grouprace.feature.register.ui.RegisterFragment;
 import com.grouprace.feature.search.ui.SearchFragment;
 
 import javax.inject.Inject;
@@ -15,24 +27,108 @@ public class AppNavigatorImpl implements AppNavigator {
     public AppNavigatorImpl() {
     }
 
+    // Top App Bar
     @Override
     public void navigateToNotification(Fragment currentFragment) {
-        if (currentFragment.getView() != null && currentFragment.getView().getParent() != null) {
+        navigateTo(currentFragment, new NotificationFragment());
+    }
+
+    @Override
+    public void navigateToSearch(Fragment currentFragment) {
+        navigateTo(currentFragment, new SearchFragment());
+    }
+
+    // Profile
+    @Override
+    public void openForgotPassword(Fragment currentFragment) {
+        navigateTo(currentFragment, PasswordResetRequestFragment.newInstance());
+    }
+
+    @Override
+    public void openEditProfile(Fragment currentFragment) {
+        navigateTo(currentFragment, new EditProfileFragment());
+    }
+
+    @Override
+    public void openProfileSettings(Fragment currentFragment) {
+        navigateTo(currentFragment, ProfileSettingsFragment.newInstance());
+    }
+
+    @Override
+    public void openChangeEmail(Fragment currentFragment) {
+        navigateTo(currentFragment, ChangeEmailFragment.newInstance());
+    }
+
+    @Override
+    public void openChangeEmailOtp(Fragment currentFragment) {
+        navigateTo(currentFragment, ChangeEmailOtpFragment.newInstance());
+    }
+
+    @Override
+    public void openChangePassword(Fragment currentFragment) {
+        navigateTo(currentFragment, ChangePasswordFragment.newInstance());
+    }
+
+    @Override
+    public void openPasswordResetRequest(Fragment currentFragment) {
+        navigateTo(currentFragment, PasswordResetRequestFragment.newInstance());
+    }
+
+    @Override
+    public void openPasswordResetOtp(Fragment currentFragment) {
+        navigateTo(currentFragment, PasswordResetOtpFragment.newInstance());
+    }
+
+    @Override
+    public void openSetNewPassword(Fragment currentFragment) {
+        navigateTo(currentFragment, SetNewPasswordFragment.newInstance());
+    }
+
+    @Override
+    public void openComingSoon(Fragment currentFragment, String title) {
+        navigateTo(currentFragment, ProfileComingSoonFragment.newInstance(title));
+    }
+
+    @Override
+    public void openProfileComingSoon(Fragment currentFragment, String title) {
+        navigateTo(currentFragment, ProfileComingSoonFragment.newInstance(title));
+    }
+
+    @Override
+    public void openMyPosts(Fragment currentFragment) {
+        navigateTo(currentFragment, MyPostsFragment.newInstance());
+    }
+
+    @Override
+    public void openLogin(Fragment currentFragment) {
+        navigateToRoot(currentFragment, LoginFragment.newInstance());
+    }
+
+    @Override
+    public void openRegister(Fragment currentFragment) {
+        navigateTo(currentFragment, RegisterFragment.newInstance());
+    }
+
+
+    private void navigateTo(Fragment currentFragment, Fragment targetFragment) {
+        if (currentFragment != null && currentFragment.getView() != null && currentFragment.getView().getParent() != null) {
             int containerId = ((ViewGroup) currentFragment.getView().getParent()).getId();
             currentFragment.requireActivity().getSupportFragmentManager().beginTransaction()
-                    .replace(containerId, new NotificationFragment())
+                    .replace(containerId, targetFragment)
                     .addToBackStack(null)
                     .commit();
         }
     }
 
-    @Override
-    public void navigateToSearch(Fragment currentFragment) {
-        if (currentFragment.getView() != null && currentFragment.getView().getParent() != null) {
+    private void navigateToRoot(Fragment currentFragment, Fragment targetFragment) {
+        if (currentFragment != null && currentFragment.getView() != null && currentFragment.getView().getParent() != null) {
             int containerId = ((ViewGroup) currentFragment.getView().getParent()).getId();
-            currentFragment.requireActivity().getSupportFragmentManager().beginTransaction()
-                    .replace(containerId, new SearchFragment())
-                    .addToBackStack(null)
+            androidx.fragment.app.FragmentManager fm = currentFragment.requireActivity().getSupportFragmentManager();
+            if (fm.getBackStackEntryCount() > 0) {
+                fm.popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE);
+            }
+            fm.beginTransaction()
+                    .replace(containerId, targetFragment)
                     .commit();
         }
     }

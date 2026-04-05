@@ -15,7 +15,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.grouprace.core.common.result.Result;
-import com.grouprace.core.network.utils.SessionManager;
+import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.feature.profile.R;
 
 import javax.inject.Inject;
@@ -25,14 +25,8 @@ import dagger.hilt.android.AndroidEntryPoint;
 @AndroidEntryPoint
 public class ProfileSettingsFragment extends Fragment {
 
-    public interface NavigationHost {
-        void openChangeEmail();
-        void openChangePassword();
-        void openComingSoon(String title);
-    }
-
     @Inject
-    SessionManager sessionManager;
+    AppNavigator navigator;
 
     private ProfileSettingsViewModel viewModel;
 
@@ -76,21 +70,15 @@ public class ProfileSettingsFragment extends Fragment {
     }
 
     private void navigateToChangeEmail() {
-        if (requireActivity() instanceof NavigationHost) {
-            ((NavigationHost) requireActivity()).openChangeEmail();
-        }
+        navigator.openChangeEmail(this);
     }
 
     private void navigateToChangePassword() {
-        if (requireActivity() instanceof NavigationHost) {
-            ((NavigationHost) requireActivity()).openChangePassword();
-        }
+        navigator.openChangePassword(this);
     }
 
     private void openComingSoon(String title) {
-        if (requireActivity() instanceof NavigationHost) {
-            ((NavigationHost) requireActivity()).openComingSoon(title);
-        }
+        navigator.openComingSoon(this, title);
     }
 
     private void confirmLogout() {
@@ -112,14 +100,14 @@ public class ProfileSettingsFragment extends Fragment {
     }
 
     private void logout() {
-        sessionManager.clearSession();
+        viewModel.logout();
         restartMainActivity();
     }
 
     private void deleteMyAccount() {
         viewModel.deleteMyAccount().observe(getViewLifecycleOwner(), result -> {
             if (result instanceof Result.Success) {
-                sessionManager.clearSession();
+                viewModel.logout();
                 Toast.makeText(requireContext(), "Account deleted successfully", Toast.LENGTH_SHORT).show();
                 restartMainActivity();
             } else if (result instanceof Result.Error) {

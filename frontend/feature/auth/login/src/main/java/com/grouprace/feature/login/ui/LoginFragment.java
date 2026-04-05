@@ -15,15 +15,16 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.navigation.AppNavigator;
+
+import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class LoginFragment extends Fragment {
-    public interface NavigationHost {
-        void openRegister();
-        void openForgotPassword();
-    }
+    @Inject
+    AppNavigator navigator;
 
     private EditText editEmail;
     private EditText editPassword;
@@ -67,14 +68,10 @@ public class LoginFragment extends Fragment {
 
     private void setupListeners() {
         buttonGoToRegister.setOnClickListener(v -> {
-            if (requireActivity() instanceof NavigationHost) {
-                ((NavigationHost) requireActivity()).openRegister();
-            }
+            navigator.openRegister(this);
         });
         resetPasswordButton.setOnClickListener(v -> {
-            if (requireActivity() instanceof NavigationHost) {
-                ((NavigationHost) requireActivity()).openForgotPassword();
-            }
+            navigator.openForgotPassword(this);
         });
 
         buttonLogin.setOnClickListener(v -> {
