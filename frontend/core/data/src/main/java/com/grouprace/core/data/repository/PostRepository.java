@@ -11,6 +11,7 @@ public interface PostRepository {
      * Observable stream of posts from the local database.
      */
     LiveData<List<Post>> getPosts();
+    LiveData<Result<List<Post>>> getMyPosts(String cursor, int limit);
 
     /**
      * Triggers a network fetch and syncs with the local database.

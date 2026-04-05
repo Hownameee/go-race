@@ -4,8 +4,11 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
+
 import dagger.hilt.android.qualifiers.ApplicationContext;
 
+@Singleton
 public class SessionManager {
     // 1. Chuyển các key thành static final để tiết kiệm bộ nhớ
     private static final String PREF_NAME = "GoRaceApp";

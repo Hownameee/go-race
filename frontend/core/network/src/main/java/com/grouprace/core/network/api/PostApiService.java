@@ -19,6 +19,9 @@ public interface PostApiService {
     @GET("api/posts/feed")
     Call<ApiResponse<PostPayload>> getPosts(@Query("cursor") String cursor, @Query("limit") int limit);
 
+    @GET("api/posts/me")
+    Call<ApiResponse<PostPayload>> getMyPosts(@Query("cursor") String cursor, @Query("limit") int limit);
+
     @POST("api/posts")
     Call<ApiResponse<Void>> createPost(@Body CreatePostRequest request);
 

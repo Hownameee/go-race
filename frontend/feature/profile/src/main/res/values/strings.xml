@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fullname">User Fullname</string>
+    <string name="city">User City</string>
+    <string name="country">User Country</string>
+    <string name="default_number">N/A</string>
+</resources>

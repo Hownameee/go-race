@@ -12,7 +12,6 @@ import androidx.core.app.NotificationCompat;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.grouprace.gorace.MainActivity;
-import com.grouprace.gorace.R;
 
 import java.util.Map;
 
@@ -65,7 +64,7 @@ public class GoRaceFirebaseMessagingService extends FirebaseMessagingService {
         );
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(android.R.drawable.ic_dialog_info)
                 .setContentTitle(title)
                 .setContentText(message)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
@@ -76,4 +75,3 @@ public class GoRaceFirebaseMessagingService extends FirebaseMessagingService {
         manager.notify((int) System.currentTimeMillis(), builder.build());
     }
 }
-

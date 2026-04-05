@@ -1,5 +1,6 @@
 import fs from 'fs';
 import { createRequire } from 'module';
+import config from '../../config/config.js';
 
 const require = createRequire(import.meta.url);
 
@@ -8,7 +9,7 @@ try {
   admin = require('firebase-admin');
 } catch (e) {
   // ignore; FCM will be disabled
-  console.warn("FCM disabled: firebase-admin could not be loaded.", e.message);
+  console.warn('FCM disabled: firebase-admin could not be loaded.', e.message);
 }
 
 let initialized = false;
@@ -16,7 +17,7 @@ let initialized = false;
 export function initFirebaseAdmin() {
   if (initialized) return;
 
-  const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+  const serviceAccountPath = config.FIREBASE_SERVICE_ACCOUNT_PATH;
 
   if (!serviceAccountPath) {
     console.warn(

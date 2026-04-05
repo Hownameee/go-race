@@ -1,6 +1,7 @@
 package com.grouprace.core.data.repository;
 
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 
 import com.grouprace.core.common.result.Result;
@@ -14,13 +15,15 @@ import javax.inject.Inject;
 public class AuthRepositoryImpl implements AuthRepository {
 
     private final AuthDataSource authNetworkDataSource;
-    private final SessionManager sessionManager; // 1. Khai báo SessionManager
+    private final SessionManager sessionManager;
+    private final MutableLiveData<Boolean> _isLoggedIn = new MutableLiveData<>();
 
     // 2. Inject SessionManager qua Hilt thay vì dùng 'new'
     @Inject
     public AuthRepositoryImpl(AuthDataSource authNetworkDataSource, SessionManager sessionManager) {
         this.authNetworkDataSource = authNetworkDataSource;
         this.sessionManager = sessionManager;
+        this._isLoggedIn.setValue(sessionManager.isLoggedIn());
     }
 
     @Override
@@ -40,6 +43,7 @@ public class AuthRepositoryImpl implements AuthRepository {
             } else if (result instanceof Result.Success) {
                 String token = ((Result.Success<String>) result).data;
                 sessionManager.saveAuthToken(token);
+                _isLoggedIn.setValue(true);
 
                 return new Result.Success<>(null);
 
@@ -48,5 +52,31 @@ public class AuthRepositoryImpl implements AuthRepository {
                 return new Result.Error<>(error.exception, error.message);
             }
         });
+    }
+
+    @Override
+    public LiveData<Result<Void>> requestPasswordResetOtp(String email) {
+        return authNetworkDataSource.requestPasswordResetOtp(email);
+    }
+
+    @Override
+    public LiveData<Result<Void>> verifyPasswordResetOtp(String email, String otpCode) {
+        return authNetworkDataSource.verifyPasswordResetOtp(email, otpCode);
+    }
+
+    @Override
+    public LiveData<Result<Void>> resetPasswordWithOtp(String email, String otpCode, String newPassword, String confirmNewPassword) {
+        return authNetworkDataSource.resetPasswordWithOtp(email, otpCode, newPassword, confirmNewPassword);
+    }
+
+    @Override
+    public LiveData<Boolean> getIsLoggedIn() {
+        return _isLoggedIn;
+    }
+
+    @Override
+    public void logout() {
+        sessionManager.clearSession();
+        _isLoggedIn.setValue(false);
     }
 }

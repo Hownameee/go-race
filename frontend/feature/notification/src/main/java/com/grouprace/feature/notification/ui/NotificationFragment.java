@@ -1,17 +1,23 @@
 package com.grouprace.feature.notification.ui;
 
-import android.content.SharedPreferences;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.ProgressBar;
+
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -37,14 +43,13 @@ public class NotificationFragment extends Fragment {
 
     private NotificationViewModel viewModel;
     private NotificationAdapter adapter;
-    private int currentUserId;
 
-    private View loadMoreLoading;
-    private View loadMoreError;
-    private Button loadMoreRetry;
+    private ProgressBar progressBar;
 
     private Integer lastShownNotificationId = null;
     private boolean hasHydratedInitialList = false;
+
+    private TextView tvEmpty;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -52,50 +57,37 @@ public class NotificationFragment extends Fragment {
 
         TopAppBarHelper.setupTopAppBar(view, getTopAppBarConfig());
 
-        // Request permission Android 13+
+        // Permission Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                 ContextCompat.checkSelfPermission(requireContext(),
-                        android.Manifest.permission.POST_NOTIFICATIONS) !=
-                        android.content.pm.PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101);
+                        Manifest.permission.POST_NOTIFICATIONS) !=
+                        PackageManager.PERMISSION_GRANTED) {
+
+            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 101);
         }
 
-        // Lấy userId
-        SharedPreferences prefs = requireContext().getSharedPreferences("MyAppPrefs", getContext().MODE_PRIVATE);
-        currentUserId = prefs.getInt("user_id", -1);
-        if (currentUserId == -1) {
-            Toast.makeText(getContext(), "Not login", Toast.LENGTH_SHORT).show();
-        }
-
-        // Setup RecyclerView & Adapter
+        // RecyclerView
         RecyclerView recyclerView = view.findViewById(R.id.rv_notifications);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new NotificationAdapter();
         recyclerView.setAdapter(adapter);
 
-        // Click listener
-        adapter.setOnNotificationClickListener(notification ->
-                Toast.makeText(getContext(), "Click: " + notification.getTitle(), Toast.LENGTH_SHORT).show()
-        );
+        adapter.setOnNotificationClickListener(notification -> {
+            if (!notification.isRead()) {
+                viewModel.markAsRead(notification);
+            }
+        });
 
-        setupLoadMoreViews(view);
+        progressBar = view.findViewById(R.id.progressBar);
+        tvEmpty = view.findViewById(R.id.tv_empty);
 
-        // Setup ViewModel
         viewModel = new ViewModelProvider(this).get(NotificationViewModel.class);
 
         // Register FCM token
         FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
             if (!task.isSuccessful()) return;
             String token = task.getResult();
-
-            if (token != null && !token.isEmpty()) {
-                if (currentUserId == -1) {
-                    FirebaseMessaging.getInstance().subscribeToTopic("system-notifications");
-                } else {
-                    viewModel.registerDeviceToken(currentUserId, token);
-                    FirebaseMessaging.getInstance().subscribeToTopic("system-notifications");
-                }
-            }
+            viewModel.registerDeviceToken(token);
         });
 
         observeNotifications();
@@ -103,86 +95,89 @@ public class NotificationFragment extends Fragment {
         return view;
     }
 
-    private void setupLoadMoreViews(View view) {
-        View loadMoreFooter = LayoutInflater.from(requireContext()).inflate(R.layout.footer_load_more, null, false);
-        loadMoreLoading = loadMoreFooter.findViewById(R.id.ll_load_more_loading);
-        loadMoreError = loadMoreFooter.findViewById(R.id.ll_load_more_error);
-        loadMoreRetry = loadMoreFooter.findViewById(R.id.btn_load_more_retry);
-
-        loadMoreRetry.setOnClickListener(v -> viewModel.refreshNotifications());
-
-        // Nếu RecyclerView hỗ trợ footer, bạn có thể add ở đây
-        // Hoặc dùng Layout riêng quản lý load more
-        setLoadMoreVisibility(false, false);
-    }
-
     private void observeNotifications() {
         viewModel.getNotifications().observe(getViewLifecycleOwner(), result -> {
-            if (result instanceof Result.Loading) {
-                handleLoadingState();
-            } else if (result instanceof Result.Success) {
-                List<NotificationModel> notifications = ((Result.Success<List<NotificationModel>>) result).data;
+            progressBar.setVisibility(View.VISIBLE);
+            if (result instanceof Result.Success) {
+                progressBar.setVisibility(View.GONE);
+
+                List<NotificationModel> notifications =
+                        ((Result.Success<List<NotificationModel>>) result).data;
+
                 handleSuccessState(notifications);
-            } else if (result instanceof Result.Error) {
-                Result.Error<?> error = (Result.Error<?>) result;
-                handleErrorState(error.message);
+            } else {
+                progressBar.setVisibility(View.GONE);
             }
         });
     }
 
-    private void handleLoadingState() {
-        if (adapter.getItemCount() == 0) {
-            // show full screen loading if needed
-            Log.d("NotificationFragment", "Loading notifications...");
-        } else {
-            setLoadMoreVisibility(true, false);
-        }
-    }
-
     private void handleSuccessState(List<NotificationModel> notifications) {
-        setLoadMoreVisibility(false, false);
         if (notifications != null && !notifications.isEmpty()) {
+            tvEmpty.setVisibility(View.GONE);
             adapter.submitList(notifications);
-            maybeShowSystemNotification(notifications.get(0));
+            NotificationModel latest = Collections.max(
+                    notifications,
+                    (a, b) -> a.getId() - b.getId()
+            );
+            maybeShowSystemNotification(latest);
             Log.d("NotificationFragment", "Notifications count: " + notifications.size());
         } else {
             adapter.submitList(Collections.emptyList());
+            tvEmpty.setVisibility(View.VISIBLE);
             Log.d("NotificationFragment", "No notifications found");
         }
     }
-
-    private void handleErrorState(String message) {
-        if (adapter.getItemCount() == 0) {
-            Toast.makeText(getContext(), "Error loading notifications: " + message, Toast.LENGTH_SHORT).show();
-        } else {
-            setLoadMoreVisibility(false, true);
-        }
-    }
-
     private void maybeShowSystemNotification(NotificationModel latest) {
         if (latest == null) return;
+
         if (!hasHydratedInitialList) {
             hasHydratedInitialList = true;
             lastShownNotificationId = latest.getId();
             return;
         }
-        if (lastShownNotificationId != null && latest.getId() == lastShownNotificationId) return;
+
+        if (lastShownNotificationId != null &&
+                latest.getId() == lastShownNotificationId) {
+            return;
+        }
+
         lastShownNotificationId = latest.getId();
-        Toast.makeText(getContext(), "Recieve new notifications!", Toast.LENGTH_SHORT).show();
+
+        showSystemNotification(latest);
     }
 
-    private void setLoadMoreVisibility(boolean isLoading, boolean isError) {
-        if (loadMoreLoading != null)
-            loadMoreLoading.setVisibility(isLoading ? View.VISIBLE : View.GONE);
-        if (loadMoreError != null)
-            loadMoreError.setVisibility(isError ? View.VISIBLE : View.GONE);
+    private void showSystemNotification(NotificationModel notification) {
+
+        NotificationManager manager =
+                (NotificationManager) requireContext().getSystemService(Context.NOTIFICATION_SERVICE);
+
+        String channelId = "default_channel";
+
+        // Android 8+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    channelId,
+                    "Notifications",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            manager.createNotificationChannel(channel);
+        }
+
+        NotificationCompat.Builder builder =
+                new NotificationCompat.Builder(requireContext(), channelId)
+                        .setSmallIcon(com.grouprace.core.system.R.drawable.ic_app) // cần có icon này
+                        .setContentTitle(notification.getTitle())
+                        .setContentText(notification.getMessage())
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setAutoCancel(true);
+
+        manager.notify(notification.getId(), builder.build());
     }
 
     private TopAppBarConfig getTopAppBarConfig() {
         return new TopAppBarConfig.Builder()
                 .setTitle("Notifications")
                 .setLeftIcon(com.grouprace.core.system.R.drawable.ic_back, v -> {
-                    // back click logic
                     if (getActivity() != null) {
                         getActivity().onBackPressed();
                     }

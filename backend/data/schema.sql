@@ -22,19 +22,6 @@ CREATE TABLE IF NOT EXISTS DEVICE_TOKENS (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
--- just demo table will change in the future
-CREATE TABLE IF NOT EXISTS RECORD (
-    record_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    activity_type TEXT NOT NULL CHECK (
-        activity_type IN ('Walking', 'Running')
-    ),
-    start_time DATETIME DEFAULT (DATETIME('now', 'localtime')),
-    end_time DATETIME,
-    duration_seconds INTEGER,
-    distance_km REAL,
-    calories_burned INTEGER,
-    heart_rate_avg INTEGER
-);
 
 CREATE TABLE IF NOT EXISTS USERS (
   user_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -59,6 +46,25 @@ CREATE TABLE IF NOT EXISTS USERS (
   -- timestamps
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME
+);
+
+CREATE TABLE IF NOT EXISTS RECORD (
+    record_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    owner_id INTEGER NOT NULL,
+    activity_type TEXT NOT NULL CHECK (
+        activity_type IN ('Walking', 'Running')
+    ),
+    title TEXT,
+    start_time DATETIME NOT NULL,
+    end_time DATETIME NOT NULL,
+    duration_seconds INTEGER,
+    distance_km REAL,
+    calories_burned REAL,
+    heart_rate_avg REAL,
+    speed REAL,
+    s3_key TEXT,
+
+    FOREIGN KEY (owner_id) REFERENCES USERS(user_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS POST (
@@ -116,3 +122,41 @@ CREATE INDEX IF NOT EXISTS idx_comment_post_created ON COMMENT(post_id, created_
 
 -- Index for efficient like lookups
 CREATE INDEX IF NOT EXISTS idx_like_post_user ON LIKE(post_id, user_id);
+
+---FTS5 extension for search user
+CREATE VIRTUAL TABLE IF NOT EXISTS USER_FTS USING FTS5(
+    username,
+    content="USERS",
+    content_rowid="user_id"
+);
+
+---trigger FTS user
+CREATE TRIGGER  IF NOT EXISTS USER_AI AFTER INSERT ON USERS BEGIN
+  INSERT INTO USER_FTS(rowid, username)
+  VALUES (NEW.user_id, NEW.username);
+END;
+
+CREATE TRIGGER IF NOT EXISTS USER_AD AFTER DELETE ON USERS BEGIN
+  INSERT INTO USER_FTS(USER_FTS, rowid, username)
+  VALUES('delete', OLD.user_id, OLD.username);
+END;
+
+CREATE TRIGGER IF NOT EXISTS USER_AU AFTER UPDATE ON USERS BEGIN
+  INSERT INTO USER_FTS(USER_FTS, rowid, username)
+  VALUES('delete', OLD.user_id, OLD.username);
+
+  INSERT INTO USER_FTS(rowid, username)
+  VALUES (NEW.user_id, NEW.username);
+END;
+CREATE TABLE IF NOT EXISTS ROUTE_POINTS (
+    point_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    record_id INTEGER NOT NULL,
+    latitude REAL NOT NULL,
+    longitude REAL NOT NULL,
+    altitude REAL,
+    timestamp DATETIME NOT NULL,
+    accuracy REAL,
+    FOREIGN KEY (record_id) REFERENCES RECORD(record_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_route_points_record ON ROUTE_POINTS(record_id);

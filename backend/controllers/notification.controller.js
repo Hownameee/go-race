@@ -1,58 +1,65 @@
 import notificationService from '../services/notification.service.js';
 
 const notificationController = {
-  getList: async function (req, res) {
-    const userId = 1; // hoặc req.user.id nếu auth
-    const data = await notificationService.getNotifications(userId);
-    console.log(data);
-    res.ok({
-      notifications: data,
-      nextCursor: null,
-    });
+  async getList(req, res) {
+    try {
+      const userId = req.user.userId;
+      const data = await notificationService.getNotifications(userId);
+      return res.ok({
+        notifications: data,
+        nextCursor: null, 
+      });
+
+    } catch (err) {
+      console.error('[Notification][getList]', err);
+      return res.error(null, err.message);
+    }
   },
 
-  createNotification: async function (req, res) {
+  async createNotification(req, res) {
     try {
-      const { user_id, type, actor_id, activity_id, title, message } =
-        req.body;
-
-      // Tạo notification trong DB
-      const notification = await notificationService.create({
+      const {
         user_id,
         type,
-        actor_id: actor_id || null,
-        activity_id: activity_id || null,
+        actor_id,
+        activity_id,
+        title,
+        message,
+      } = req.body;
+
+      const notification = await notificationService.createAndSend({
+        userId: user_id,
+        type,
+        actorId: actor_id ?? null,
+        activityId: activity_id ?? null,
         title,
         message,
       });
 
-      const shouldSendAll = type === 'system';
-      console.log(`Notification created for user_id=${user_id}, type=${type}, shouldSendAll=${shouldSendAll}`);
-      if (shouldSendAll) {
-        // Send push (FCM) so all users receive when app is inactive
-        await notificationService.sendPushAllUsers(notification);
-      } else {
-        // Send push (FCM) so user receives when app is inactive
-        await notificationService.sendPushByUserId(user_id, notification);
-      }
+      return res.created(notification, 'Notification created');
 
-      res.created(notification, 'Notification created');
     } catch (err) {
-      console.error(err);
-      res.error(null, err.message);
+      console.error('[Notification][create]', err);
+      return res.error(null, err.message);
     }
   },
 
-  markAsRead: async function (req, res) {
+  async markAsRead(req, res) {
     try {
-      const id = req.params.id;
+      const { id } = req.params;
+
       await notificationService.markAsRead(id);
-      res.ok({ success: true });
+
+      return res.ok({
+        message: 'Marked as read',
+      });
+
     } catch (err) {
-      console.error(err);
-      res.error(null, err.message);
+      console.error('[Notification][markAsRead]', err);
+      return res.error(null, err.message);
     }
   },
+
 };
 
 export default notificationController;

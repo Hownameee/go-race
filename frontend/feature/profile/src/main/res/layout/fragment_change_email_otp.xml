@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="56dp">
+
+            <ImageButton
+                android:id="@+id/change_email_otp_back_button"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_centerVertical="true"
+                android:background="@android:color/transparent"
+                android:backgroundTint="@null"
+                android:contentDescription="Back"
+                android:src="@drawable/ic_back"
+                app:backgroundTint="@null"
+                android:tint="@color/text_primary" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="Verify Email Change"
+                android:textColor="@color/text_primary"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
+
+        <TextView
+            android:id="@+id/change_email_otp_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Enter OTP sent to your current email."
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp" />
+
+        <EditText
+            android:id="@+id/change_email_otp_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/bg_input_rounded"
+            android:hint="6-digit OTP"
+            android:inputType="number"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="14dp"
+            android:textColor="@android:color/black"
+            android:textColorHint="@color/text_tertiary" />
+
+        <Button
+            android:id="@+id/change_email_confirm_button"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:layout_marginTop="24dp"
+            android:background="@drawable/bg_button_rounded"
+            android:backgroundTint="@null"
+            app:backgroundTint="@null"
+            android:text="Submit"
+            android:textColor="@color/black" />
+    </LinearLayout>
+</ScrollView>

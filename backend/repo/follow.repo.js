@@ -1,4 +1,4 @@
-import db from "../utils/db/db.js";
+import db from '../utils/db/db.js';
 
 const followRepo = {
   async insertFollow(followerId, followingId) {
@@ -38,6 +38,27 @@ const followRepo = {
     );
     return stmt.all(userId, cursor, limit);
   },
+
+countFollowers: async function (userId) {
+  const sql = `
+    SELECT COUNT(*) AS total
+    FROM FOLLOW
+    WHERE following_id = ?
+  `;
+  const row = await db.prepare(sql).get(userId);
+  return row.total;
+},
+
+countFollowings: async function (userId) {
+  const sql = `
+    SELECT COUNT(*) AS total
+    FROM FOLLOW
+    WHERE follower_id = ?
+  `;
+  const row = await db.prepare(sql).get(userId);
+  return row.total;
+},
+
 };
 
 export default followRepo;
