@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.grouprace.core.network.utils.SessionManager;
 import com.grouprace.core.system.ui.PlaceholderFragment;
 import com.grouprace.feature.profile.ui.ProfileFragment;
 import com.grouprace.feature.login.ui.LoginFragment;
@@ -17,15 +16,10 @@ import com.grouprace.feature.tracking.ui.TrackingFragment;
 
 import androidx.lifecycle.ViewModelProvider;
 
-import javax.inject.Inject;
-
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class MainActivity extends AppCompatActivity {
-
-    @Inject
-    SessionManager sessionManager; // Keep for some direct checks or remove if fully reactive
 
     private BottomNavigationView bottomNav;
     private MainViewModel viewModel;

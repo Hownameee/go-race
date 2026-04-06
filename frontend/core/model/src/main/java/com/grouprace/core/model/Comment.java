@@ -7,19 +7,19 @@ public class Comment {
     private String content;
     private String createdAt;
     private String username;
-    private String displayName;
+    private String fullName;
     private String profilePictureUrl;
 
     public Comment() {}
 
-    public Comment(int commentId, int postId, int userId, String content, String createdAt, String username, String displayName, String profilePictureUrl) {
+    public Comment(int commentId, int postId, int userId, String content, String createdAt, String username, String fullName, String profilePictureUrl) {
         this.commentId = commentId;
         this.postId = postId;
         this.userId = userId;
         this.content = content;
         this.createdAt = createdAt;
         this.username = username;
-        this.displayName = displayName;
+        this.fullName = fullName;
         this.profilePictureUrl = profilePictureUrl;
     }
 
@@ -41,8 +41,8 @@ public class Comment {
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
 
-    public String getDisplayName() { return displayName; }
-    public void setDisplayName(String displayName) { this.displayName = displayName; }
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
 
     public String getProfilePictureUrl() { return profilePictureUrl; }
     public void setProfilePictureUrl(String profilePictureUrl) { this.profilePictureUrl = profilePictureUrl; }

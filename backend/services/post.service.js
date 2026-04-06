@@ -1,4 +1,5 @@
 import postRepo from '../repo/post.repo.js';
+import { getImageUrlS3 } from '../utils/s3/s3.js';
 
 const DEFAULT_LIMIT = 20;
 const FAR_FUTURE = '9999-12-31T23:59:59.999Z';
@@ -21,10 +22,22 @@ const postService = {
     const effectiveLimit = Math.min(parseInt(limit) || DEFAULT_LIMIT, 100);
 
     const rows = await postRepo.selectFeed(effectiveCursor, effectiveLimit);
+
+    const posts = await Promise.all(
+      rows.map(async (row) => {
+        const { s3_key, ...postWithoutS3Key } = row;
+        if (s3_key) {
+          const record_image_url = await getImageUrlS3(s3_key);
+          return { ...postWithoutS3Key, record_image_url };
+        }
+        return postWithoutS3Key;
+      }),
+    );
+
     const nextCursor =
       rows.length === effectiveLimit ? rows[rows.length - 1].created_at : null;
 
-    return { posts: rows, nextCursor };
+    return { posts, nextCursor };
   },
 
   async getFollowingFeed(userId, cursor, limit) {
@@ -37,10 +50,21 @@ const postService = {
       effectiveLimit,
     );
 
+    const posts = await Promise.all(
+      rows.map(async (row) => {
+        const { s3_key, ...postWithoutS3Key } = row;
+        if (s3_key) {
+          const record_image_url = await getImageUrlS3(s3_key);
+          return { ...postWithoutS3Key, record_image_url };
+        }
+        return postWithoutS3Key;
+      }),
+    );
+
     const nextCursor =
       rows.length === effectiveLimit ? rows[rows.length - 1].created_at : null;
 
-    return { posts: rows, nextCursor };
+    return { posts, nextCursor };
   },
 
   async getMyPosts(userId, cursor, limit) {
@@ -53,10 +77,21 @@ const postService = {
       effectiveLimit,
     );
 
+    const posts = await Promise.all(
+      rows.map(async (row) => {
+        const { s3_key, ...postWithoutS3Key } = row;
+        if (s3_key) {
+          const record_image_url = await getImageUrlS3(s3_key);
+          return { ...postWithoutS3Key, record_image_url };
+        }
+        return postWithoutS3Key;
+      }),
+    );
+
     const nextCursor =
       rows.length === effectiveLimit ? rows[rows.length - 1].created_at : null;
 
-    return { posts: rows, nextCursor };
+    return { posts, nextCursor };
   },
 
   async likePost(postId, userId) {

@@ -19,4 +19,6 @@ public interface AppNavigator {
     void openMyPosts(Fragment currentFragment);
     void openLogin(Fragment currentFragment);
     void openRegister(Fragment currentFragment);
+    void navigateToVisualEditor(Fragment currentFragment, String photoUri, String title, String distance, String time, String speed);
+    void setBottomNavigationVisibility(Fragment fragment, boolean visible);
 }

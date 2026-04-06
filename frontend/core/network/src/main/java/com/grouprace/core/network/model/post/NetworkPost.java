@@ -38,11 +38,26 @@ public class NetworkPost {
     @SerializedName("username")
     private String username;
 
-    @SerializedName("display_name")
-    private String displayName;
+    @SerializedName("fullname")
+    private String fullName;
 
     @SerializedName("profile_picture_url")
     private String profilePictureUrl;
+
+    @SerializedName("activity_type")
+    private String activityType;
+
+    @SerializedName("duration_seconds")
+    private Integer durationSeconds;
+
+    @SerializedName("distance_km")
+    private Double distanceKm;
+
+    @SerializedName("speed")
+    private Double speed;
+
+    @SerializedName("record_image_url")
+    private String recordImageUrl;
 
     public NetworkPost() {}
 
@@ -79,16 +94,32 @@ public class NetworkPost {
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
 
-    public String getDisplayName() { return displayName; }
-    public void setDisplayName(String displayName) { this.displayName = displayName; }
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
 
     public String getProfilePictureUrl() { return profilePictureUrl; }
     public void setProfilePictureUrl(String profilePictureUrl) { this.profilePictureUrl = profilePictureUrl; }
 
+    public String getActivityType() { return activityType; }
+    public void setActivityType(String activityType) { this.activityType = activityType; }
+
+    public Integer getDurationSeconds() { return durationSeconds; }
+    public void setDurationSeconds(Integer durationSeconds) { this.durationSeconds = durationSeconds; }
+
+    public Double getDistanceKm() { return distanceKm; }
+    public void setDistanceKm(Double distanceKm) { this.distanceKm = distanceKm; }
+
+    public Double getSpeed() { return speed; }
+    public void setSpeed(Double speed) { this.speed = speed; }
+
+    public String getRecordImageUrl() { return recordImageUrl; }
+    public void setRecordImageUrl(String recordImageUrl) { this.recordImageUrl = recordImageUrl; }
+
     public Post asExternalModel() {
         return new Post(
             postId, recordId, ownerId, title, description, photoUrl,
-            likeCount, commentCount, viewMode, createdAt, username, displayName, profilePictureUrl
+            likeCount, commentCount, viewMode, createdAt, username, fullName, profilePictureUrl,
+            activityType, durationSeconds, distanceKm, speed, recordImageUrl
         );
     }
 }

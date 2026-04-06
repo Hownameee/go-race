@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.grouprace.core.common.TimeUtils;
 import com.grouprace.feature.posts.R;
 import com.grouprace.feature.posts.ui.adapter.PostAdapter;
 import com.grouprace.core.common.result.Result;
@@ -18,6 +19,9 @@ import com.grouprace.core.model.Post;
 import com.grouprace.core.system.ui.TopAppBarConfig;
 import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.core.navigation.AppNavigator;
+
+import java.util.Locale;
+
 import javax.inject.Inject;
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -82,12 +86,29 @@ public class PostFragment extends Fragment {
 
             @Override
             public void onShareClicked(Post post) {
+                double distance = post.getDistanceKm() != null ? post.getDistanceKm() : 0.0;
+                int seconds = post.getDurationSeconds() != null ? post.getDurationSeconds() : 0;
+                String pace;
+                if (distance > 0 && seconds > 0) {
+                    double paceMinKm = (seconds / 60.0) / distance;
+                    int paceMin = (int) paceMinKm;
+                    int paceSec = (int) ((paceMinKm - paceMin) * 60);
+                    pace = String.format(Locale.getDefault(), "%d:%02d /km", paceMin, paceSec);
+                } else {
+                    pace = "--:--";
+                }
+
+                double speedVal = post.getSpeed() != null ? post.getSpeed() : 0.0;
+                String speedStr = String.format(Locale.getDefault(), "%.1f km/h", speedVal);
+
                 ShareActivityFragment.newInstance(
                         post.getTitle(),
-                        "8.15 km",
-                        "2.36 /km",
-                        "15m 15s",
-                        post.getDisplayName()
+                        String.format(Locale.getDefault(), "%.2f km", distance),
+                        pace,
+                        TimeUtils.formatDuration(seconds),
+                        post.getFullName(),
+                        post.getRecordImageUrl(),
+                        speedStr
                 ).show(getChildFragmentManager(), "ShareBottomSheet");
             }
         });

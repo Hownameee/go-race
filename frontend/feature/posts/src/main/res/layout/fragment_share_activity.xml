@@ -79,16 +79,11 @@
                     android:textStyle="bold"
                     android:layout_marginTop="4dp" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Distance • Pace • Time"
-                    android:textColor="@color/text_tertiary"
-                    android:textSize="9sp"
-                    android:layout_marginTop="2dp" />
+
             </LinearLayout>
 
             <TextView
+                android:padding="16dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -97,13 +92,6 @@
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Text with stats"
-                android:textColor="@color/text_tertiary"
-                android:textSize="11sp"
-                android:layout_marginTop="2dp" />
         </LinearLayout>
 
         <!-- Template 2: Visual Share (Coming Soon) -->
@@ -116,8 +104,7 @@
             android:background="@drawable/bg_share_template_card"
             android:padding="12dp"
             android:layout_marginStart="8dp"
-            android:gravity="center"
-            android:alpha="0.5">
+            android:gravity="center">
 
             <!-- Preview area -->
             <LinearLayout
@@ -131,43 +118,30 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="🗺️"
+                    android:text="🖼️"
                     android:textSize="28sp" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Route Map"
+                    android:text="Image Edit"
                     android:textColor="@color/text_primary"
                     android:textSize="11sp"
                     android:textStyle="bold"
                     android:layout_marginTop="4dp" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Image + Stats + Route"
-                    android:textColor="@color/text_tertiary"
-                    android:textSize="9sp"
-                    android:layout_marginTop="2dp" />
             </LinearLayout>
 
             <TextView
+                android:padding="16dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Visual"
+                android:text="Image"
                 android:textColor="@color/text_primary"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Coming soon"
-                android:textColor="@color/text_tertiary"
-                android:textSize="11sp"
-                android:layout_marginTop="2dp" />
         </LinearLayout>
 
     </LinearLayout>

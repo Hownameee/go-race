@@ -60,7 +60,7 @@ public class CommentAdapter extends ListAdapter<Comment, CommentAdapter.CommentV
         }
 
         public void bind(Comment comment) {
-            tvUsername.setText(comment.getDisplayName() != null ? comment.getDisplayName() : comment.getUsername());
+            tvUsername.setText(comment.getFullName() != null ? comment.getFullName() : comment.getUsername());
             tvContent.setText(comment.getContent());
             tvTime.setText(comment.getCreatedAt()); // Remember to format this to "2d", "6d", etc.
         }

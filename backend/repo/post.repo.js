@@ -26,9 +26,11 @@ const postRepo = {
 
   async selectFeed(cursor, limit) {
     const stmt = db.prepare(
-      `SELECT p.*, u.username, u.fullname, u.avatar_url
+      `SELECT p.*, u.username, u.fullname, u.avatar_url,
+              r.activity_type, r.duration_seconds, r.distance_km, r.speed, r.s3_key
        FROM POST p
        JOIN USERS u ON u.user_id = p.owner_id
+       LEFT JOIN RECORD r ON r.record_id = p.record_id
        WHERE p.created_at < ?
        ORDER BY p.created_at DESC
        LIMIT ?`,
@@ -38,10 +40,12 @@ const postRepo = {
 
   async selectFollowingFeed(userId, cursor, limit) {
     const stmt = db.prepare(
-      `SELECT p.*, u.username, u.fullname, u.avatar_url
+      `SELECT p.*, u.username, u.fullname, u.avatar_url,
+              r.activity_type, r.duration_seconds, r.distance_km, r.speed, r.s3_key
        FROM POST p
        JOIN FOLLOW f ON f.following_id = p.owner_id
        JOIN USERS u ON u.user_id = p.owner_id
+       LEFT JOIN RECORD r ON r.record_id = p.record_id
        WHERE f.follower_id = ? AND p.created_at < ?
        ORDER BY p.created_at DESC
        LIMIT ?`,
@@ -51,9 +55,11 @@ const postRepo = {
 
   async selectMyPosts(userId, cursor, limit) {
     const stmt = db.prepare(
-      `SELECT p.*, u.username, u.fullname, u.avatar_url
+      `SELECT p.*, u.username, u.fullname, u.avatar_url,
+              r.activity_type, r.duration_seconds, r.distance_km, r.speed, r.s3_key
        FROM POST p
        JOIN USERS u ON u.user_id = p.owner_id
+       LEFT JOIN RECORD r ON r.record_id = p.record_id
        WHERE p.owner_id = ? AND p.created_at < ?
        ORDER BY p.created_at DESC
        LIMIT ?`,

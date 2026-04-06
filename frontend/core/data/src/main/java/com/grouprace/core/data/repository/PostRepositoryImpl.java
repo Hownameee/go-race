@@ -72,8 +72,9 @@ public class PostRepositoryImpl implements PostRepository {
                             p.getPostId(), p.getRecordId(), p.getOwnerId(), p.getTitle(),
                             p.getDescription(), p.getPhotoUrl(), p.getLikeCount(),
                             p.getCommentCount(), p.getViewMode(), p.getCreatedAt(),
-                            p.getUsername(), p.getDisplayName(), p.getProfilePictureUrl(),
-                            p.isLiked()
+                            p.getUsername(), p.getFullName(), p.getProfilePictureUrl(),
+                            p.getActivityType(), p.getDurationSeconds(), p.getDistanceKm(),
+                            p.getSpeed(), p.getRecordImageUrl(), p.isLiked()
                         );
                     })
                     .collect(Collectors.toList());

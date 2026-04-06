@@ -51,7 +51,10 @@ dependencies {
     implementation(project(":core:map"))
     implementation(project(":core:system"))
     implementation(project(":core:navigation"))
+    implementation(project(":feature:search"))
+    implementation(libs.palette)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    implementation(libs.glide)
 }

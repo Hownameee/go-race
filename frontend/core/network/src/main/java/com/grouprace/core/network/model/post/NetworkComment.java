@@ -22,8 +22,8 @@ public class NetworkComment {
     @SerializedName("username")
     private String username;
 
-    @SerializedName("display_name")
-    private String displayName;
+    @SerializedName("fullname")
+    private String fullName;
 
     @SerializedName("profile_picture_url")
     private String profilePictureUrl;
@@ -46,15 +46,15 @@ public class NetworkComment {
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
 
-    public String getDisplayName() { return displayName; }
-    public void setDisplayName(String displayName) { this.displayName = displayName; }
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
 
     public String getProfilePictureUrl() { return profilePictureUrl; }
     public void setProfilePictureUrl(String profilePictureUrl) { this.profilePictureUrl = profilePictureUrl; }
 
     public com.grouprace.core.model.Comment asExternalModel() {
         return new com.grouprace.core.model.Comment(
-            commentId, postId, userId, content, createdAt, username, displayName, profilePictureUrl
+            commentId, postId, userId, content, createdAt, username, fullName, profilePictureUrl
         );
     }
 }

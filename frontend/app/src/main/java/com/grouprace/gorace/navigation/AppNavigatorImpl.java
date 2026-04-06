@@ -1,8 +1,11 @@
 package com.grouprace.gorace.navigation;
 
+import android.view.View;
 import android.view.ViewGroup;
 import androidx.fragment.app.Fragment;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import com.grouprace.gorace.R;
 import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.feature.notification.ui.NotificationFragment;
 import com.grouprace.feature.posts.ui.MyPostsFragment;
@@ -18,6 +21,7 @@ import com.grouprace.feature.profile.ui.ProfileSettingsFragment;
 import com.grouprace.feature.profile.ui.SetNewPasswordFragment;
 import com.grouprace.feature.register.ui.RegisterFragment;
 import com.grouprace.feature.search.ui.SearchFragment;
+import com.grouprace.feature.posts.ui.VisualEditorFragment;
 
 import javax.inject.Inject;
 
@@ -107,6 +111,21 @@ public class AppNavigatorImpl implements AppNavigator {
     @Override
     public void openRegister(Fragment currentFragment) {
         navigateTo(currentFragment, RegisterFragment.newInstance());
+    }
+
+    @Override
+    public void navigateToVisualEditor(Fragment currentFragment, String photoUri, String title, String distance, String time, String speed) {
+        navigateTo(currentFragment, VisualEditorFragment.newInstance(photoUri, title, distance, time, speed));
+    }
+
+    @Override
+    public void setBottomNavigationVisibility(Fragment fragment, boolean visible) {
+        if (fragment != null && fragment.getActivity() != null) {
+            View nav = fragment.getActivity().findViewById(R.id.bottom_navigation);
+            if (nav != null) {
+                nav.setVisibility(visible ? View.VISIBLE : View.GONE);
+            }
+        }
     }
 
 
