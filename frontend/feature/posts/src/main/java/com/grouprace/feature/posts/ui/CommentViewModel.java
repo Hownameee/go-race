@@ -20,13 +20,14 @@ public class CommentViewModel extends ViewModel {
 
     private final PostRepository postRepository;
     private final MutableLiveData<Integer> postIdTrigger = new MutableLiveData<>();
+    private final MutableLiveData<List<Comment>> commentsList = new MutableLiveData<>();
     private final LiveData<Result<List<Comment>>> comments;
 
     @Inject
     public CommentViewModel(PostRepository postRepository) {
         this.postRepository = postRepository;
 
-        this.comments = Transformations.switchMap(postIdTrigger, postRepository::getComments);
+        this.comments = Transformations.switchMap(postIdTrigger, id -> postRepository.getComments(id, null, 50));
     }
 
     public LiveData<Result<List<Comment>>> getComments() {
@@ -37,7 +38,19 @@ public class CommentViewModel extends ViewModel {
         postIdTrigger.setValue(postId);
     }
 
-    public LiveData<Result<Boolean>> createComment(int postId, String content) {
-        return postRepository.createComment(postId, content);
+    public LiveData<Result<Boolean>> createComment(int postId, String content, Integer parentId) {
+        return postRepository.createComment(postId, content, parentId);
+    }
+
+    public LiveData<Result<Boolean>> likeComment(int postId, int commentId, boolean like) {
+        if (like) {
+            return postRepository.likeComment(postId, commentId);
+        } else {
+            return postRepository.unlikeComment(postId, commentId);
+        }
+    }
+
+    public LiveData<Result<List<Comment>>> loadReplies(int postId, int commentId) {
+        return postRepository.getReplies(postId, commentId, null, 20);
     }
 }

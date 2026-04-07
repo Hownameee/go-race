@@ -8,11 +8,15 @@ public class Comment {
     private String createdAt;
     private String username;
     private String fullName;
-    private String profilePictureUrl;
+    private String avatarUrl;
+    private int likeCount;
+    private int replyCount;
+    private boolean isLiked;
+    private Integer parentId;
 
     public Comment() {}
 
-    public Comment(int commentId, int postId, int userId, String content, String createdAt, String username, String fullName, String profilePictureUrl) {
+    public Comment(int commentId, int postId, int userId, String content, String createdAt, String username, String fullName, String avatarUrl, int likeCount, int replyCount, boolean isLiked, Integer parentId) {
         this.commentId = commentId;
         this.postId = postId;
         this.userId = userId;
@@ -20,7 +24,11 @@ public class Comment {
         this.createdAt = createdAt;
         this.username = username;
         this.fullName = fullName;
-        this.profilePictureUrl = profilePictureUrl;
+        this.avatarUrl = avatarUrl;
+        this.likeCount = likeCount;
+        this.replyCount = replyCount;
+        this.isLiked = isLiked;
+        this.parentId = parentId;
     }
 
     public int getCommentId() { return commentId; }
@@ -44,6 +52,18 @@ public class Comment {
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }
 
-    public String getProfilePictureUrl() { return profilePictureUrl; }
-    public void setProfilePictureUrl(String profilePictureUrl) { this.profilePictureUrl = profilePictureUrl; }
+    public String getAvatarUrl() { return avatarUrl; }
+    public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
+
+    public int getLikeCount() { return likeCount; }
+    public void setLikeCount(int likeCount) { this.likeCount = likeCount; }
+
+    public int getReplyCount() { return replyCount; }
+    public void setReplyCount(int replyCount) { this.replyCount = replyCount; }
+
+    public boolean isLiked() { return isLiked; }
+    public void setLiked(boolean liked) { isLiked = liked; }
+
+    public Integer getParentId() { return parentId; }
+    public void setParentId(Integer parentId) { this.parentId = parentId; }
 }

@@ -104,8 +104,8 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public LiveData<Result<List<Comment>>> getComments(int postId) {
-        return Transformations.map(postNetworkDataSource.getComments(postId), result -> {
+    public LiveData<Result<List<Comment>>> getComments(int postId, String cursor, int limit) {
+        return Transformations.map(postNetworkDataSource.getComments(postId, cursor, limit), result -> {
             if (result instanceof Result.Success) {
                 CommentPayload payload = ((Result.Success<CommentPayload>) result).data;
                 List<Comment> comments = payload.getComments().stream()
@@ -122,12 +122,40 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public LiveData<Result<Boolean>> createComment(int postId, String content) {
-        return postNetworkDataSource.createComment(postId, content);
+    public LiveData<Result<Boolean>> createComment(int postId, String content, Integer parentId) {
+        return postNetworkDataSource.createComment(postId, content, parentId);
     }
 
     @Override
     public LiveData<Result<Boolean>> deleteComment(int postId, int commentId) {
         return postNetworkDataSource.deleteComment(postId, commentId);
+    }
+
+    @Override
+    public LiveData<Result<Boolean>> likeComment(int postId, int commentId) {
+        return postNetworkDataSource.likeComment(postId, commentId);
+    }
+
+    @Override
+    public LiveData<Result<Boolean>> unlikeComment(int postId, int commentId) {
+        return postNetworkDataSource.unlikeComment(postId, commentId);
+    }
+
+    @Override
+    public LiveData<Result<List<Comment>>> getReplies(int postId, int commentId, String cursor, int limit) {
+        return Transformations.map(postNetworkDataSource.getReplies(postId, commentId, cursor, limit), result -> {
+            if (result instanceof Result.Success) {
+                CommentPayload payload = ((Result.Success<CommentPayload>) result).data;
+                List<Comment> comments = payload.getComments().stream()
+                        .map(NetworkComment::asExternalModel)
+                        .collect(Collectors.toList());
+                return new Result.Success<>(comments);
+            } else if (result instanceof Result.Error) {
+                Result.Error<CommentPayload> error = (Result.Error<CommentPayload>) result;
+                return new Result.Error<>(error.exception, error.message);
+            } else {
+                return new Result.Loading<>();
+            }
+        });
     }
 }

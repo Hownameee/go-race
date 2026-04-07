@@ -29,6 +29,7 @@ export const createCommentBodySchema = z.object({
     .string()
     .min(1, 'content must not be empty')
     .max(2000, 'content must be at most 2000 characters'),
+  parentId: z.number().int().positive().optional().nullable(),
 });
 
 export const getCommentsQuerySchema = z.object({

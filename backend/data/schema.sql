@@ -86,9 +86,22 @@ CREATE TABLE IF NOT EXISTS COMMENT (
     comment_id INTEGER PRIMARY KEY AUTOINCREMENT,
     post_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
+    parent_id INTEGER DEFAULT NULL,
     content TEXT NOT NULL,
+    like_count INTEGER DEFAULT 0,
+    reply_count INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (post_id) REFERENCES POST(post_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (parent_id) REFERENCES COMMENT(comment_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS COMMENT_LIKE (
+    comment_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (comment_id, user_id),
+    FOREIGN KEY (comment_id) REFERENCES COMMENT(comment_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE
 );
 
@@ -118,7 +131,10 @@ CREATE INDEX IF NOT EXISTS idx_follow_follower ON FOLLOW(follower_id, created_at
 CREATE INDEX IF NOT EXISTS idx_post_created_at ON POST(created_at);
 
 -- Indexes for efficient cursor-based pagination on COMMENT
-CREATE INDEX IF NOT EXISTS idx_comment_post_created ON COMMENT(post_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_comment_post_created ON COMMENT(post_id, parent_id, created_at);
+
+-- Index for efficient comment like lookups
+CREATE INDEX IF NOT EXISTS idx_comment_like_user ON COMMENT_LIKE(comment_id, user_id);
 
 -- Index for efficient like lookups
 CREATE INDEX IF NOT EXISTS idx_like_post_user ON LIKE(post_id, user_id);
