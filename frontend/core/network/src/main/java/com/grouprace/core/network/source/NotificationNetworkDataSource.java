@@ -8,7 +8,6 @@ import androidx.lifecycle.MutableLiveData;
 import com.grouprace.core.network.api.NotificationApiService;
 import com.grouprace.core.network.model.notification.NetworkNotification;
 import com.grouprace.core.network.model.notification.NotificationPayload;
-import com.grouprace.core.network.model.notification.RegisterDeviceTokenRequest;
 import com.grouprace.core.network.utils.ApiResponse;
 import java.util.List;
 
@@ -68,25 +67,6 @@ public class NotificationNetworkDataSource {
         });
 
         return liveData;
-    }
-
-    public void registerDeviceToken(String token) {
-        RegisterDeviceTokenRequest body = new RegisterDeviceTokenRequest(token, "android");
-        apiService.registerDeviceToken(body).enqueue(new Callback<ApiResponse<Object>>() {
-            @Override
-            public void onResponse(Call<ApiResponse<Object>> call, Response<ApiResponse<Object>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    Log.d("DeviceToken", "register success=" + response.body().isSuccess());
-                } else {
-                    Log.e("DeviceToken", "register HTTP " + response.code() + " " + response.message());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ApiResponse<Object>> call, Throwable t) {
-                Log.e("DeviceToken", "register failure: " + t.getMessage());
-            }
-        });
     }
 
     public LiveData<Result<Boolean>> markAsRead(int notificationId) {

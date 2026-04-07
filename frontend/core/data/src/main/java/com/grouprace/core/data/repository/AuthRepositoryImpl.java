@@ -79,4 +79,9 @@ public class AuthRepositoryImpl implements AuthRepository {
         sessionManager.clearSession();
         _isLoggedIn.setValue(false);
     }
+
+    @Override
+    public LiveData<Result<Boolean>>  registerDeviceToken(String token) {
+        return authNetworkDataSource.registerDeviceToken(token);
+    }
 }

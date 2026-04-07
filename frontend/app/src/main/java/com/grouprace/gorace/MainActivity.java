@@ -1,13 +1,17 @@
 package com.grouprace.gorace;
 
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.grouprace.core.common.result.Result;
+import com.grouprace.core.data.TokenManager;
 import com.grouprace.core.network.utils.SessionManager;
 import com.grouprace.core.system.ui.PlaceholderFragment;
+import com.grouprace.feature.login.ui.LoginViewModel;
 import com.grouprace.feature.profile.ui.ProfileFragment;
 import com.grouprace.feature.login.ui.LoginFragment;
 import com.grouprace.feature.posts.ui.PostFragment;
@@ -90,4 +94,24 @@ public class MainActivity extends AppCompatActivity {
                 .replace(R.id.fragment_container, fragment)
                 .commit();
     }
+
+    private void retryRegisterFcmToken() {
+        String token = TokenManager.getToken(this);
+        boolean isRegistered = TokenManager.isRegistered(this);
+
+        if (token != null && !isRegistered) {
+            Log.d("FCM", "Retry register token...");
+
+            LoginViewModel viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
+
+            viewModel.registerDeviceToken(token)
+                    .observe(this, result -> {
+                        if (result instanceof Result.Success) {
+                            TokenManager.markRegistered(this);
+                            Log.d("FCM", "Retry SUCCESS");
+                        }
+                    });
+        }
+    }
+
 }

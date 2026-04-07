@@ -1,5 +1,6 @@
 package com.grouprace.gorace.fcm;
 
+import android.app.Application;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -8,9 +9,12 @@ import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+import com.grouprace.core.data.TokenManager;
+import com.grouprace.feature.login.ui.LoginViewModel;
 import com.grouprace.gorace.MainActivity;
 
 import java.util.Map;
@@ -34,8 +38,7 @@ public class GoRaceFirebaseMessagingService extends FirebaseMessagingService {
     @Override
     public void onNewToken(@NonNull String token) {
         super.onNewToken(token);
-        // Token registration is handled from UI (after login) where we know user_id.
-        // If you later store user_id in prefs, you can register here too.
+        TokenManager.saveToken(getApplicationContext(), token);
     }
 
     private void showNotification(String title, String message) {

@@ -14,7 +14,6 @@ import android.widget.ProgressBar;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
@@ -24,7 +23,6 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.firebase.messaging.FirebaseMessaging;
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.NotificationModel;
 import com.grouprace.feature.notification.R;
@@ -82,13 +80,6 @@ public class NotificationFragment extends Fragment {
         tvEmpty = view.findViewById(R.id.tv_empty);
 
         viewModel = new ViewModelProvider(this).get(NotificationViewModel.class);
-
-        // Register FCM token
-        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
-            if (!task.isSuccessful()) return;
-            String token = task.getResult();
-            viewModel.registerDeviceToken(token);
-        });
 
         observeNotifications();
 

@@ -14,5 +14,7 @@ public interface AuthRepository {
     LiveData<Result<Void>> verifyPasswordResetOtp(String email, String otpCode);
     LiveData<Result<Void>> resetPasswordWithOtp(String email, String otpCode, String newPassword, String confirmNewPassword);
     LiveData<Boolean> getIsLoggedIn();
+
+    LiveData<Result<Boolean>>  registerDeviceToken(String token);
     void logout();
 }
