@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS NOTIFICATIONS (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER,
-    type TEXT CHECK (type IN ('like','comment','follow','system')) NOT NULL,
+    type TEXT CHECK (type IN ('like','comment','follow','system', 'club_join_request', 'club_approved', 'club_event', 'club_announcement')) NOT NULL,
     actor_id INTEGER,
     activity_id INTEGER,
     title TEXT NOT NULL,
@@ -160,3 +160,56 @@ CREATE TABLE IF NOT EXISTS ROUTE_POINTS (
 );
 
 CREATE INDEX IF NOT EXISTS idx_route_points_record ON ROUTE_POINTS(record_id);
+
+-- club
+-- trang riêng club
+CREATE TABLE IF NOT EXISTS CLUBS (
+    club_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT,
+    avatar_s3_key TEXT,
+    privacy_type TEXT DEFAULT 'public' CHECK (privacy_type IN ('public', 'private')), -- public: vào thẳng, private: cần duyệt (Req 5)
+    leader_id INTEGER NOT NULL, -- Club Leader
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (leader_id) REFERENCES USERS(user_id) ON DELETE SET NULL
+);
+
+-- quản lý duyệt xóa theo role
+CREATE TABLE IF NOT EXISTS CLUB_MEMBERS (
+    club_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    role TEXT DEFAULT 'member' CHECK (role IN ('admin', 'member')),
+    status TEXT DEFAULT 'approved' CHECK (status IN ('pending', 'approved', 'rejected')), -- pending dành cho private club
+    joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
+    PRIMARY KEY (club_id, user_id),
+    FOREIGN KEY (club_id) REFERENCES CLUBS(club_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE
+);
+
+-- tạo sự kiện club
+CREATE TABLE IF NOT EXISTS CLUB_EVENTS (
+    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    club_id INTEGER NOT NULL,
+    created_by INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    start_time DATETIME NOT NULL,
+    end_time DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (club_id) REFERENCES CLUBS(club_id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES USERS(user_id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS CLUB_EVENT_PARTICIPANTS (
+    event_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
+    PRIMARY KEY (event_id, user_id),
+    FOREIGN KEY (event_id) REFERENCES CLUB_EVENTS(event_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE
+);
