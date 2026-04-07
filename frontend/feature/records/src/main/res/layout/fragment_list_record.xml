@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/surface_dark"
     android:animateLayoutChanges="true">
 
     <ListView
@@ -24,7 +25,7 @@
         android:id="@+id/ll_loading"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:background="@color/bg_light_gray"
+        android:background="@color/surface_dark"
         android:elevation="4dp"
         android:gravity="center"
         android:orientation="vertical"
@@ -44,7 +45,7 @@
             android:layout_marginTop="20dp"
             android:letterSpacing="0.05"
             android:text="@string/msg_loading_records"
-            android:textColor="@color/text_secondary_dark"
+            android:textColor="@color/text_primary"
             android:textSize="16sp"
             android:textStyle="bold" />
 
@@ -54,7 +55,7 @@
         android:id="@+id/ll_error"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/bg_light_gray"
+        android:background="@color/surface_dark"
         android:gravity="center"
         android:orientation="vertical"
         android:visibility="gone">
@@ -66,7 +67,7 @@
             android:layout_marginHorizontal="32dp"
             android:layout_marginBottom="16dp"
             android:gravity="center"
-            android:textColor="@color/text_secondary_dark"
+            android:textColor="@color/text_primary"
             android:textSize="16sp"/>
 
         <Button

@@ -47,7 +47,7 @@ function encoded(points) {
 
 export default async function getImageFromRoutePoints(points) {
   const mapStyle = 'mapbox/dark-v10';
-  const dimensions = '600x400';
+  const dimensions = '400x430';
   const token = mapConfig.accessToken;
 
   let overlay;
