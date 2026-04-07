@@ -12,6 +12,8 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.grouprace.core.model.PlannedRoute;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -21,10 +23,10 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.grouprace.feature.tracking.R;
+import com.grouprace.feature.records.compare.ui.CompareRecordsFragment;
 import com.grouprace.feature.records.list.ui.RecordsFragment;
 import com.mapbox.geojson.Point;
 import com.mapbox.maps.MapView;
-import com.mapbox.maps.Style;
 import com.mapbox.maps.Style;
 import com.mapbox.maps.plugin.Plugin;
 import com.mapbox.maps.plugin.locationcomponent.LocationComponentPlugin;
@@ -45,11 +47,23 @@ import dagger.hilt.android.AndroidEntryPoint;
 @AndroidEntryPoint
 public class TrackingFragment extends Fragment {
 
+    private static final String ARG_PLANNED_ROUTE = "planned_route";
+
+    /** Use this factory when launching with a pre-planned route (ghost overlay). */
+    public static TrackingFragment newInstance(PlannedRoute route) {
+        TrackingFragment fragment = new TrackingFragment();
+        Bundle args = new Bundle();
+        args.putSerializable(ARG_PLANNED_ROUTE, route);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     private MapView mapView;
     private Style mapStyle;
     private TrackingViewModel viewModel;
     private ViewportPlugin viewport;
     private FollowPuckViewportState followState;
+    private boolean hasPlannedRoute;
 
     // Stats views
     private LinearLayout statsBar;
@@ -122,7 +136,19 @@ public class TrackingFragment extends Fragment {
 
         mapView.getMapboxMap().loadStyle(Style.DARK, style -> {
             mapStyle = style;
+            // Planned ghost route drawn first (grey), live route on top (red)
+            RouteMapHelper.setupPlannedRouteLayer(style);
             RouteMapHelper.setupRouteLayer(style);
+
+            PlannedRoute plannedRoute = null;
+            if (getArguments() != null) {
+                plannedRoute = (PlannedRoute) getArguments().getSerializable(ARG_PLANNED_ROUTE);
+            }
+            hasPlannedRoute = plannedRoute != null;
+            if (hasPlannedRoute) {
+                RouteMapHelper.drawPlannedRoute(style, plannedRoute.coordinates);
+            }
+
             requestLocationPermission();
         });
 
@@ -241,33 +267,28 @@ public class TrackingFragment extends Fragment {
     // --- Navigation ---
 
     private void navigateToSummary(long activityId) {
-        int containerId = ((ViewGroup) requireView().getParent()).getId();
         requireActivity().getSupportFragmentManager().beginTransaction()
-                .replace(containerId, ActivitySummaryFragment.newInstance(activityId))
+                .replace(getContainerId(), ActivitySummaryFragment.newInstance(activityId))
                 .addToBackStack(null)
                 .commit();
     }
 
     private void navigateToRecords() {
         requireActivity().getSupportFragmentManager().beginTransaction()
-                .replace(getId(), new RecordsFragment())
+                .replace(getContainerId(), new RecordsFragment())
                 .addToBackStack(null)
                 .commit();
     }
 
     private void navigateToCompare() {
-        // We will create CompareRecordsFragment soon
-        // For now, it's a placeholder
-        try {
-            Class<?> compareFragmentClass = Class.forName("com.grouprace.feature.records.compare.ui.CompareRecordsFragment");
-            Fragment fragment = (Fragment) compareFragmentClass.newInstance();
-            requireActivity().getSupportFragmentManager().beginTransaction()
-                    .replace(getId(), fragment)
-                    .addToBackStack(null)
-                    .commit();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        requireActivity().getSupportFragmentManager().beginTransaction()
+                .replace(getContainerId(), new CompareRecordsFragment())
+                .addToBackStack(null)
+                .commit();
+    }
+
+    private int getContainerId() {
+        return ((ViewGroup) requireView().getParent()).getId();
     }
 
     // --- Lifecycle ---
