@@ -3,9 +3,9 @@ import deviceTokenService from '../services/device-token.service.js';
 const deviceTokenController = {
   register: async function (req, res) {
     try {
-      const { user_id, token, platform } = req.body;
+      const { token, platform } = req.body;
       await deviceTokenService.register({
-        userId: user_id,
+        userId: req.user.userId,
         token,
         platform: platform || 'android',
       });

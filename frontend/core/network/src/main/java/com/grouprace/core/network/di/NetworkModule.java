@@ -4,6 +4,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.inject.Singleton;
 import com.grouprace.core.network.api.NotificationApiService;
+import com.grouprace.core.network.api.RecordApiService;
+import com.grouprace.core.network.api.UserApiService;
 
 import dagger.Module;
 import dagger.Provides;
@@ -13,15 +15,19 @@ import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+
+import com.grouprace.core.network.api.SearchApiService;
 import com.grouprace.core.network.utils.AuthInterceptor;
 import com.grouprace.core.network.utils.SessionManager;
+
+import javax.inject.Singleton;
+
+import java.util.concurrent.TimeUnit;
 
 @Module
 @InstallIn(SingletonComponent.class)
 public class NetworkModule {
-
     private static final String BASE_URL = "http://10.0.2.2:5000/";
-    // private static final String BASE_URL = "http:/10.122.2.228:5000/";
 
     @Provides
     @Singleton
@@ -79,5 +85,17 @@ public class NetworkModule {
     @Singleton
     public NotificationApiService provideNotificationApiService(Retrofit retrofit) {
         return retrofit.create(NotificationApiService.class);
+    }
+
+    @Provides
+    @Singleton
+    public SearchApiService provideSearchApiService(Retrofit retrofit) {
+        return retrofit.create(SearchApiService.class);
+    }
+
+    @Provides
+    @Singleton
+    public UserApiService provideUserApiService(Retrofit retrofit) {
+        return retrofit.create(UserApiService.class);
     }
 }

@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+    android:id="@+id/login_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
+    android:background="@color/black"
     tools:context="com.grouprace.feature.login.ui.LoginFragment">
 
     <LinearLayout
@@ -19,7 +21,8 @@
             android:layout_height="wrap_content"
             android:text="Welcome Back!"
             android:textAlignment="center"
-            android:textColor="@color/purple_700"
+            android:gravity="center_horizontal"
+            android:textColor="@color/text_primary"
             android:textSize="32sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
@@ -29,22 +32,30 @@
             android:layout_height="wrap_content"
             android:text="Please login to your account"
             android:textAlignment="center"
-            android:textColor="@color/black"
+            android:gravity="center_horizontal"
+            android:textColor="@color/text_tertiary"
             android:textSize="16sp"
             android:layout_marginBottom="48dp" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="email"
+            android:text="Email"
             android:textStyle="bold"
-            android:textColor="@color/black" />
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="5dp" />
+
         <EditText
-            android:id="@+id/email_edit_text"
+            android:id="@+id/login_email_input"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:inputType="text"
+            android:layout_height="wrap_content"
+            android:paddingVertical="14dp"
+            android:paddingHorizontal="12dp"
+            android:inputType="textEmailAddress"
             android:hint="Enter your email"
+            android:background="@drawable/bg_input_rounded"
+            android:textColor="@android:color/black"
+            android:textColorHint="@color/text_tertiary"
             android:layout_marginBottom="24dp" />
 
         <TextView
@@ -52,39 +63,66 @@
             android:layout_height="wrap_content"
             android:text="Password"
             android:textStyle="bold"
-            android:textColor="@color/black" />
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="5dp" />
+
         <EditText
-            android:id="@+id/password_edit_text"
+            android:id="@+id/login_password_input"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="wrap_content"
+            android:paddingVertical="14dp"
+            android:paddingHorizontal="12dp"
             android:inputType="textPassword"
-            android:hint="••••••••"
+            android:hint="Password"
+            android:background="@drawable/bg_input_rounded"
+            android:textColor="@android:color/black"
+            android:textColorHint="@color/text_tertiary"
             android:layout_marginBottom="40dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:layout_marginBottom="24dp">
 
             <Button
-                android:id="@+id/back_button"
-                style="?attr/materialButtonOutlinedStyle"
-                android:layout_width="0dp"
+                android:id="@+id/login_submit_button"
+                android:layout_width="match_parent"
                 android:layout_height="55dp"
-                android:layout_weight="1"
-                android:layout_marginEnd="8dp"
-                android:text="Back"
-                android:textColor="@color/purple_500" />
+                android:text="Login"
+                android:background="@drawable/bg_button_rounded"
+                android:backgroundTint="@null"
+                app:backgroundTint="@null"
+                android:textColor="@color/black" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginBottom="24dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Forgot your password?"
+                android:textColor="@color/text_tertiary" />
 
             <Button
-                android:id="@+id/login_button"
-                android:layout_width="0dp"
-                android:layout_height="55dp"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:text="Login"
-                android:backgroundTint="@color/purple_500" />
+                android:id="@+id/login_reset_password_button"
+                style="?attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@null"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:paddingStart="6dp"
+                android:paddingEnd="0dp"
+                android:text="Reset"
+                android:textAllCaps="false"
+                android:textColor="@color/text_primary"
+                app:backgroundTint="@null" />
         </LinearLayout>
 
         <LinearLayout
@@ -97,15 +135,17 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Don't have an account?"
-                android:textColor="@color/black" />
+                android:textColor="@color/text_secondary"
+                android:layout_marginEnd="10dp" />
 
             <Button
-                android:id="@+id/goto_register_button"
+                android:id="@+id/login_goto_register_button"
                 style="?attr/borderlessButtonStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Register"
-                android:textColor="@color/purple_700"
+                android:backgroundTint="@color/black"
+                android:textColor="@color/text_primary"
                 android:textStyle="bold" />
         </LinearLayout>
 

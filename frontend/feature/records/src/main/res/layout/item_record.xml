@@ -7,10 +7,10 @@
     android:layout_marginHorizontal="16dp"
     android:layout_marginVertical="8dp"
     android:foreground="?attr/selectableItemBackground"
-    app:cardBackgroundColor="@color/bg_light_gray"
+    app:cardBackgroundColor="@color/surface_dark"
     app:cardCornerRadius="16dp"
     app:cardElevation="2dp"
-    app:strokeColor="#333333"
+    app:strokeColor="@color/surface_medium"
     app:strokeWidth="1dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -30,7 +30,7 @@
                 android:id="@+id/iv_image_record"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@color/icon_background"
+                android:background="@color/surface_medium"
                 android:contentDescription="@string/content_description_mini_map"
                 android:scaleType="centerCrop"
                 app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium"

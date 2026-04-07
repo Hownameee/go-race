@@ -62,6 +62,8 @@ public class TrackingViewModel extends AndroidViewModel {
     private final Handler timerHandler = new Handler(Looper.getMainLooper());
     private final ExecutorService backgroundExecutor = Executors.newSingleThreadExecutor();
     private Observer<Location> locationObserver;
+    private int finishRetryCount = 0;
+    private static final int MAX_FINISH_RETRIES = 5;
 
     @Inject
     public TrackingViewModel(@NonNull Application application,
@@ -135,6 +137,14 @@ public class TrackingViewModel extends AndroidViewModel {
      * Stops GPS, calculates final stats (subtracting pause), and syncs to backend.
      */
     public void finishTracking() {
+        if (routePointsCache.isEmpty() && finishRetryCount < MAX_FINISH_RETRIES) {
+            finishRetryCount++;
+            Log.d("TrackingViewModel", "No points yet, waiting... (" + finishRetryCount + ")");
+
+            timerHandler.postDelayed(this::finishTracking, 300);
+            return;
+        }
+
         detachLocationObserver();
         stopTimer();
 

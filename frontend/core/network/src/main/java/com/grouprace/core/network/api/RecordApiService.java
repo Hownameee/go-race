@@ -3,6 +3,7 @@ package com.grouprace.core.network.api;
 import com.grouprace.core.network.model.CreateRecordRequest;
 import com.grouprace.core.network.model.NetworkRecord;
 import com.grouprace.core.network.model.RecordPayload;
+import com.grouprace.core.network.model.record.RecordWeeklySummaryResponse;
 import com.grouprace.core.network.utils.ApiResponse;
 
 import retrofit2.Call;
@@ -25,4 +26,10 @@ public interface RecordApiService {
 
     @PATCH("api/records/{recordId}")
     Call<ApiResponse<Void>> updateRecord(@Path("recordId") long recordId, @Body java.util.Map<String, Object> updateData);
+
+    @GET("/api/records/me/weekly-summary")
+    Call<ApiResponse<RecordWeeklySummaryResponse>> getMyWeeklySummary(
+            @Query("activityType") String activityType,
+            @Query("weeks") int weeks
+    );
 }

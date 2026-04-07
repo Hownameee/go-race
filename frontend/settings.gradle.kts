@@ -16,6 +16,7 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven(url = "https://jitpack.io")
         maven {
             url = uri("https://api.mapbox.com/downloads/v2/releases/maven")
         }
@@ -41,3 +42,4 @@ include(":core:notification")
 include(":core:model:notification")
 include(":feature:notification")
 include(":core:navigation")
+include(":feature:search")

@@ -3,7 +3,8 @@ INSERT OR IGNORE INTO USERS (username, email, hashed_password, birthdate, fullna
 ('john_doe', 'john@example.com', 'hashed_pw_1', '2005-07-05', 'John Doe', 'http://example.com/john.jpg'),
 ('jane_smith', 'jane@example.com', 'hashed_pw_2', '2005-09-05', 'Jane Smith', 'http://example.com/jane.jpg'),
 ('runner_boy', 'runner@example.com', 'hashed_pw_3', '2005-08-05', 'Runner Boy', 'http://example.com/runner.jpg'),
-('KD', 'ld@example.com', '$2b$10$OKFQq2gUVgeOmsyEEuuAfuw9KL3Pgp4CYSjE0FRkWcSyeubg9nuHi', '2005-08-05', 'Kim duyen', 'http://example.com/runner.jpg');
+('KD', 'ld@example.com', '$2b$10$OKFQq2gUVgeOmsyEEuuAfuw9KL3Pgp4CYSjE0FRkWcSyeubg9nuHi', '2005-08-05', 'Kim duyen', 'http://example.com/runner.jpg'),
+('NH', 'nh@example.com', '$2b$10$OKFQq2gUVgeOmsyEEuuAfuw9KL3Pgp4CYSjE0FRkWcSyeubg9nuHi', '2005-08-05', 'Nam Huynh', 'http://example.com/runner.jpg');
 
 -- Insert mock records (Note: RECORD no longer has owner_id in your exact schema)
 INSERT INTO Record (owner_id, title, activity_type, start_time, end_time, duration_seconds, distance_km, calories_burned, heart_rate_avg, speed, s3_key)
@@ -62,6 +63,14 @@ INSERT OR IGNORE INTO FOLLOW (follower_id, following_id) VALUES
 INSERT INTO NOTIFICATIONS (user_id, type, actor_id, activity_id, title, message)
 VALUES (
     1,
+    'system',
+    NULL,
+    NULL,
+    'New Activity',
+    'Your running record has been saved'
+),
+(
+    4,
     'system',
     NULL,
     NULL,

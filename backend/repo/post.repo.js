@@ -49,6 +49,18 @@ const postRepo = {
     return stmt.all(userId, cursor, limit);
   },
 
+  async selectMyPosts(userId, cursor, limit) {
+    const stmt = db.prepare(
+      `SELECT p.*, u.username, u.fullname, u.avatar_url
+       FROM POST p
+       JOIN USERS u ON u.user_id = p.owner_id
+       WHERE p.owner_id = ? AND p.created_at < ?
+       ORDER BY p.created_at DESC
+       LIMIT ?`,
+    );
+    return stmt.all(userId, cursor, limit);
+  },
+
   updateLikeCount(postId, delta) {
     const stmt = db.prepare(
       `UPDATE POST SET like_count = like_count + ? WHERE post_id = ?`,
@@ -70,7 +82,6 @@ const postRepo = {
       );
       const result = stmt.run(pId, uId);
 
-      // Only increment like_count if a new row was actually inserted
       if (result.changes > 0) {
         postRepo.updateLikeCount(pId, 1);
       }
@@ -88,7 +99,6 @@ const postRepo = {
       );
       const result = stmt.run(pId, uId);
 
-      // Only decrement like_count if a row was actually deleted
       if (result.changes > 0) {
         postRepo.updateLikeCount(pId, -1);
       }
@@ -106,7 +116,6 @@ const postRepo = {
       );
       const result = stmt.run(pId, uId, text);
 
-      // Increment comment_count on the post
       if (result.changes > 0) {
         postRepo.updateCommentCount(pId, 1);
       }
@@ -124,7 +133,6 @@ const postRepo = {
       );
       const result = stmt.run(cId, pId, uId);
 
-      // Only decrement comment_count if a row was actually deleted
       if (result.changes > 0) {
         postRepo.updateCommentCount(pId, -1);
       }
@@ -138,12 +146,12 @@ const postRepo = {
   async selectComments(postId, cursor, limit) {
     const stmt = db.prepare(
       `SELECT c.comment_id, c.post_id, c.user_id, c.content, c.created_at,
-                    u.username, u.fullname, u.avatar_url
-             FROM COMMENT c
-             JOIN USERS u ON u.user_id = c.user_id
-             WHERE c.post_id = ? AND c.created_at < ?
-             ORDER BY c.created_at DESC
-             LIMIT ?`,
+              u.username, u.fullname, u.avatar_url
+       FROM COMMENT c
+       JOIN USERS u ON u.user_id = c.user_id
+       WHERE c.post_id = ? AND c.created_at < ?
+       ORDER BY c.created_at DESC
+       LIMIT ?`,
     );
     return stmt.all(postId, cursor, limit);
   },
