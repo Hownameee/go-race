@@ -143,7 +143,7 @@ public class CommentFragment extends BottomSheetDialogFragment implements Commen
                             // Find parent and refresh its replies specifically
                             for (Comment c : currentComments) {
                                 if (c.getCommentId() == finishedParentId) {
-                                    onViewRepliesClick(c);
+                                    onViewRepliesClicked(c);
                                     break;
                                 }
                             }
@@ -166,24 +166,25 @@ public class CommentFragment extends BottomSheetDialogFragment implements Commen
     }
 
     @Override
-    public void onLikeClick(Comment comment) {
+    public void onLikeClicked(Comment comment, int position) {
         // Optimistic UI update
-        int index = currentComments.indexOf(comment);
-        if (index != -1) {
-            Comment old = currentComments.get(index);
-            boolean newLiked = !old.isLiked();
-            int newCount = old.getLikeCount() + (newLiked ? 1 : -1);
-            
-            // Re-create comment object with new values (immutable approach)
-            Comment updated = new Comment(
-                old.getCommentId(), old.getPostId(), old.getUserId(), old.getContent(),
-                old.getCreatedAt(), old.getUsername(), old.getFullName(), old.getAvatarUrl(), newCount,
-                    old.getReplyCount(), newLiked, old.getParentId()
-
-            );
-            
-            currentComments.set(index, updated);
-            adapter.submitList(new ArrayList<>(currentComments));
+        if (position >= 0 && position < currentComments.size()) {
+            Comment old = currentComments.get(position);
+            // Verify it's the same comment to be safe
+            if (old.getCommentId() == comment.getCommentId()) {
+                boolean newLiked = !old.isLiked();
+                int newCount = old.getLikeCount() + (newLiked ? 1 : -1);
+                
+                // Re-create comment object with new values (immutable approach)
+                Comment updated = new Comment(
+                    old.getCommentId(), old.getPostId(), old.getUserId(), old.getContent(),
+                    old.getCreatedAt(), old.getUsername(), old.getFullName(), old.getAvatarUrl(), newCount,
+                        old.getReplyCount(), newLiked, old.getParentId()
+                );
+                
+                currentComments.set(position, updated);
+                adapter.submitList(new ArrayList<>(currentComments));
+            }
         }
 
         viewModel.likeComment(postId, comment.getCommentId(), !comment.isLiked()).observe(getViewLifecycleOwner(), result -> {
@@ -196,7 +197,7 @@ public class CommentFragment extends BottomSheetDialogFragment implements Commen
     }
 
     @Override
-    public void onReplyClick(Comment comment) {
+    public void onReplyClicked(Comment comment) {
         parentId = comment.getCommentId();
         tvReplyingTo.setText("Replying to @" + comment.getUsername());
         layoutReplyIndicator.setVisibility(View.VISIBLE);
@@ -206,7 +207,7 @@ public class CommentFragment extends BottomSheetDialogFragment implements Commen
     }
 
     @Override
-    public void onViewRepliesClick(Comment comment) {
+    public void onViewRepliesClicked(Comment comment) {
         viewModel.loadReplies(postId, comment.getCommentId()).observe(getViewLifecycleOwner(), result -> {
             if (result instanceof Result.Success) {
                 List<Comment> replies = ((Result.Success<List<Comment>>) result).data;

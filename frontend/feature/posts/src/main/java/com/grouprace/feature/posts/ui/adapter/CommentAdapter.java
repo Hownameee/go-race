@@ -16,9 +16,9 @@ import com.grouprace.feature.posts.R;
 public class CommentAdapter extends ListAdapter<Comment, CommentAdapter.CommentViewHolder> {
 
     public interface OnCommentActionListener {
-        void onLikeClick(Comment comment);
-        void onReplyClick(Comment comment);
-        void onViewRepliesClick(Comment comment);
+        void onLikeClicked(Comment comment, int position);
+        void onReplyClicked(Comment comment);
+        void onViewRepliesClicked(Comment comment);
     }
 
     private final OnCommentActionListener listener;
@@ -32,7 +32,9 @@ public class CommentAdapter extends ListAdapter<Comment, CommentAdapter.CommentV
         @Override
         public boolean areContentsTheSame(@NonNull Comment oldItem, @NonNull Comment newItem) {
             return oldItem.getContent().equals(newItem.getContent()) &&
-                   oldItem.getCreatedAt().equals(newItem.getCreatedAt());
+                   oldItem.getCreatedAt().equals(newItem.getCreatedAt()) &&
+                   oldItem.isLiked() == newItem.isLiked() &&
+                   oldItem.getLikeCount() == newItem.getLikeCount();
         }
     };
 
@@ -51,7 +53,26 @@ public class CommentAdapter extends ListAdapter<Comment, CommentAdapter.CommentV
 
     @Override
     public void onBindViewHolder(@NonNull CommentViewHolder holder, int position) {
-        holder.bind(getItem(position));
+        Comment comment = getItem(position);
+        holder.bind(comment);
+
+        holder.ivLike.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onLikeClicked(comment, position);
+            }
+        });
+
+        holder.tvReply.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onReplyClicked(comment);
+            }
+        });
+
+        holder.tvViewReplies.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onViewRepliesClicked(comment);
+            }
+        });
     }
 
     static class CommentViewHolder extends RecyclerView.ViewHolder {
@@ -101,10 +122,6 @@ public class CommentAdapter extends ListAdapter<Comment, CommentAdapter.CommentV
             int marginStart = comment.getParentId() != null ? 
                 (int) (48 * itemView.getContext().getResources().getDisplayMetrics().density) : 0;
             itemView.setPadding(marginStart, itemView.getPaddingTop(), itemView.getPaddingRight(), itemView.getPaddingBottom());
-
-            ivLike.setOnClickListener(v -> listener.onLikeClick(comment));
-            tvReply.setOnClickListener(v -> listener.onReplyClick(comment));
-            tvViewReplies.setOnClickListener(v -> listener.onViewRepliesClick(comment));
         }
     }
 }
