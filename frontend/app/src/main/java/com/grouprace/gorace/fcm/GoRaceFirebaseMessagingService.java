@@ -14,7 +14,9 @@ import androidx.lifecycle.ViewModelProvider;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.grouprace.core.data.TokenManager;
+import com.grouprace.core.notification.NotificationHelper;
 import com.grouprace.feature.login.ui.LoginViewModel;
+import com.grouprace.feature.notification.ui.NotificationFragment;
 import com.grouprace.gorace.MainActivity;
 
 import java.util.Map;
@@ -59,22 +61,9 @@ public class GoRaceFirebaseMessagingService extends FirebaseMessagingService {
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-                this,
-                (int) System.currentTimeMillis(),
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
+        // ID notification duy nhất (dùng timestamp)
+        int notificationId = (int) System.currentTimeMillis();
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
-                .setContentTitle(title)
-                .setContentText(message)
-                .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setAutoCancel(true)
-                .setContentIntent(pendingIntent);
-
-        manager.notify((int) System.currentTimeMillis(), builder.build());
+        NotificationHelper.showNotification(this, notificationId, title, message, intent);
     }
 }

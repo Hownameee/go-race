@@ -3,6 +3,7 @@ package com.grouprace.feature.notification.ui;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -54,15 +55,6 @@ public class NotificationFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_notification, container, false);
 
         TopAppBarHelper.setupTopAppBar(view, getTopAppBarConfig());
-
-        // Permission Android 13+
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                ContextCompat.checkSelfPermission(requireContext(),
-                        Manifest.permission.POST_NOTIFICATIONS) !=
-                        PackageManager.PERMISSION_GRANTED) {
-
-            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 101);
-        }
 
         // RecyclerView
         RecyclerView recyclerView = view.findViewById(R.id.rv_notifications);
@@ -134,35 +126,14 @@ public class NotificationFragment extends Fragment {
 
         lastShownNotificationId = latest.getId();
 
-        showSystemNotification(latest);
-    }
-
-    private void showSystemNotification(NotificationModel notification) {
-
-        NotificationManager manager =
-                (NotificationManager) requireContext().getSystemService(Context.NOTIFICATION_SERVICE);
-
-        String channelId = "default_channel";
-
-        // Android 8+
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    channelId,
-                    "Notifications",
-                    NotificationManager.IMPORTANCE_HIGH
-            );
-            manager.createNotificationChannel(channel);
-        }
-
-        NotificationCompat.Builder builder =
-                new NotificationCompat.Builder(requireContext(), channelId)
-                        .setSmallIcon(com.grouprace.core.system.R.drawable.ic_app) // cần có icon này
-                        .setContentTitle(notification.getTitle())
-                        .setContentText(notification.getMessage())
-                        .setPriority(NotificationCompat.PRIORITY_HIGH)
-                        .setAutoCancel(true);
-
-        manager.notify(notification.getId(), builder.build());
+        Intent intent = new Intent(requireContext(), NotificationFragment.class);
+        com.grouprace.core.notification.NotificationHelper.showNotification(
+                requireContext(),
+                latest.getId(),
+                latest.getTitle(),
+                latest.getMessage(),
+                intent
+        );
     }
 
     private TopAppBarConfig getTopAppBarConfig() {
