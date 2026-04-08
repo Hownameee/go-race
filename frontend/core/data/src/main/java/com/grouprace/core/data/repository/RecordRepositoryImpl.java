@@ -13,6 +13,7 @@ import com.grouprace.core.model.Record;
 import com.grouprace.core.network.model.NetworkRecord;
 import com.grouprace.core.network.model.record.RecordWeeklyPointResponse;
 import com.grouprace.core.network.model.record.RecordWeeklySummaryResponse;
+import com.grouprace.core.model.TodaySummary;
 import com.grouprace.core.network.source.RecordDataSource;
 import com.grouprace.core.network.source.RecordNetworkDataSource;
 
@@ -156,6 +157,15 @@ public class RecordRepositoryImpl implements RecordRepository {
                 entities -> entities.stream()
                         .map(RecordEntity::asExternalModel)
                         .collect(Collectors.toList())
+        );
+    }
+
+    @Override
+    public LiveData<TodaySummary> getTodaySummary() {
+        String todayPrefix = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        return Transformations.map(
+                recordDao.getTodaySummary(todayPrefix),
+                entity -> entity != null ? entity.asExternalModel() : new com.grouprace.core.model.TodaySummary(0, 0, 0.0f)
         );
     }
 

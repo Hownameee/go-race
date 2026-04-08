@@ -19,6 +19,7 @@ import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.Post;
 import com.grouprace.core.system.ui.TopAppBarConfig;
 import com.grouprace.core.system.ui.TopAppBarHelper;
+import com.grouprace.core.system.ui.TodayStatsHelper;
 import com.grouprace.core.navigation.AppNavigator;
 
 import java.util.Locale;
@@ -137,6 +138,17 @@ public class PostFragment extends Fragment {
                     rvPosts.setVisibility(View.VISIBLE);
                     tvError.setVisibility(View.GONE);
                 }
+            }
+        });
+
+        viewModel.getTodaySummary().observe(getViewLifecycleOwner(), summary -> {
+            if (summary != null) {
+                TodayStatsHelper.bind(
+                    getView(), 
+                    summary.activityCount, 
+                    summary.totalDurationSeconds, 
+                    summary.totalDistanceKm
+                );
             }
         });
 
