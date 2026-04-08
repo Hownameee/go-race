@@ -5,9 +5,7 @@ const recordController = {
     const userId = req.user.userId;
     const offset = parseInt(req.query.offset) || 0;
     const limit = parseInt(req.query.limit) || 10;
-    console.log(userId, offset, limit);
     const data = await recordService.getList(userId, offset, limit);
-    console.log(data);
     res.ok({ records: data });
   },
 
