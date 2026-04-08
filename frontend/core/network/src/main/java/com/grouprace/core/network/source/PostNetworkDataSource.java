@@ -8,6 +8,7 @@ import com.grouprace.core.network.api.PostApiService;
 import com.grouprace.core.network.model.post.NetworkPost;
 import com.grouprace.core.network.model.post.PostPayload;
 import com.grouprace.core.network.model.post.CreateCommentRequest;
+import com.grouprace.core.network.model.post.CreatePostRequest;
 import com.grouprace.core.network.model.post.CommentPayload;
 import com.grouprace.core.network.utils.ApiResponse;
 
@@ -305,6 +306,33 @@ public class PostNetworkDataSource {
             @Override
             public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
                 Log.e("PostNetworkDataSource", "Delete comment network failure: " + t.getMessage(), t);
+                Exception ex = (t instanceof Exception) ? (Exception) t : new Exception(t);
+                liveData.postValue(new Result.Error<>(ex, "Network Failure: " + t.getMessage()));
+            }
+        });
+
+        return liveData;
+    }
+    public LiveData<Result<Boolean>> createPost(CreatePostRequest request) {
+        MutableLiveData<Result<Boolean>> liveData = new MutableLiveData<>();
+        liveData.postValue(new Result.Loading<>());
+
+        apiService.createPost(request).enqueue(new Callback<ApiResponse<Void>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    Log.d("PostNetworkDataSource", "Post created successfully");
+                    liveData.postValue(new Result.Success<>(true));
+                } else {
+                    String msg = response.body() != null ? response.body().getMessage() : "HTTP " + response.code();
+                    Log.e("PostNetworkDataSource", "Create post failed: " + msg);
+                    liveData.postValue(new Result.Error<>(new Exception(msg), msg));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
+                Log.e("PostNetworkDataSource", "Create post network failure: " + t.getMessage(), t);
                 Exception ex = (t instanceof Exception) ? (Exception) t : new Exception(t);
                 liveData.postValue(new Result.Error<>(ex, "Network Failure: " + t.getMessage()));
             }

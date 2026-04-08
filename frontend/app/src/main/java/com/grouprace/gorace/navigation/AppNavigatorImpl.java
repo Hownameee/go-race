@@ -21,6 +21,7 @@ import com.grouprace.feature.profile.ui.ProfileSettingsFragment;
 import com.grouprace.feature.profile.ui.SetNewPasswordFragment;
 import com.grouprace.feature.register.ui.RegisterFragment;
 import com.grouprace.feature.search.ui.SearchFragment;
+import com.grouprace.feature.posts.ui.AddPostFragment;
 import com.grouprace.feature.posts.ui.VisualEditorFragment;
 
 import javax.inject.Inject;
@@ -116,6 +117,11 @@ public class AppNavigatorImpl implements AppNavigator {
     @Override
     public void navigateToVisualEditor(Fragment currentFragment, String photoUri, String title, String distance, String time, String speed) {
         navigateTo(currentFragment, VisualEditorFragment.newInstance(photoUri, title, distance, time, speed));
+    }
+
+    @Override
+    public void openAddPost(Fragment currentFragment, boolean withActivity) {
+        navigateTo(currentFragment, AddPostFragment.newInstance(withActivity));
     }
 
     @Override

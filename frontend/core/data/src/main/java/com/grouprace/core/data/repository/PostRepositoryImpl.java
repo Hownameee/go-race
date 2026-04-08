@@ -6,6 +6,7 @@ import androidx.lifecycle.Transformations;
 
 import com.grouprace.core.model.Post;
 import com.grouprace.core.model.Comment;
+import com.grouprace.core.network.model.post.CreatePostRequest;
 import com.grouprace.core.network.model.post.NetworkPost;
 import com.grouprace.core.network.model.post.NetworkComment;
 import com.grouprace.core.network.model.post.CommentPayload;
@@ -157,5 +158,27 @@ public class PostRepositoryImpl implements PostRepository {
                 return new Result.Loading<>();
             }
         });
+    }
+
+    @Override
+    public LiveData<Result<Boolean>> createPost(String title, String description, Integer recordId) {
+        CreatePostRequest request = new CreatePostRequest(0, title, description); // ownerId will be handled by backend or auth interceptor
+        request.setRecordId(recordId);
+        
+        MutableLiveData<Result<Boolean>> resultData = new MutableLiveData<>();
+        resultData.postValue(new Result.Loading<>());
+
+        postNetworkDataSource.createPost(request).observeForever(result -> {
+            if (result instanceof Result.Success) {
+                // Trigger a sync to update the local feed with the new post
+                syncPosts(null, 1);
+                resultData.postValue(new Result.Success<>(true));
+            } else if (result instanceof Result.Error) {
+                Result.Error<?> error = (Result.Error<?>) result;
+                resultData.postValue(new Result.Error<>(error.exception, error.message));
+            }
+        });
+
+        return resultData;
     }
 }
