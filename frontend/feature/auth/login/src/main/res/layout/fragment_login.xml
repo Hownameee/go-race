@@ -73,6 +73,7 @@
             android:paddingVertical="14dp"
             android:paddingHorizontal="12dp"
             android:inputType="textPassword"
+            android:imeOptions="actionDone"
             android:hint="Password"
             android:background="@drawable/bg_input_rounded"
             android:textColor="@android:color/black"
@@ -126,25 +127,31 @@
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
             android:gravity="center"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Don't have an account?"
-                android:textColor="@color/text_secondary"
-                android:layout_marginEnd="10dp" />
+                android:textColor="@color/text_secondary" />
 
             <Button
                 android:id="@+id/login_goto_register_button"
                 style="?attr/borderlessButtonStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:backgroundTint="@null"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:paddingStart="0dp"
+                android:paddingEnd="0dp"
                 android:text="Register"
-                android:backgroundTint="@color/black"
+                android:textAllCaps="false"
                 android:textColor="@color/text_primary"
                 android:textStyle="bold" />
         </LinearLayout>

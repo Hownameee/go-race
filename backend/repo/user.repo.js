@@ -16,6 +16,11 @@ const userRepo = {
     return db.prepare(sql).get(userId);
   },
 
+  getUserAuthById: (userId) => {
+    const sql = `SELECT user_id, email, hashed_password FROM USERS WHERE user_id = ?`;
+    return db.prepare(sql).get(userId);
+  },
+
   // Need to login so need password
   getUserByEmail: (email) => {
     const sql = `SELECT * FROM USERS WHERE email = ?`;

@@ -2,9 +2,11 @@ package com.grouprace.feature.login.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -74,37 +76,51 @@ public class LoginFragment extends Fragment {
             navigator.openForgotPassword(this);
         });
 
-        buttonLogin.setOnClickListener(v -> {
-            String email = editEmail.getText().toString().trim();
-            String password = editPassword.getText().toString().trim();
+        buttonLogin.setOnClickListener(v -> performLogin());
+        editPassword.setOnEditorActionListener((v, actionId, event) -> {
+            boolean isDoneAction = actionId == EditorInfo.IME_ACTION_DONE;
+            boolean isEnterKey = event != null
+                    && event.getKeyCode() == KeyEvent.KEYCODE_ENTER
+                    && event.getAction() == KeyEvent.ACTION_DOWN;
 
-            viewModel.login(email, password).observe(getViewLifecycleOwner(), result -> {
-                if (result instanceof Result.Loading) {
-                    buttonLogin.setEnabled(false);
-                    buttonLogin.setText("Logging in...");
-                } else if (result instanceof Result.Success) {
-                    buttonLogin.setEnabled(true);
-                    buttonLogin.setText("Login");
+            if (isDoneAction || isEnterKey) {
+                performLogin();
+                return true;
+            }
+            return false;
+        });
+    }
 
-                    Toast.makeText(requireContext(), "Login successful!", Toast.LENGTH_SHORT).show();
+    private void performLogin() {
+        String email = editEmail.getText().toString().trim();
+        String password = editPassword.getText().toString().trim();
 
-                    try {
-                        Class<?> mainActivityClass = Class.forName("com.grouprace.gorace.MainActivity");
-                        Intent intent = new Intent(requireActivity(), mainActivityClass);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        startActivity(intent);
-                        requireActivity().finish();
-                    } catch (ClassNotFoundException e) {
-                        Toast.makeText(requireContext(), "Navigation error!", Toast.LENGTH_SHORT).show();
-                    }
-                } else if (result instanceof Result.Error) {
-                    buttonLogin.setEnabled(true);
-                    buttonLogin.setText("Login");
+        viewModel.login(email, password).observe(getViewLifecycleOwner(), result -> {
+            if (result instanceof Result.Loading) {
+                buttonLogin.setEnabled(false);
+                buttonLogin.setText("Logging in...");
+            } else if (result instanceof Result.Success) {
+                buttonLogin.setEnabled(true);
+                buttonLogin.setText("Login");
 
-                    String errorMsg = ((Result.Error<Void>) result).message;
-                    Toast.makeText(requireContext(), errorMsg, Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Login successful!", Toast.LENGTH_SHORT).show();
+
+                try {
+                    Class<?> mainActivityClass = Class.forName("com.grouprace.gorace.MainActivity");
+                    Intent intent = new Intent(requireActivity(), mainActivityClass);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    requireActivity().finish();
+                } catch (ClassNotFoundException e) {
+                    Toast.makeText(requireContext(), "Navigation error!", Toast.LENGTH_SHORT).show();
                 }
-            });
+            } else if (result instanceof Result.Error) {
+                buttonLogin.setEnabled(true);
+                buttonLogin.setText("Login");
+
+                String errorMsg = ((Result.Error<Void>) result).message;
+                Toast.makeText(requireContext(), errorMsg, Toast.LENGTH_SHORT).show();
+            }
         });
     }
 }

@@ -164,13 +164,14 @@ public class ProfileStatsFragment extends Fragment {
         });
         recordChart.invalidate();
 
-        bindSelectedRecordPoint(points.get(points.size() - 1));
-        recordChart.highlightValue(points.size() - 1, 0);
+        int selectedIndex = findLatestNonZeroPointIndex(points);
+        bindSelectedRecordPoint(points.get(selectedIndex));
+        recordChart.highlightValue(selectedIndex, 0);
     }
 
     private void bindSelectedRecordPoint(@NonNull WeeklyRecordPoint point) {
         recordPeriod.setText(formatDateRange(point.getWeekStart(), point.getWeekEnd()));
-        recordDistance.setText(new DecimalFormat("0.0").format(point.getTotalDistanceKm()) + " km");
+        recordDistance.setText(formatDistance(point.getTotalDistanceKm()));
         recordDuration.setText(formatDuration(point.getTotalDurationSeconds()));
         recordElevation.setText(new DecimalFormat("0").format(point.getTotalElevationGainM()) + " m");
     }
@@ -182,6 +183,18 @@ public class ProfileStatsFragment extends Fragment {
         recordDistance.setText("0.0 km");
         recordDuration.setText("0m");
         recordElevation.setText("0 m");
+    }
+
+    private int findLatestNonZeroPointIndex(@NonNull List<WeeklyRecordPoint> points) {
+        for (int index = points.size() - 1; index >= 0; index--) {
+            WeeklyRecordPoint point = points.get(index);
+            if (point.getTotalDistanceKm() > 0
+                    || point.getTotalDurationSeconds() > 0
+                    || point.getTotalElevationGainM() > 0) {
+                return index;
+            }
+        }
+        return points.size() - 1;
     }
 
     private String formatShortDate(String isoDate) {
@@ -205,9 +218,28 @@ public class ProfileStatsFragment extends Fragment {
     }
 
     private String formatDuration(int totalSeconds) {
-        int hours = totalSeconds / 3600;
+        int days = totalSeconds / 86400;
+        int hours = (totalSeconds % 86400) / 3600;
         int minutes = (totalSeconds % 3600) / 60;
-        return hours > 0 ? hours + "h " + minutes + "m" : minutes + "m";
+        int seconds = totalSeconds % 60;
+
+        if (days > 0) {
+            return days + "d " + hours + "h " + minutes + "m " + seconds + "s";
+        }
+        if (hours > 0) {
+            return hours + "h " + minutes + "m " + seconds + "s";
+        }
+        if (minutes > 0) {
+            return minutes + "m " + seconds + "s";
+        }
+        return seconds + "s";
+    }
+
+    private String formatDistance(double distanceKm) {
+        DecimalFormat decimalFormat = distanceKm < 1
+                ? new DecimalFormat("0.00")
+                : new DecimalFormat("0.0");
+        return decimalFormat.format(distanceKm) + " km";
     }
 
     private void updateActivityButtonState(@NonNull Button button, boolean isSelected) {

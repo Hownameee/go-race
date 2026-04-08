@@ -18,7 +18,6 @@ public class AuthRepositoryImpl implements AuthRepository {
     private final SessionManager sessionManager;
     private final MutableLiveData<Boolean> _isLoggedIn = new MutableLiveData<>();
 
-    // 2. Inject SessionManager qua Hilt thay vì dùng 'new'
     @Inject
     public AuthRepositoryImpl(AuthDataSource authNetworkDataSource, SessionManager sessionManager) {
         this.authNetworkDataSource = authNetworkDataSource;
@@ -31,7 +30,6 @@ public class AuthRepositoryImpl implements AuthRepository {
         return authNetworkDataSource.register(payload);
     }
 
-    // 3. Đổi Result<void> thành Result<Void>
     @Override
     public LiveData<Result<Void>> login(LoginPayload payload) {
         LiveData<Result<String>> networkResult = authNetworkDataSource.login(payload);

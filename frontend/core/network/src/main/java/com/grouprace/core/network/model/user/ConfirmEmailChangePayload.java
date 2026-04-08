@@ -6,11 +6,7 @@ public class ConfirmEmailChangePayload {
     @SerializedName("new_email")
     private String newEmail;
 
-    @SerializedName("otp_code")
-    private String otpCode;
-
-    public ConfirmEmailChangePayload(String newEmail, String otpCode) {
+    public ConfirmEmailChangePayload(String newEmail) {
         this.newEmail = newEmail;
-        this.otpCode = otpCode;
     }
 }

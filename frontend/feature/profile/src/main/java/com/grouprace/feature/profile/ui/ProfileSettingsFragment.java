@@ -70,7 +70,7 @@ public class ProfileSettingsFragment extends Fragment {
     }
 
     private void navigateToChangeEmail() {
-        navigator.openChangeEmail(this);
+        navigator.openChangeEmailOtp(this);
     }
 
     private void navigateToChangePassword() {

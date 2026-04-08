@@ -1,7 +1,17 @@
 import postRepo from '../repo/post.repo.js';
+import { resolveImageUrl } from '../utils/s3/s3.js';
 
 const DEFAULT_LIMIT = 20;
 const FAR_FUTURE = '9999-12-31T23:59:59.999Z';
+
+async function attachAvatarUrls(items) {
+  return Promise.all(
+    (items || []).map(async (item) => ({
+      ...item,
+      avatar_url: await resolveImageUrl(item.avatar_url),
+    })),
+  );
+}
 
 const postService = {
   async createPost(payload) {
@@ -21,10 +31,11 @@ const postService = {
     const effectiveLimit = Math.min(parseInt(limit) || DEFAULT_LIMIT, 100);
 
     const rows = await postRepo.selectFeed(effectiveCursor, effectiveLimit);
+    const posts = await attachAvatarUrls(rows);
     const nextCursor =
-      rows.length === effectiveLimit ? rows[rows.length - 1].created_at : null;
+      posts.length === effectiveLimit ? posts[posts.length - 1].created_at : null;
 
-    return { posts: rows, nextCursor };
+    return { posts, nextCursor };
   },
 
   async getFollowingFeed(userId, cursor, limit) {
@@ -37,10 +48,11 @@ const postService = {
       effectiveLimit,
     );
 
+    const posts = await attachAvatarUrls(rows);
     const nextCursor =
-      rows.length === effectiveLimit ? rows[rows.length - 1].created_at : null;
+      posts.length === effectiveLimit ? posts[posts.length - 1].created_at : null;
 
-    return { posts: rows, nextCursor };
+    return { posts, nextCursor };
   },
 
   async getMyPosts(userId, cursor, limit) {
@@ -53,10 +65,11 @@ const postService = {
       effectiveLimit,
     );
 
+    const posts = await attachAvatarUrls(rows);
     const nextCursor =
-      rows.length === effectiveLimit ? rows[rows.length - 1].created_at : null;
+      posts.length === effectiveLimit ? posts[posts.length - 1].created_at : null;
 
-    return { posts: rows, nextCursor };
+    return { posts, nextCursor };
   },
 
   async likePost(postId, userId) {
@@ -89,10 +102,11 @@ const postService = {
       effectiveLimit,
     );
 
+    const comments = await attachAvatarUrls(rows);
     const nextCursor =
-      rows.length === effectiveLimit ? rows[rows.length - 1].created_at : null;
+      comments.length === effectiveLimit ? comments[comments.length - 1].created_at : null;
 
-    return { comments: rows, nextCursor };
+    return { comments, nextCursor };
   },
 
   async deleteComment(postId, commentId, userId) {

@@ -1,8 +1,18 @@
 import followRepo from '../repo/follow.repo.js';
 import notificationService from './notification.service.js';
+import { resolveImageUrl } from '../utils/s3/s3.js';
 
 const DEFAULT_LIMIT = 20;
 const FAR_FUTURE = '9999-12-31T23:59:59.999Z';
+
+async function attachAvatarUrls(items) {
+  return Promise.all(
+    (items || []).map(async (item) => ({
+      ...item,
+      avatar_url: await resolveImageUrl(item.avatar_url),
+    })),
+  );
+}
 
 const followService = {
   async followUser(followerId, followingId, followerName) {
@@ -45,11 +55,12 @@ const followService = {
       effectiveCursor,
       effectiveLimit,
     );
+    const followers = await attachAvatarUrls(rows);
 
     const nextCursor =
-      rows.length === effectiveLimit ? rows[rows.length - 1].created_at : null;
+      followers.length === effectiveLimit ? followers[followers.length - 1].created_at : null;
 
-    return { followers: rows, nextCursor };
+    return { followers, nextCursor };
   },
 
   async getFollowing(userId, cursor, limit) {
@@ -61,11 +72,12 @@ const followService = {
       effectiveCursor,
       effectiveLimit,
     );
+    const following = await attachAvatarUrls(rows);
 
     const nextCursor =
-      rows.length === effectiveLimit ? rows[rows.length - 1].created_at : null;
+      following.length === effectiveLimit ? following[following.length - 1].created_at : null;
 
-    return { following: rows, nextCursor };
+    return { following, nextCursor };
   },
 
   async countFollowers(userId) {

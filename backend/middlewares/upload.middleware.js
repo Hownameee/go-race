@@ -1,13 +1,5 @@
-import fs from 'fs';
 import path from 'path';
 import multer from 'multer';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const avatarUploadDir = path.resolve(__dirname, '../uploads/avatars');
-
-fs.mkdirSync(avatarUploadDir, { recursive: true });
 
 const allowedMimeTypes = new Set([
   'image/jpeg',
@@ -15,19 +7,8 @@ const allowedMimeTypes = new Set([
   'image/webp',
 ]);
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, avatarUploadDir);
-  },
-  filename: (req, file, cb) => {
-    const extension = path.extname(file.originalname) || '.jpg';
-    const userId = req.user?.userId ?? 'unknown';
-    cb(null, `avatar-${userId}-${Date.now()}${extension}`);
-  },
-});
-
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: {
     fileSize: 5 * 1024 * 1024,
     files: 1,

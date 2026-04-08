@@ -9,8 +9,9 @@ import com.grouprace.core.model.Profile.ProfileOverview;
 public interface UserRepository {
     LiveData<Result<ProfileOverview>> getMyOverview();
     LiveData<Result<MyProfileInfo>> getMyInfo();
-    LiveData<Result<Void>> requestEmailChangeOtp(String newEmail);
-    LiveData<Result<Void>> confirmEmailChange(String newEmail, String otpCode);
+    LiveData<Result<Void>> requestEmailChangeOtp();
+    LiveData<Result<Void>> verifyEmailChangeOtp(String otpCode);
+    LiveData<Result<Void>> confirmEmailChange(String newEmail);
     LiveData<Result<Void>> verifyCurrentPassword(String oldPassword);
     LiveData<Result<Void>> changePassword(String oldPassword, String newPassword, String confirmNewPassword);
     LiveData<Result<Void>> requestPasswordResetOtp();

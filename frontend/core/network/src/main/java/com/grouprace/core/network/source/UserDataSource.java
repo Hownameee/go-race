@@ -12,8 +12,8 @@ import com.grouprace.core.network.model.user.ChangePasswordPayload;
 import com.grouprace.core.network.model.user.ConfirmEmailChangePayload;
 import com.grouprace.core.network.model.user.MyProfileInfoPayload;
 import com.grouprace.core.network.model.user.ProfileOverviewResponse;
-import com.grouprace.core.network.model.user.RequestEmailOtpPayload;
 import com.grouprace.core.network.model.user.ResetPasswordWithOtpPayload;
+import com.grouprace.core.network.model.user.VerifyEmailOtpPayload;
 import com.grouprace.core.network.model.user.VerifyCurrentPasswordPayload;
 import com.grouprace.core.network.utils.ApiResponse;
 
@@ -110,13 +110,18 @@ public class UserDataSource {
         return liveData;
     }
 
-    public LiveData<Result<Void>> requestEmailChangeOtp(String newEmail) {
-        return executeVoidCall(apiService.requestEmailChangeOtp(new RequestEmailOtpPayload(newEmail)),
+    public LiveData<Result<Void>> requestEmailChangeOtp() {
+        return executeVoidCall(apiService.requestEmailChangeOtp(),
                 "Request email OTP failed.");
     }
 
-    public LiveData<Result<Void>> confirmEmailChange(String newEmail, String otpCode) {
-        return executeVoidCall(apiService.confirmEmailChange(new ConfirmEmailChangePayload(newEmail, otpCode)),
+    public LiveData<Result<Void>> verifyEmailChangeOtp(String otpCode) {
+        return executeVoidCall(apiService.verifyEmailChangeOtp(new VerifyEmailOtpPayload(otpCode)),
+                "Verify email OTP failed.");
+    }
+
+    public LiveData<Result<Void>> confirmEmailChange(String newEmail) {
+        return executeVoidCall(apiService.confirmEmailChange(new ConfirmEmailChangePayload(newEmail)),
                 "Confirm email change failed.");
     }
 

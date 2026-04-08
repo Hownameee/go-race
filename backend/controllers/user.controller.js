@@ -1,5 +1,7 @@
 import userService from '../services/user.service.js';
 import followService from '../services/follow.service.js';
+import { getImageUrlS3, uploadImageS3 } from '../utils/s3/s3.js';
+import path from 'path';
 
 const userController = {
   // getAllUsers: async function (req, res, next) {
@@ -135,12 +137,21 @@ const userController = {
   requestEmailChangeOtp: async function (req, res, next) {
     try {
       const userId = req.user.userId;
-      const { new_email } = req.body;
-      await userService.requestEmailChangeOtp(userId, new_email);
-      return res.ok(null, 'OTP sent to new email successfully');
+      await userService.requestEmailChangeOtp(userId);
+      return res.ok(null, 'OTP sent to your current email successfully');
     } catch (error) {
-      if (error.message === 'Email already exists') {
-        return res.violate(null, error.message);
+      return next(error);
+    }
+  },
+  verifyEmailChangeOtp: async function (req, res, next) {
+    try {
+      const userId = req.user.userId;
+      const { otp_code } = req.body;
+      await userService.verifyEmailChangeOtp(userId, otp_code);
+      return res.ok(null, 'OTP verified successfully');
+    } catch (error) {
+      if (error.message === 'Invalid or expired OTP') {
+        return res.badRequest(null, error.message);
       }
       return next(error);
     }
@@ -148,14 +159,14 @@ const userController = {
   confirmEmailChange: async function (req, res, next) {
     try {
       const userId = req.user.userId;
-      const { new_email, otp_code } = req.body;
-      await userService.confirmEmailChange(userId, new_email, otp_code);
+      const { new_email } = req.body;
+      await userService.confirmEmailChange(userId, new_email);
       return res.ok(null, 'Email changed successfully');
     } catch (error) {
       if (error.message === 'Email already exists') {
         return res.violate(null, error.message);
       }
-      if (error.message === 'Invalid or expired OTP') {
+      if (error.message === 'Email change verification required') {
         return res.badRequest(null, error.message);
       }
       return next(error);
@@ -221,9 +232,12 @@ const userController = {
   uploadMyAvatar: async function (req, res, next) {
     try {
       const userId = req.user.userId;
-      const avatarUrl = `${req.protocol}://${req.get('host')}/uploads/avatars/${req.file.filename}`;
+      const extension = path.extname(req.file.originalname || '') || '.jpg';
+      const avatarKey = `avatars/avatar-${userId}-${Date.now()}${extension}`;
 
-      await userService.updateUserById(userId, { avatarUrl });
+      await uploadImageS3(req.file.buffer, avatarKey, req.file.mimetype);
+      await userService.updateUserById(userId, { avatarUrl: avatarKey });
+      const avatarUrl = await getImageUrlS3(avatarKey);
 
       res.ok(
         { avatar_url: avatarUrl },

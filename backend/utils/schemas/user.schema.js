@@ -121,15 +121,18 @@ export const verifyCurrentPasswordSchema = z
   .strict();
 
 export const requestEmailOtpSchema = z
+  .object({})
+  .strict();
+
+export const verifyEmailOtpSchema = z
   .object({
-    new_email: z.email('Invalid email format'),
+    otp_code: z.string().length(6, 'OTP must be 6 digits'),
   })
   .strict();
 
 export const confirmEmailChangeSchema = z
   .object({
     new_email: z.email('Invalid email format'),
-    otp_code: z.string().length(6, 'OTP must be 6 digits'),
   })
   .strict();
 

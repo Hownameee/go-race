@@ -53,6 +53,7 @@ const authController = {
       return res.ok(null, 'OTP sent to email successfully');
     } catch (error) {
       if (error.message === 'User not found') {
+        console.log('User not found');
         return res.notFound();
       }
       next(error);
@@ -65,6 +66,7 @@ const authController = {
       return res.ok(null, 'OTP verified successfully');
     } catch (error) {
       if (error.message === 'User not found') {
+        console.log('User not found');
         return res.notFound();
       }
       if (error.message === 'Invalid or expired OTP') {
