@@ -10,6 +10,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -113,6 +114,7 @@ public class NearbyRouteFragment extends Fragment {
 
         observeViewModel();
         setupButtons();
+        setupBackPress();
     }
 
     private void requestLocationPermission() {
@@ -258,6 +260,28 @@ public class NearbyRouteFragment extends Fragment {
                 .replace(getContainerId(), fragment)
                 .addToBackStack(null)
                 .commit();
+    }
+
+    private void setupBackPress() {
+        requireActivity().getOnBackPressedDispatcher().addCallback(
+                getViewLifecycleOwner(),
+                new OnBackPressedCallback(true) {
+                    @Override
+                    public void handleOnBackPressed() {
+                        NearbyRouteViewModel.UiState state = viewModel.getUiState().getValue();
+                        if (state == NearbyRouteViewModel.UiState.LOADING) {
+                            viewModel.cancelLoading();
+                        } else if (state == NearbyRouteViewModel.UiState.ROUTE_READY) {
+                            viewModel.reset();
+                            RouteMapHelper.clearPlannedRoute(mapStyle);
+                            tvRouteInfoCard.setVisibility(View.GONE);
+                        } else {
+                            // IDLE — let system handle (exit / pop back stack)
+                            setEnabled(false);
+                            requireActivity().getOnBackPressedDispatcher().onBackPressed();
+                        }
+                    }
+                });
     }
 
     private int getContainerId() {

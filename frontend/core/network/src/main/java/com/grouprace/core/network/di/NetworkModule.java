@@ -26,7 +26,7 @@ import com.grouprace.core.network.utils.SessionManager;
 @Module
 @InstallIn(SingletonComponent.class)
 public class NetworkModule {
-    private static final String BASE_URL = "http://10.0.2.2:5000/";
+    private static final String BASE_URL = "http://172.104.190.228:5000/";
 
     @Provides
     @Singleton
