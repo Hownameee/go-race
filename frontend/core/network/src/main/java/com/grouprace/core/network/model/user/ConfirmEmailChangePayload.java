@@ -4,9 +4,13 @@ import com.google.gson.annotations.SerializedName;
 
 public class ConfirmEmailChangePayload {
     @SerializedName("new_email")
-    private String newEmail;
+    private final String newEmail;
 
-    public ConfirmEmailChangePayload(String newEmail) {
+    @SerializedName("otp_code")
+    private final String otpCode;
+
+    public ConfirmEmailChangePayload(String newEmail, String otpCode) {
         this.newEmail = newEmail;
+        this.otpCode = otpCode;
     }
 }

@@ -45,6 +45,7 @@ public class ChangeEmailOtpFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         viewModel = new ViewModelProvider(requireActivity()).get(ChangeEmailViewModel.class);
+        viewModel.resetFlow();
 
         ImageButton backButton = view.findViewById(R.id.change_email_otp_back_button);
         TextView messageView = view.findViewById(R.id.change_email_otp_message);

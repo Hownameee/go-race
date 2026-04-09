@@ -39,6 +39,7 @@
         </RelativeLayout>
 
         <TextView
+            android:id="@+id/change_email_message"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
@@ -67,6 +68,30 @@
             android:textColor="@android:color/black"
             android:textColorHint="@color/text_tertiary" />
 
+        <TextView
+            android:id="@+id/change_email_new_otp_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="OTP"
+            android:textColor="@color/text_primary"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <EditText
+            android:id="@+id/change_email_new_otp_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_input_rounded"
+            android:hint="6-digit OTP"
+            android:inputType="number"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="14dp"
+            android:textColor="@android:color/black"
+            android:textColorHint="@color/text_tertiary"
+            android:visibility="gone" />
+
         <Button
             android:id="@+id/change_email_send_otp_button"
             android:layout_width="match_parent"
@@ -75,7 +100,7 @@
             android:background="@drawable/bg_button_rounded"
             android:backgroundTint="@null"
             app:backgroundTint="@null"
-            android:text="Update Email"
+            android:text="Send OTP"
             android:textColor="@color/black" />
     </LinearLayout>
 </ScrollView>

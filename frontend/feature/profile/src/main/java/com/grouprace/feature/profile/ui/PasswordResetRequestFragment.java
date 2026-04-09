@@ -44,14 +44,11 @@ public class PasswordResetRequestFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         viewModel = new ViewModelProvider(requireActivity()).get(ChangePasswordViewModel.class);
+        viewModel.clearFlowState();
 
         ImageButton backButton = view.findViewById(R.id.password_reset_request_back_button);
         EditText emailInput = view.findViewById(R.id.password_reset_request_email_input);
         Button sendButton = view.findViewById(R.id.password_reset_request_send_button);
-
-        if (viewModel.getResetEmail() != null) {
-            emailInput.setText(viewModel.getResetEmail());
-        }
 
         backButton.setOnClickListener(v -> requireActivity().onBackPressed());
 

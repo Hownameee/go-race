@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 @Module
 @InstallIn(SingletonComponent.class)
 public class NetworkModule {
-    private static final String BASE_URL = "http://192.168.2.100:5000/";
+    private static final String BASE_URL = "http://192.168.110.19:5000/";
 
     @Provides
     @Singleton

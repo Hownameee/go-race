@@ -115,14 +115,19 @@ const userService = {
 
     emailChangeAuthorizationStore.set(userId, {
       expiresAt: Date.now() + EMAIL_CHANGE_AUTH_TTL_MS,
+      currentEmailVerified: true,
     });
 
     return true;
   },
 
-  confirmEmailChange: async function (userId, newEmail) {
+  requestNewEmailChangeOtp: async function (userId, newEmail) {
     const authorization = emailChangeAuthorizationStore.get(userId);
-    if (!authorization || authorization.expiresAt < Date.now()) {
+    if (
+      !authorization ||
+      authorization.expiresAt < Date.now() ||
+      !authorization.currentEmailVerified
+    ) {
       emailChangeAuthorizationStore.delete(userId);
       throw new Error('Email change verification required');
     }
@@ -130,6 +135,52 @@ const userService = {
     const existingUser = await userRepo.getUserByEmail(newEmail);
     if (existingUser) {
       throw new Error('Email already exists');
+    }
+
+    const otpCode = otpService.createOtp(userId, 'change-email-verify-new', newEmail);
+    await mailService.sendEmail(
+      newEmail,
+      'GoRace new email verification OTP',
+      `<p>Your OTP to verify your new email is <b>${otpCode}</b>.</p><p>This code expires in 5 minutes.</p>`,
+    );
+
+    emailChangeAuthorizationStore.set(userId, {
+      ...authorization,
+      expiresAt: Date.now() + EMAIL_CHANGE_AUTH_TTL_MS,
+      pendingNewEmail: newEmail,
+    });
+
+    return true;
+  },
+
+  confirmEmailChange: async function (userId, newEmail, otpCode) {
+    const authorization = emailChangeAuthorizationStore.get(userId);
+    if (
+      !authorization ||
+      authorization.expiresAt < Date.now() ||
+      !authorization.currentEmailVerified
+    ) {
+      emailChangeAuthorizationStore.delete(userId);
+      throw new Error('Email change verification required');
+    }
+
+    if (!authorization.pendingNewEmail || authorization.pendingNewEmail !== newEmail) {
+      throw new Error('New email verification required');
+    }
+
+    const existingUser = await userRepo.getUserByEmail(newEmail);
+    if (existingUser) {
+      throw new Error('Email already exists');
+    }
+
+    const isValid = otpService.verifyOtp(
+      userId,
+      'change-email-verify-new',
+      otpCode,
+      newEmail,
+    );
+    if (!isValid) {
+      throw new Error('Invalid or expired OTP');
     }
 
     emailChangeAuthorizationStore.delete(userId);

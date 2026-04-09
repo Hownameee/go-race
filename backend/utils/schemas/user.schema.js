@@ -124,6 +124,12 @@ export const requestEmailOtpSchema = z
   .object({})
   .strict();
 
+export const requestNewEmailOtpSchema = z
+  .object({
+    new_email: z.email('Invalid email format'),
+  })
+  .strict();
+
 export const verifyEmailOtpSchema = z
   .object({
     otp_code: z.string().length(6, 'OTP must be 6 digits'),
@@ -133,6 +139,7 @@ export const verifyEmailOtpSchema = z
 export const confirmEmailChangeSchema = z
   .object({
     new_email: z.email('Invalid email format'),
+    otp_code: z.string().length(6, 'OTP must be 6 digits'),
   })
   .strict();
 

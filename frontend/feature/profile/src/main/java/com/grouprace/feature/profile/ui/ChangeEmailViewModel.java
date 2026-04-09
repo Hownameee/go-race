@@ -17,6 +17,8 @@ public class ChangeEmailViewModel extends ViewModel {
     private final MutableLiveData<String> toastMessage = new MutableLiveData<>();
     private boolean otpRequested;
     private boolean currentEmailVerified;
+    private boolean newEmailOtpRequested;
+    private String pendingNewEmail;
 
     @Inject
     public ChangeEmailViewModel(UserRepository userRepository) {
@@ -38,6 +40,8 @@ public class ChangeEmailViewModel extends ViewModel {
     public void resetFlow() {
         otpRequested = false;
         currentEmailVerified = false;
+        newEmailOtpRequested = false;
+        pendingNewEmail = null;
     }
 
     public boolean isOtpRequested() {
@@ -52,6 +56,14 @@ public class ChangeEmailViewModel extends ViewModel {
         otpRequested = true;
     }
 
+    public boolean isNewEmailOtpRequested() {
+        return newEmailOtpRequested;
+    }
+
+    public String getPendingNewEmail() {
+        return pendingNewEmail;
+    }
+
     public LiveData<Result<Void>> verifyOtp(String otpCode) {
         if (otpCode == null || otpCode.trim().isEmpty()) {
             toastMessage.setValue("Please enter OTP.");
@@ -61,7 +73,7 @@ public class ChangeEmailViewModel extends ViewModel {
         return userRepository.verifyEmailChangeOtp(otpCode.trim());
     }
 
-    public LiveData<Result<Void>> confirmChange(String newEmail) {
+    public LiveData<Result<Void>> requestNewEmailOtp(String newEmail) {
         if (!currentEmailVerified) {
             toastMessage.setValue("Please verify the OTP sent to your current email first.");
             return new MutableLiveData<>();
@@ -72,6 +84,32 @@ public class ChangeEmailViewModel extends ViewModel {
             return new MutableLiveData<>();
         }
 
-        return userRepository.confirmEmailChange(newEmail.trim());
+        pendingNewEmail = newEmail.trim();
+        return userRepository.requestNewEmailChangeOtp(pendingNewEmail);
+    }
+
+    public void markNewEmailOtpRequested(String newEmail) {
+        pendingNewEmail = newEmail != null ? newEmail.trim() : null;
+        newEmailOtpRequested = true;
+    }
+
+    public LiveData<Result<Void>> confirmChange(String newEmail, String otpCode) {
+        if (!currentEmailVerified) {
+            toastMessage.setValue("Please verify the OTP sent to your current email first.");
+            return new MutableLiveData<>();
+        }
+
+        if (newEmail == null || newEmail.trim().isEmpty()) {
+            toastMessage.setValue("Please enter a new email.");
+            return new MutableLiveData<>();
+        }
+
+        if (otpCode == null || otpCode.trim().isEmpty()) {
+            toastMessage.setValue("Please enter the OTP sent to your new email.");
+            return new MutableLiveData<>();
+        }
+
+        pendingNewEmail = newEmail.trim();
+        return userRepository.confirmEmailChange(pendingNewEmail, otpCode.trim());
     }
 }

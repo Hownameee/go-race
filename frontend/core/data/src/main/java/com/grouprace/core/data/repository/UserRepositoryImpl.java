@@ -66,8 +66,13 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public LiveData<Result<Void>> confirmEmailChange(String newEmail) {
-        return userDataSource.confirmEmailChange(newEmail);
+    public LiveData<Result<Void>> requestNewEmailChangeOtp(String newEmail) {
+        return userDataSource.requestNewEmailChangeOtp(newEmail);
+    }
+
+    @Override
+    public LiveData<Result<Void>> confirmEmailChange(String newEmail, String otpCode) {
+        return userDataSource.confirmEmailChange(newEmail, otpCode);
     }
 
     @Override

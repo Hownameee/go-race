@@ -51,7 +51,9 @@ public class PasswordResetOtpFragment extends Fragment {
         EditText otpInput = view.findViewById(R.id.password_reset_otp_input);
         Button submitButton = view.findViewById(R.id.password_reset_otp_submit_button);
 
-        if (viewModel.getResetEmail() != null) {
+        if (viewModel.isProfileOtpFlow() && viewModel.getCurrentEmail() != null) {
+            messageView.setText("Enter the OTP sent to " + viewModel.getCurrentEmail() + ".");
+        } else if (viewModel.getResetEmail() != null) {
             messageView.setText("Enter the OTP sent to " + viewModel.getResetEmail() + ".");
         }
 
@@ -65,6 +67,17 @@ public class PasswordResetOtpFragment extends Fragment {
 
         submitButton.setOnClickListener(v -> {
             String otpCode = otpInput.getText().toString();
+            if (viewModel.isProfileOtpFlow()) {
+                if (otpCode == null || otpCode.trim().isEmpty()) {
+                    Toast.makeText(requireContext(), "Please enter OTP.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                viewModel.setVerifiedResetOtp(otpCode);
+                navigator.openSetNewPassword(this);
+                return;
+            }
+
             viewModel.verifyResetOtp(otpCode).observe(getViewLifecycleOwner(), result -> {
                 if (result instanceof Result.Loading) {
                     submitButton.setEnabled(false);

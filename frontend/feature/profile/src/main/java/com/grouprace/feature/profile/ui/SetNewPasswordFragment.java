@@ -16,12 +16,18 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.feature.profile.R;
+
+import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class SetNewPasswordFragment extends Fragment {
+    @Inject
+    AppNavigator navigator;
+
     private ChangePasswordViewModel viewModel;
 
     public static SetNewPasswordFragment newInstance() {
@@ -68,10 +74,20 @@ public class SetNewPasswordFragment extends Fragment {
             } else if (result instanceof Result.Success) {
                 saveButton.setEnabled(true);
                 saveButton.setText("Save Password");
+                boolean shouldReturnToLogin = viewModel.getResetEmail() != null;
+                boolean shouldReturnToSettingsFromProfileOtp = viewModel.isProfileOtpFlow();
                 viewModel.clearFlowState();
                 Toast.makeText(requireContext(), "Password updated successfully", Toast.LENGTH_SHORT).show();
-                requireActivity().getSupportFragmentManager().popBackStack(null,
-                        androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                if (shouldReturnToLogin) {
+                    navigator.openLogin(this);
+                } else if (shouldReturnToSettingsFromProfileOtp) {
+                    requireActivity().getSupportFragmentManager().popBackStack();
+                    requireActivity().getSupportFragmentManager().popBackStack();
+                    requireActivity().getSupportFragmentManager().popBackStack();
+                } else {
+                    requireActivity().getSupportFragmentManager().popBackStack();
+                    requireActivity().getSupportFragmentManager().popBackStack();
+                }
             } else if (result instanceof Result.Error) {
                 saveButton.setEnabled(true);
                 saveButton.setText("Save Password");

@@ -1,9 +1,11 @@
 package com.grouprace.feature.register.ui;
 
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -78,10 +80,22 @@ public class RegisterFragment extends Fragment {
         });
 
         DatePickerHelper.attachDatePicker(this, editBirthdate);
-        buttonRegister.setOnClickListener(this::register);
+        buttonRegister.setOnClickListener(v -> performRegister());
+        editConfirmPassword.setOnEditorActionListener((v, actionId, event) -> {
+            boolean isDoneAction = actionId == EditorInfo.IME_ACTION_DONE;
+            boolean isEnterKey = event != null
+                    && event.getKeyCode() == KeyEvent.KEYCODE_ENTER
+                    && event.getAction() == KeyEvent.ACTION_DOWN;
+
+            if (isDoneAction || isEnterKey) {
+                performRegister();
+                return true;
+            }
+            return false;
+        });
     }
 
-    private void register(View view) {
+    private void performRegister() {
         String username = editUsername.getText().toString().trim();
         String fullname = editFullname.getText().toString().trim();
         String email = editEmail.getText().toString().trim();

@@ -156,17 +156,39 @@ const userController = {
       return next(error);
     }
   },
-  confirmEmailChange: async function (req, res, next) {
+  requestNewEmailChangeOtp: async function (req, res, next) {
     try {
       const userId = req.user.userId;
       const { new_email } = req.body;
-      await userService.confirmEmailChange(userId, new_email);
+      await userService.requestNewEmailChangeOtp(userId, new_email);
+      return res.ok(null, 'OTP sent to your new email successfully');
+    } catch (error) {
+      if (error.message === 'Email already exists') {
+        return res.violate(null, error.message);
+      }
+      if (error.message === 'Email change verification required') {
+        return res.badRequest(null, error.message);
+      }
+      return next(error);
+    }
+  },
+  confirmEmailChange: async function (req, res, next) {
+    try {
+      const userId = req.user.userId;
+      const { new_email, otp_code } = req.body;
+      await userService.confirmEmailChange(userId, new_email, otp_code);
       return res.ok(null, 'Email changed successfully');
     } catch (error) {
       if (error.message === 'Email already exists') {
         return res.violate(null, error.message);
       }
       if (error.message === 'Email change verification required') {
+        return res.badRequest(null, error.message);
+      }
+      if (error.message === 'New email verification required') {
+        return res.badRequest(null, error.message);
+      }
+      if (error.message === 'Invalid or expired OTP') {
         return res.badRequest(null, error.message);
       }
       return next(error);

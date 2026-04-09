@@ -10,12 +10,11 @@ import dagger.hilt.android.qualifiers.ApplicationContext;
 
 @Singleton
 public class SessionManager {
-    // 1. Chuyển các key thành static final để tiết kiệm bộ nhớ
     private static final String PREF_NAME = "GoRaceApp";
     private static final String KEY_TOKEN = "Token";
     private static final String KEY_EXPIRE_TIME = "Token_Expire_Time";
 
-    private static final long EXPIRATION_TIME_MS = 60 * 60 * 1000; // 60 phút
+    private static final long EXPIRATION_TIME_MS = 60 * 60 * 1000;
 
     private final SharedPreferences prefs;
 

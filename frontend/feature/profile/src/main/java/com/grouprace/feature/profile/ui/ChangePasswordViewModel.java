@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel;
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.data.repository.AuthRepository;
 import com.grouprace.core.data.repository.UserRepository;
+import com.grouprace.core.model.Profile.MyProfileInfo;
 
 import javax.inject.Inject;
 
@@ -18,8 +19,11 @@ public class ChangePasswordViewModel extends ViewModel {
     private final AuthRepository authRepository;
     private final MutableLiveData<String> toastMessage = new MutableLiveData<>();
     private String verifiedCurrentPassword;
+    private String currentEmail;
     private String resetEmail;
     private String verifiedResetOtp;
+    private boolean profileOtpFlow;
+    private boolean otpRequested;
 
     @Inject
     public ChangePasswordViewModel(UserRepository userRepository, AuthRepository authRepository) {
@@ -33,21 +37,54 @@ public class ChangePasswordViewModel extends ViewModel {
 
     public void setVerifiedCurrentPassword(String currentPassword) {
         verifiedCurrentPassword = currentPassword != null ? currentPassword.trim() : null;
+        profileOtpFlow = false;
+        currentEmail = null;
+        otpRequested = false;
         resetEmail = null;
         verifiedResetOtp = null;
     }
 
+    public void startProfileOtpFlow() {
+        clearFlowState();
+        profileOtpFlow = true;
+    }
+
+    public boolean isProfileOtpFlow() {
+        return profileOtpFlow;
+    }
+
+    public void setCurrentEmail(String email) {
+        currentEmail = email != null ? email.trim() : null;
+    }
+
+    public String getCurrentEmail() {
+        return currentEmail;
+    }
+
     public void setResetEmail(String email) {
         resetEmail = email != null ? email.trim() : null;
+        profileOtpFlow = false;
     }
 
     public String getResetEmail() {
         return resetEmail;
     }
 
+    public boolean isOtpRequested() {
+        return otpRequested;
+    }
+
+    public void markOtpRequested() {
+        otpRequested = true;
+    }
+
     public void setVerifiedResetOtp(String otpCode) {
         verifiedResetOtp = otpCode != null ? otpCode.trim() : null;
         verifiedCurrentPassword = null;
+    }
+
+    public LiveData<Result<MyProfileInfo>> getMyInfo() {
+        return userRepository.getMyInfo();
     }
 
     public LiveData<Result<Void>> verifyCurrentPassword(String currentPassword) {
@@ -66,7 +103,19 @@ public class ChangePasswordViewModel extends ViewModel {
         }
 
         resetEmail = email.trim();
+        profileOtpFlow = false;
+        currentEmail = null;
+        otpRequested = false;
         return authRepository.requestPasswordResetOtp(resetEmail);
+    }
+
+    public LiveData<Result<Void>> requestCurrentPasswordResetOtp() {
+        if (!profileOtpFlow) {
+            toastMessage.setValue("Password change flow is not ready.");
+            return new MutableLiveData<>();
+        }
+
+        return userRepository.requestPasswordResetOtp();
     }
 
     public LiveData<Result<Void>> verifyResetOtp(String otpCode) {
@@ -87,6 +136,19 @@ public class ChangePasswordViewModel extends ViewModel {
         if (isBlank(newPassword) || isBlank(confirmPassword)) {
             toastMessage.setValue("Please fill in new password fields.");
             return new MutableLiveData<>();
+        }
+
+        if (profileOtpFlow) {
+            if (isBlank(verifiedResetOtp)) {
+                toastMessage.setValue("Please verify the OTP sent to your current email first.");
+                return new MutableLiveData<>();
+            }
+
+            return userRepository.resetPasswordWithOtp(
+                    verifiedResetOtp,
+                    newPassword.trim(),
+                    confirmPassword.trim()
+            );
         }
 
         if (!isBlank(verifiedCurrentPassword)) {
@@ -112,8 +174,11 @@ public class ChangePasswordViewModel extends ViewModel {
 
     public void clearFlowState() {
         verifiedCurrentPassword = null;
+        currentEmail = null;
         resetEmail = null;
         verifiedResetOtp = null;
+        profileOtpFlow = false;
+        otpRequested = false;
     }
 
     public LiveData<Result<Void>> legacyResetPasswordWithOtp(String otpCode, String newPassword, String confirmPassword) {

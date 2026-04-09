@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -50,7 +51,10 @@ public class ChangeEmailFragment extends Fragment {
         }
 
         ImageButton backButton = view.findViewById(R.id.change_email_back_button);
+        TextView messageView = view.findViewById(R.id.change_email_message);
         EditText newEmailInput = view.findViewById(R.id.change_email_new_email_input);
+        TextView otpLabel = view.findViewById(R.id.change_email_new_otp_label);
+        EditText otpInput = view.findViewById(R.id.change_email_new_otp_input);
         Button saveEmailButton = view.findViewById(R.id.change_email_send_otp_button);
 
         backButton.setOnClickListener(v -> requireActivity().onBackPressed());
@@ -61,23 +65,72 @@ public class ChangeEmailFragment extends Fragment {
             }
         });
 
-        saveEmailButton.setOnClickListener(v -> viewModel.confirmChange(newEmailInput.getText().toString())
-                .observe(getViewLifecycleOwner(), result -> {
+        if (viewModel.getPendingNewEmail() != null) {
+            newEmailInput.setText(viewModel.getPendingNewEmail());
+        }
+
+        updateNewEmailOtpUi(messageView, newEmailInput, otpLabel, otpInput, saveEmailButton);
+
+        saveEmailButton.setOnClickListener(v -> {
+            String newEmail = newEmailInput.getText().toString();
+            if (!viewModel.isNewEmailOtpRequested()) {
+                viewModel.requestNewEmailOtp(newEmail).observe(getViewLifecycleOwner(), result -> {
                     if (result instanceof Result.Loading) {
                         saveEmailButton.setEnabled(false);
-                        saveEmailButton.setText("Saving...");
+                        saveEmailButton.setText("Sending...");
                     } else if (result instanceof Result.Success) {
+                        viewModel.markNewEmailOtpRequested(newEmail);
                         saveEmailButton.setEnabled(true);
-                        saveEmailButton.setText("Update Email");
-                        viewModel.resetFlow();
-                        Toast.makeText(requireContext(), "Email changed successfully", Toast.LENGTH_SHORT).show();
-                        requireActivity().getSupportFragmentManager().popBackStack();
-                        requireActivity().getSupportFragmentManager().popBackStack();
+                        Toast.makeText(requireContext(), "OTP sent to your new email.", Toast.LENGTH_SHORT).show();
+                        updateNewEmailOtpUi(messageView, newEmailInput, otpLabel, otpInput, saveEmailButton);
                     } else if (result instanceof Result.Error) {
                         saveEmailButton.setEnabled(true);
-                        saveEmailButton.setText("Update Email");
+                        saveEmailButton.setText("Send OTP");
                         Toast.makeText(requireContext(), ((Result.Error<Void>) result).message, Toast.LENGTH_SHORT).show();
                     }
-                }));
+                });
+                return;
+            }
+
+            viewModel.confirmChange(newEmail, otpInput.getText().toString())
+                    .observe(getViewLifecycleOwner(), result -> {
+                        if (result instanceof Result.Loading) {
+                            saveEmailButton.setEnabled(false);
+                            saveEmailButton.setText("Saving...");
+                        } else if (result instanceof Result.Success) {
+                            saveEmailButton.setEnabled(true);
+                            viewModel.resetFlow();
+                            Toast.makeText(requireContext(), "Email changed successfully", Toast.LENGTH_SHORT).show();
+                            requireActivity().getSupportFragmentManager().popBackStack();
+                            requireActivity().getSupportFragmentManager().popBackStack();
+                        } else if (result instanceof Result.Error) {
+                            saveEmailButton.setEnabled(true);
+                            saveEmailButton.setText("Verify OTP & Update Email");
+                            Toast.makeText(requireContext(), ((Result.Error<Void>) result).message, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        });
+    }
+
+    private void updateNewEmailOtpUi(
+            TextView messageView,
+            EditText newEmailInput,
+            TextView otpLabel,
+            EditText otpInput,
+            Button saveEmailButton
+    ) {
+        boolean otpRequested = viewModel.isNewEmailOtpRequested();
+        otpLabel.setVisibility(otpRequested ? View.VISIBLE : View.GONE);
+        otpInput.setVisibility(otpRequested ? View.VISIBLE : View.GONE);
+        newEmailInput.setEnabled(!otpRequested);
+
+        if (otpRequested) {
+            String pendingNewEmail = viewModel.getPendingNewEmail();
+            messageView.setText("Enter the OTP sent to " + pendingNewEmail + " to confirm your new email.");
+            saveEmailButton.setText("Verify OTP & Update Email");
+        } else {
+            messageView.setText("Your current email has been verified. Enter the new email you want to use.");
+            saveEmailButton.setText("Send OTP");
+        }
     }
 }

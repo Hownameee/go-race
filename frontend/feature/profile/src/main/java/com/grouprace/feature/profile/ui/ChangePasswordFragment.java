@@ -49,7 +49,7 @@ public class ChangePasswordFragment extends Fragment {
         ImageButton backButton = view.findViewById(R.id.change_password_back_button);
         EditText currentPasswordInput = view.findViewById(R.id.change_password_current_input);
         Button continueButton = view.findViewById(R.id.change_password_submit_button);
-        Button resetButton = view.findViewById(R.id.change_password_reset_button);
+        Button forgotButton = view.findViewById(R.id.change_password_reset_button);
 
         backButton.setOnClickListener(v -> requireActivity().onBackPressed());
 
@@ -78,8 +78,39 @@ public class ChangePasswordFragment extends Fragment {
             });
         });
 
-        resetButton.setOnClickListener(v -> {
-            navigator.openPasswordResetRequest(this);
+        forgotButton.setOnClickListener(v -> requestOtpForCurrentEmail(forgotButton));
+    }
+
+    private void requestOtpForCurrentEmail(Button forgotButton) {
+        viewModel.startProfileOtpFlow();
+        viewModel.getMyInfo().observe(getViewLifecycleOwner(), profileResult -> {
+            if (profileResult instanceof Result.Loading) {
+                forgotButton.setEnabled(false);
+                forgotButton.setText("Sending...");
+            } else if (profileResult instanceof Result.Success) {
+                String email = ((Result.Success<com.grouprace.core.model.Profile.MyProfileInfo>) profileResult).data.getEmail();
+                viewModel.setCurrentEmail(email);
+                viewModel.requestCurrentPasswordResetOtp().observe(getViewLifecycleOwner(), otpResult -> {
+                    if (otpResult instanceof Result.Loading) {
+                        forgotButton.setEnabled(false);
+                        forgotButton.setText("Sending...");
+                    } else if (otpResult instanceof Result.Success) {
+                        viewModel.markOtpRequested();
+                        forgotButton.setEnabled(true);
+                        forgotButton.setText("Send OTP");
+                        Toast.makeText(requireContext(), "OTP sent to your current email.", Toast.LENGTH_SHORT).show();
+                        navigator.openPasswordResetOtp(this);
+                    } else if (otpResult instanceof Result.Error) {
+                        forgotButton.setEnabled(true);
+                        forgotButton.setText("Send OTP");
+                        Toast.makeText(requireContext(), ((Result.Error<Void>) otpResult).message, Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } else if (profileResult instanceof Result.Error) {
+                forgotButton.setEnabled(true);
+                forgotButton.setText("Send OTP");
+                Toast.makeText(requireContext(), ((Result.Error<com.grouprace.core.model.Profile.MyProfileInfo>) profileResult).message, Toast.LENGTH_SHORT).show();
+            }
         });
     }
 }
