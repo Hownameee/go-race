@@ -15,4 +15,7 @@ public interface NearbyRouteRepository {
     LiveData<Result<PlannedRoute>> generateRoute(double userLng, double userLat,
                                                   double placeLng, double placeLat,
                                                   String accessToken);
+
+    LiveData<Result<List<NearbyPlace>>> searchByQuery(String query, double lng, double lat,
+                                                       String accessToken);
 }

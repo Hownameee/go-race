@@ -1,11 +1,22 @@
 package com.grouprace.feature.tracking.ui;
 
+import java.util.List;
+
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -15,12 +26,12 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.grouprace.core.model.NearbyPlace;
 import com.grouprace.core.model.PlannedRoute;
 import com.grouprace.feature.records.compare.ui.CompareRecordsFragment;
@@ -34,7 +45,6 @@ import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListen
 import com.mapbox.maps.plugin.viewport.ViewportPlugin;
 import com.mapbox.maps.plugin.viewport.ViewportUtils;
 import com.mapbox.maps.plugin.viewport.data.FollowPuckViewportStateOptions;
-import java.util.List;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -57,14 +67,20 @@ public class NearbyRouteFragment extends Fragment {
     private MaterialButton btnFindNearby;
     private MaterialButton btnReplan;
     private MaterialButton btnStartRun;
+    private MaterialCardView searchCard;
+    private View dividerResults;
+    private LinearLayout resultsContainer;
+    private EditText etSearchDestination;
 
+    private final Handler searchHandler = new Handler(Looper.getMainLooper());
+    private Runnable searchRunnable;
     private boolean locationCaptured = false;
 
     private final OnIndicatorPositionChangedListener positionListener = point -> {
         if (!locationCaptured) {
             locationCaptured = true;
             viewModel.setUserLocation(point.longitude(), point.latitude());
-            // Location captured — unregister to stop firing on every GPS tick
+            // Captured — stop firing on every GPS tick
             LocationComponentPlugin plugin = mapView.getPlugin(Plugin.MAPBOX_LOCATION_COMPONENT_PLUGIN_ID);
             if (plugin != null) plugin.removeOnIndicatorPositionChangedListener(this.positionListener);
         }
@@ -73,9 +89,7 @@ public class NearbyRouteFragment extends Fragment {
     private final ActivityResultLauncher<String[]> locationPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
                 Boolean granted = result.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false);
-                if (Boolean.TRUE.equals(granted)) {
-                    enableLocationTracking();
-                }
+                if (Boolean.TRUE.equals(granted)) enableLocationTracking();
             });
 
     @Nullable
@@ -89,21 +103,7 @@ public class NearbyRouteFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        mapView = view.findViewById(R.id.map_view);
-        rowLoading = view.findViewById(R.id.row_loading);
-        rowIdle = view.findViewById(R.id.row_idle);
-        rowRouteReady = view.findViewById(R.id.row_route_ready);
-        tvRouteInfoCard = view.findViewById(R.id.tv_route_info_card);
-        tvRouteInfo = view.findViewById(R.id.tv_route_info);
-        btnCancel = view.findViewById(R.id.btn_cancel);
-        btnRecords = view.findViewById(R.id.btn_records);
-        btnCompare = view.findViewById(R.id.btn_compare);
-        btnFreeRun = view.findViewById(R.id.btn_free_run);
-        btnFindNearby = view.findViewById(R.id.btn_find_nearby);
-        btnReplan = view.findViewById(R.id.btn_replan);
-        btnStartRun = view.findViewById(R.id.btn_start_run);
-
+        bindViews(view);
         viewModel = new ViewModelProvider(this).get(NearbyRouteViewModel.class);
 
         mapView.getMapboxMap().loadStyle(Style.DARK, style -> {
@@ -113,9 +113,32 @@ public class NearbyRouteFragment extends Fragment {
         });
 
         observeViewModel();
+        setupSearch();
         setupButtons();
         setupBackPress();
     }
+
+    private void bindViews(View view) {
+        mapView             = view.findViewById(R.id.map_view);
+        rowLoading          = view.findViewById(R.id.row_loading);
+        rowIdle             = view.findViewById(R.id.row_idle);
+        rowRouteReady       = view.findViewById(R.id.row_route_ready);
+        tvRouteInfoCard     = view.findViewById(R.id.tv_route_info_card);
+        tvRouteInfo         = view.findViewById(R.id.tv_route_info);
+        btnCancel           = view.findViewById(R.id.btn_cancel);
+        btnRecords          = view.findViewById(R.id.btn_records);
+        btnCompare          = view.findViewById(R.id.btn_compare);
+        btnFreeRun          = view.findViewById(R.id.btn_free_run);
+        btnFindNearby       = view.findViewById(R.id.btn_find_nearby);
+        btnReplan           = view.findViewById(R.id.btn_replan);
+        btnStartRun         = view.findViewById(R.id.btn_start_run);
+        searchCard          = view.findViewById(R.id.search_card);
+        dividerResults      = view.findViewById(R.id.divider_results);
+        resultsContainer    = view.findViewById(R.id.results_container);
+        etSearchDestination = view.findViewById(R.id.et_search_destination);
+    }
+
+    // --- location ---
 
     private void requestLocationPermission() {
         if (ContextCompat.checkSelfPermission(requireContext(),
@@ -140,8 +163,6 @@ public class NearbyRouteFragment extends Fragment {
             });
             locationPlugin.addOnIndicatorPositionChangedListener(positionListener);
         }
-
-        // Follow puck
         ViewportPlugin viewport = ViewportUtils.getViewport(mapView);
         viewport.transitionTo(
                 viewport.makeFollowPuckViewportState(
@@ -150,54 +171,96 @@ public class NearbyRouteFragment extends Fragment {
                 viewport.makeImmediateViewportTransition(), null);
     }
 
+    // --- observers ---
+
     private void observeViewModel() {
         viewModel.getUiState().observe(getViewLifecycleOwner(), state -> {
-            boolean loading = state == NearbyRouteViewModel.UiState.LOADING;
+            boolean loading   = state == NearbyRouteViewModel.UiState.LOADING;
             boolean routeReady = state == NearbyRouteViewModel.UiState.ROUTE_READY;
+            boolean idle      = !loading && !routeReady;
 
-            rowLoading.setVisibility(loading ? View.VISIBLE : View.GONE);
-            rowIdle.setVisibility(!loading && !routeReady ? View.VISIBLE : View.GONE);
-            rowRouteReady.setVisibility(routeReady ? View.VISIBLE : View.GONE);
+            rowLoading.setVisibility(loading    ? View.VISIBLE : View.GONE);
+            rowIdle.setVisibility(idle          ? View.VISIBLE : View.GONE);
+            rowRouteReady.setVisibility(routeReady  ? View.VISIBLE : View.GONE);
+            searchCard.setVisibility(routeReady ? View.GONE    : View.VISIBLE);
+            tvRouteInfoCard.setVisibility(routeReady ? View.VISIBLE : View.GONE);
+
+            if (loading)    clearInlineResults();
+            if (routeReady) hideKeyboard();
         });
 
         viewModel.getNearbyPlaces().observe(getViewLifecycleOwner(), places -> {
             if (places == null) return;
-            viewModel.clearNearbyPlaces(); // consume so it doesn't re-fire on rotation
-            if (!places.isEmpty()) {
-                showPlacePickerDialog(places);
+            viewModel.clearNearbyPlaces(); // prevent re-show on rotation
+            if (places.isEmpty()) {
+                Toast.makeText(requireContext(), R.string.msg_no_places_found, Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(requireContext(), "No places found nearby", Toast.LENGTH_SHORT).show();
+                showInlineResults(places);
             }
         });
 
         viewModel.getPlannedRoute().observe(getViewLifecycleOwner(), route -> {
-            if (route != null) {
-                mapView.getMapboxMap().getStyle(style ->
-                        RouteMapHelper.drawPlannedRoute(style, route.coordinates));
-                tvRouteInfo.setText(route.getFormattedDistance()
-                        + "  ·  " + route.getFormattedDuration()
-                        + "  ·  " + route.getDifficulty());
-                tvRouteInfoCard.setVisibility(View.VISIBLE);
-                RouteMapHelper.zoomToFitCoords(mapView, route.coordinates);
-            }
+            if (route == null) return;
+            mapView.getMapboxMap().getStyle(style ->
+                    RouteMapHelper.drawPlannedRoute(style, route.coordinates));
+            tvRouteInfo.setText(route.getFormattedDistance()
+                    + "  ·  " + route.getFormattedDuration()
+                    + "  ·  " + route.getDifficulty());
+            RouteMapHelper.zoomToFitCoords(mapView, route.coordinates);
         });
 
         viewModel.getErrorMessage().observe(getViewLifecycleOwner(), msg -> {
             if (msg == null || msg.isEmpty()) return;
-            viewModel.clearError(); // consume so it doesn't re-fire on rotation
+            viewModel.clearError(); // prevent re-show on rotation
             Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
         });
     }
+
+    // --- search ---
+
+    private void setupSearch() {
+        searchRunnable = () -> {
+            String query = etSearchDestination.getText().toString().trim();
+            if (!query.isEmpty()) viewModel.searchByQuery(query);
+        };
+
+        etSearchDestination.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override
+            public void afterTextChanged(Editable s) {
+                searchHandler.removeCallbacks(searchRunnable);
+                if (s.length() < 2) {
+                    clearInlineResults(); // clear stale results once query is too short
+                } else if (locationCaptured) {
+                    searchHandler.postDelayed(searchRunnable, 300);
+                }
+            }
+        });
+
+        // Tap keyboard "Search" key → fire immediately, skip debounce
+        etSearchDestination.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                searchHandler.removeCallbacks(searchRunnable);
+                String query = etSearchDestination.getText().toString().trim();
+                if (query.length() >= 2 && locationCaptured) viewModel.searchByQuery(query);
+                return true;
+            }
+            return false;
+        });
+    }
+
+    // --- buttons ---
 
     private void setupButtons() {
         btnFreeRun.setOnClickListener(v -> navigateToTracking(null));
 
         btnFindNearby.setOnClickListener(v -> {
             if (!locationCaptured) {
-                Toast.makeText(requireContext(),
-                        "Waiting for location...", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), R.string.msg_waiting_for_location, Toast.LENGTH_SHORT).show();
                 return;
             }
+            etSearchDestination.setText(""); // clear typed query — we're switching to nearby discovery
             viewModel.findNearbyPlaces();
         });
 
@@ -206,51 +269,66 @@ public class NearbyRouteFragment extends Fragment {
         btnRecords.setOnClickListener(v ->
                 requireActivity().getSupportFragmentManager().beginTransaction()
                         .replace(getContainerId(), new RecordsFragment())
-                        .addToBackStack(null)
-                        .commit());
+                        .addToBackStack(null).commit());
 
         btnCompare.setOnClickListener(v ->
                 requireActivity().getSupportFragmentManager().beginTransaction()
                         .replace(getContainerId(), new CompareRecordsFragment())
-                        .addToBackStack(null)
-                        .commit());
+                        .addToBackStack(null).commit());
 
-        btnReplan.setOnClickListener(v -> {
-            viewModel.cancelLoading();
-            RouteMapHelper.clearPlannedRoute(mapStyle);
-            tvRouteInfoCard.setVisibility(View.GONE);
-            // Show cached places list if available — skip re-fetching
-            List<NearbyPlace> cached = viewModel.getLastFetchedPlaces();
-            if (cached != null && !cached.isEmpty()) {
-                showPlacePickerDialog(cached);
-            }
-        });
+        btnReplan.setOnClickListener(v -> replan());
 
-        btnStartRun.setOnClickListener(v -> {
-            PlannedRoute route = viewModel.getPlannedRoute().getValue();
-            navigateToTracking(route);
-        });
+        btnStartRun.setOnClickListener(v ->
+                navigateToTracking(viewModel.getPlannedRoute().getValue()));
     }
 
-    private void showPlacePickerDialog(List<NearbyPlace> places) {
-        String[] names = new String[places.size()];
-        for (int i = 0; i < places.size(); i++) {
-            names[i] = places.get(i).name + "  (" + places.get(i).getFormattedDistance() + ")";
+    // --- helpers ---
+
+    /** Reset to IDLE and re-show the last result list so the user can pick a different place. */
+    private void replan() {
+        List<NearbyPlace> cached = viewModel.getLastFetchedPlaces();
+        viewModel.reset(); // drives UI state via observer (hides route card, shows searchCard + rowIdle)
+        RouteMapHelper.clearPlannedRoute(mapStyle);
+        etSearchDestination.setText("");
+        if (cached != null && !cached.isEmpty()) showInlineResults(cached);
+    }
+
+    private void showInlineResults(List<NearbyPlace> places) {
+        resultsContainer.removeAllViews();
+
+        int px12 = (int) (12 * getResources().getDisplayMetrics().density);
+        TypedValue ripple = new TypedValue();
+        requireContext().getTheme().resolveAttribute(android.R.attr.selectableItemBackground, ripple, true);
+
+        for (NearbyPlace place : places) {
+            TextView item = new TextView(requireContext());
+            item.setText(place.name + "  ·  " + place.getFormattedDistance());
+            item.setTextColor(android.graphics.Color.WHITE);
+            item.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+            item.setPadding(px12, px12, px12, px12);
+            item.setBackgroundResource(ripple.resourceId);
+            item.setOnClickListener(v -> {
+                clearInlineResults();
+                viewModel.generateRoute(place);
+            });
+            resultsContainer.addView(item);
         }
 
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Choose a destination")
-                .setItems(names, (dialog, which) -> {
-                    viewModel.generateRoute(places.get(which));
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+        dividerResults.setVisibility(View.VISIBLE);
+        resultsContainer.setVisibility(View.VISIBLE);
+    }
+
+    private void clearInlineResults() {
+        resultsContainer.removeAllViews();
+        resultsContainer.setVisibility(View.GONE);
+        dividerResults.setVisibility(View.GONE);
     }
 
     private void navigateToTracking(PlannedRoute route) {
-        viewModel.reset(); // full reset — clears places cache too
+        searchHandler.removeCallbacks(searchRunnable);
+        etSearchDestination.setText("");
+        viewModel.reset();
         RouteMapHelper.clearPlannedRoute(mapStyle);
-        tvRouteInfoCard.setVisibility(View.GONE);
 
         Fragment fragment = route != null
                 ? TrackingFragment.newInstance(route)
@@ -258,8 +336,7 @@ public class NearbyRouteFragment extends Fragment {
 
         requireActivity().getSupportFragmentManager().beginTransaction()
                 .replace(getContainerId(), fragment)
-                .addToBackStack(null)
-                .commit();
+                .addToBackStack(null).commit();
     }
 
     private void setupBackPress() {
@@ -272,11 +349,9 @@ public class NearbyRouteFragment extends Fragment {
                         if (state == NearbyRouteViewModel.UiState.LOADING) {
                             viewModel.cancelLoading();
                         } else if (state == NearbyRouteViewModel.UiState.ROUTE_READY) {
-                            viewModel.reset();
-                            RouteMapHelper.clearPlannedRoute(mapStyle);
-                            tvRouteInfoCard.setVisibility(View.GONE);
+                            replan();
                         } else {
-                            // IDLE — let system handle (exit / pop back stack)
+                            // IDLE — let system handle (pop back stack / exit)
                             setEnabled(false);
                             requireActivity().getOnBackPressedDispatcher().onBackPressed();
                         }
@@ -284,24 +359,22 @@ public class NearbyRouteFragment extends Fragment {
                 });
     }
 
+    private void hideKeyboard() {
+        InputMethodManager imm = (InputMethodManager)
+                requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm != null) imm.hideSoftInputFromWindow(etSearchDestination.getWindowToken(), 0);
+    }
+
     private int getContainerId() {
         return ((ViewGroup) requireView().getParent()).getId();
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        mapView.onStart();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        mapView.onStop();
-    }
+    @Override public void onStart() { super.onStart(); mapView.onStart(); }
+    @Override public void onStop()  { super.onStop();  mapView.onStop();  }
 
     @Override
     public void onDestroyView() {
+        searchHandler.removeCallbacks(searchRunnable);
         LocationComponentPlugin locationPlugin =
                 mapView.getPlugin(Plugin.MAPBOX_LOCATION_COMPONENT_PLUGIN_ID);
         if (locationPlugin != null) {

@@ -20,4 +20,17 @@ public interface SearchBoxApiService {
             @Query("limit") int limit,
             @Query("access_token") String accessToken
     );
+
+    /**
+     * Forward (text) search for a specific named place.
+     * https://api.mapbox.com/search/searchbox/v1/forward
+     */
+    @GET("search/searchbox/v1/forward")
+    Call<SearchBoxResponse> searchByText(
+            @Query("q") String query,
+            @Query("proximity") String proximity,        // "lng,lat" — bias toward user
+            @Query("auto_complete") boolean autoComplete, // true for search-as-you-type
+            @Query("limit") int limit,
+            @Query("access_token") String accessToken
+    );
 }

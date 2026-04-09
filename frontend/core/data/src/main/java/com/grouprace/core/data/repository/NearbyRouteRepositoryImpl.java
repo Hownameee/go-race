@@ -37,10 +37,8 @@ public class NearbyRouteRepositoryImpl implements NearbyRouteRepository {
     public LiveData<Result<List<NearbyPlace>>> getNearbyPlaces(double lng, double lat,
                                                                 String accessToken) {
         MutableLiveData<Result<List<NearbyPlace>>> liveData = new MutableLiveData<>();
-
         String proximity = String.format(Locale.US, "%.6f,%.6f", lng, lat);
 
-        // Search for parks, trails, and natural landmarks nearby
         searchBoxApi.getNearbyPlaces("park,trail,landmark", proximity, 10, accessToken)
                 .enqueue(new Callback<SearchBoxResponse>() {
                     @Override
@@ -48,21 +46,8 @@ public class NearbyRouteRepositoryImpl implements NearbyRouteRepository {
                                            Response<SearchBoxResponse> response) {
                         if (response.isSuccessful() && response.body() != null
                                 && response.body().features != null) {
-                            List<NearbyPlace> places = new ArrayList<>();
-                            for (SearchBoxResponse.Feature f : response.body().features) {
-                                if (f.properties == null || f.geometry == null) continue;
-                                if (f.geometry.coordinates == null
-                                        || f.geometry.coordinates.size() < 2) continue;
-                                double placeLng = f.geometry.coordinates.get(0);
-                                double placeLat = f.geometry.coordinates.get(1);
-                                places.add(new NearbyPlace(
-                                        f.properties.name,
-                                        placeLng,
-                                        placeLat,
-                                        f.properties.distance
-                                ));
-                            }
-                            liveData.postValue(new Result.Success<>(places));
+                            liveData.postValue(new Result.Success<>(
+                                    parseFeatures(response.body().features)));
                         } else {
                             liveData.postValue(new Result.Error<>(null, "No places found nearby"));
                         }
@@ -76,6 +61,55 @@ public class NearbyRouteRepositoryImpl implements NearbyRouteRepository {
                 });
 
         return liveData;
+    }
+
+    @Override
+    public LiveData<Result<List<NearbyPlace>>> searchByQuery(String query, double lng, double lat,
+                                                              String accessToken) {
+        MutableLiveData<Result<List<NearbyPlace>>> liveData = new MutableLiveData<>();
+        String proximity = String.format(Locale.US, "%.6f,%.6f", lng, lat);
+
+        searchBoxApi.searchByText(query, proximity, true, 5, accessToken)
+                .enqueue(new Callback<SearchBoxResponse>() {
+                    @Override
+                    public void onResponse(Call<SearchBoxResponse> call,
+                                           Response<SearchBoxResponse> response) {
+                        if (response.isSuccessful() && response.body() != null
+                                && response.body().features != null) {
+                            List<NearbyPlace> places = parseFeatures(response.body().features);
+                            if (places.isEmpty()) {
+                                liveData.postValue(new Result.Error<>(null, "No places found"));
+                            } else {
+                                liveData.postValue(new Result.Success<>(places));
+                            }
+                        } else {
+                            liveData.postValue(new Result.Error<>(null, "No places found"));
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<SearchBoxResponse> call, Throwable t) {
+                        liveData.postValue(new Result.Error<>(
+                                new Exception(t), "Search failed"));
+                    }
+                });
+
+        return liveData;
+    }
+
+    private List<NearbyPlace> parseFeatures(List<SearchBoxResponse.Feature> features) {
+        List<NearbyPlace> places = new ArrayList<>();
+        for (SearchBoxResponse.Feature f : features) {
+            if (f.properties == null || f.geometry == null) continue;
+            if (f.geometry.coordinates == null || f.geometry.coordinates.size() < 2) continue;
+            places.add(new NearbyPlace(
+                    f.properties.name,
+                    f.geometry.coordinates.get(0),
+                    f.geometry.coordinates.get(1),
+                    f.properties.distance
+            ));
+        }
+        return places;
     }
 
     @Override

@@ -1,5 +1,9 @@
 package com.grouprace.feature.tracking.ui;
 
+import java.util.List;
+
+import javax.inject.Inject;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
@@ -10,10 +14,6 @@ import com.grouprace.core.data.repository.NearbyRouteRepository;
 import com.grouprace.core.model.NearbyPlace;
 import com.grouprace.core.model.PlannedRoute;
 import com.mapbox.common.MapboxOptions;
-
-import java.util.List;
-
-import javax.inject.Inject;
 
 import dagger.hilt.android.lifecycle.HiltViewModel;
 
@@ -32,6 +32,7 @@ public class NearbyRouteViewModel extends ViewModel {
     private double userLng;
     private double userLat;
     private List<NearbyPlace> lastFetchedPlaces;
+    private int searchToken = 0;
 
     @Inject
     public NearbyRouteViewModel(NearbyRouteRepository repository) {
@@ -49,16 +50,25 @@ public class NearbyRouteViewModel extends ViewModel {
     }
 
     public void findNearbyPlaces() {
+        searchToken++;
         uiState.setValue(UiState.LOADING);
         observe(repository.getNearbyPlaces(userLng, userLat, mapboxToken()),
-                nearbyPlaces, UiState.IDLE,
+                nearbyPlaces, UiState.IDLE, searchToken,
+                data -> lastFetchedPlaces = data);
+    }
+
+    public void searchByQuery(String query) {
+        searchToken++;
+        observe(repository.searchByQuery(query, userLng, userLat, mapboxToken()),
+                nearbyPlaces, UiState.IDLE, searchToken,
                 data -> lastFetchedPlaces = data);
     }
 
     public void generateRoute(NearbyPlace place) {
+        searchToken++;
         uiState.setValue(UiState.LOADING);
         observe(repository.generateRoute(userLng, userLat, place.lng, place.lat, mapboxToken()),
-                plannedRoute, UiState.ROUTE_READY, null);
+                plannedRoute, UiState.ROUTE_READY, searchToken, null);
     }
 
     public void reset() {
@@ -69,12 +79,13 @@ public class NearbyRouteViewModel extends ViewModel {
         uiState.setValue(UiState.IDLE);
     }
 
-    /** Cancel a pending load and return to IDLE — does not clear fetched places. */
+    /** Cancel a pending load and return to IDLE. Increments token so any in-flight result is discarded. */
     public void cancelLoading() {
+        searchToken++;
         uiState.setValue(UiState.IDLE);
     }
 
-    /** Call after the places dialog has been shown to prevent re-showing on rotation. */
+    /** Call after inline results have been shown to prevent re-showing on rotation. */
     public void clearNearbyPlaces() { nearbyPlaces.setValue(null); }
 
     /** Call after the error toast has been shown to prevent re-showing on rotation. */
@@ -90,12 +101,14 @@ public class NearbyRouteViewModel extends ViewModel {
     interface AfterSuccess<T> { void accept(T data); }
 
     private <T> void observe(LiveData<Result<T>> source, MutableLiveData<T> target,
-                              UiState onSuccess, AfterSuccess<T> after) {
+                              UiState onSuccess, int token, AfterSuccess<T> after) {
         source.observeForever(new Observer<Result<T>>() {
             @Override
             public void onChanged(Result<T> r) {
                 if (r instanceof Result.Loading) return;
                 source.removeObserver(this);
+                // Discard result if this request was cancelled or superseded by a newer one
+                if (token != searchToken) return;
                 if (r instanceof Result.Success) {
                     T data = ((Result.Success<T>) r).data;
                     target.setValue(data);

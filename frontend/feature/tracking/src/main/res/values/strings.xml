@@ -12,5 +12,9 @@
     <string name="activity_title_hint">Name your activity</string>
     <string name="history">History</string>
     <string name="compare">Compare</string>
+    <string name="hint_search_destination">Search destination…</string>
+    <string name="title_choose_destination">Choose a destination</string>
+    <string name="msg_waiting_for_location">Waiting for location…</string>
+    <string name="msg_no_places_found">No places found</string>
 
 </resources>

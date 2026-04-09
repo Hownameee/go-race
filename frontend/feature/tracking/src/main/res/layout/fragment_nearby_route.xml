@@ -93,7 +93,7 @@
             android:id="@+id/tv_route_info_card"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@color/surface_dark"
+            android:background="@drawable/bg_chip_dark"
             android:paddingHorizontal="20dp"
             android:paddingVertical="10dp"
             android:layout_marginBottom="12dp"
@@ -107,6 +107,58 @@
                 android:textSize="14sp" />
 
         </LinearLayout>
+
+        <!-- Search + results card — visible in IDLE, hidden in LOADING/ROUTE_READY -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/search_card"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardBackgroundColor="@color/surface_dark"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Inline results: grows upward above the search bar -->
+                <LinearLayout
+                    android:id="@+id/results_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone" />
+
+                <!-- Divider: shown only when results are present -->
+                <View
+                    android:id="@+id/divider_results"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/surface_medium"
+                    android:visibility="gone" />
+
+                <!-- Search bar: always at the bottom of the card -->
+                <EditText
+                    android:id="@+id/et_search_destination"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:paddingHorizontal="16dp"
+                    android:hint="@string/hint_search_destination"
+                    android:textColorHint="@color/text_secondary"
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp"
+                    android:background="@null"
+                    android:imeOptions="actionSearch"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:singleLine="true" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- IDLE row: Free Run + Find Nearby -->
         <LinearLayout
