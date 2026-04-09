@@ -69,6 +69,7 @@ public class NearbyRouteFragment extends Fragment {
     private MaterialButton btnStartRun;
     private MaterialCardView searchCard;
     private View dividerResults;
+    private View touchDismissOverlay;
     private LinearLayout resultsContainer;
     private EditText etSearchDestination;
 
@@ -132,10 +133,11 @@ public class NearbyRouteFragment extends Fragment {
         btnFindNearby       = view.findViewById(R.id.btn_find_nearby);
         btnReplan           = view.findViewById(R.id.btn_replan);
         btnStartRun         = view.findViewById(R.id.btn_start_run);
-        searchCard          = view.findViewById(R.id.search_card);
-        dividerResults      = view.findViewById(R.id.divider_results);
-        resultsContainer    = view.findViewById(R.id.results_container);
-        etSearchDestination = view.findViewById(R.id.et_search_destination);
+        searchCard           = view.findViewById(R.id.search_card);
+        dividerResults       = view.findViewById(R.id.divider_results);
+        touchDismissOverlay  = view.findViewById(R.id.touch_dismiss_overlay);
+        resultsContainer     = view.findViewById(R.id.results_container);
+        etSearchDestination  = view.findViewById(R.id.et_search_destination);
     }
 
     // --- location ---
@@ -238,15 +240,28 @@ public class NearbyRouteFragment extends Fragment {
             }
         });
 
-        // Tap keyboard "Search" key → fire immediately, skip debounce
+        // Return/Search key: dismiss if results are open, otherwise fire search immediately
         etSearchDestination.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 searchHandler.removeCallbacks(searchRunnable);
-                String query = etSearchDestination.getText().toString().trim();
-                if (query.length() >= 2 && locationCaptured) viewModel.searchByQuery(query);
+                if (resultsContainer.getVisibility() == View.VISIBLE) {
+                    clearInlineResults();
+                    etSearchDestination.clearFocus();
+                    hideKeyboard();
+                } else {
+                    String query = etSearchDestination.getText().toString().trim();
+                    if (query.length() >= 2 && locationCaptured) viewModel.searchByQuery(query);
+                }
                 return true;
             }
             return false;
+        });
+
+        // Tap outside the search card → dismiss results and keyboard
+        touchDismissOverlay.setOnClickListener(v -> {
+            clearInlineResults();
+            etSearchDestination.clearFocus();
+            hideKeyboard();
         });
     }
 
@@ -316,12 +331,14 @@ public class NearbyRouteFragment extends Fragment {
 
         dividerResults.setVisibility(View.VISIBLE);
         resultsContainer.setVisibility(View.VISIBLE);
+        touchDismissOverlay.setVisibility(View.VISIBLE);
     }
 
     private void clearInlineResults() {
         resultsContainer.removeAllViews();
         resultsContainer.setVisibility(View.GONE);
         dividerResults.setVisibility(View.GONE);
+        touchDismissOverlay.setVisibility(View.GONE);
     }
 
     private void navigateToTracking(PlannedRoute route) {
