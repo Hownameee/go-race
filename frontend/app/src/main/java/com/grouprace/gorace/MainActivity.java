@@ -21,6 +21,7 @@ import com.grouprace.feature.login.ui.LoginFragment;
 import com.grouprace.feature.posts.ui.PostFragment;
 import com.grouprace.feature.records.list.ui.RecordsFragment;
 import com.grouprace.feature.register.ui.RegisterFragment;
+import com.grouprace.feature.tracking.ui.NearbyRouteFragment;
 import com.grouprace.feature.tracking.ui.TrackingFragment;
 
 import androidx.lifecycle.ViewModelProvider;
@@ -54,9 +55,9 @@ public class MainActivity extends AppCompatActivity {
             if (itemId == R.id.nav_home) {
                 fragment = new PostFragment();
             } else if (itemId == R.id.nav_maps) {
-                fragment = new RecordsFragment();
+                fragment = new PlaceholderFragment();
             } else if (itemId == R.id.nav_record) {
-                fragment = new TrackingFragment();
+                fragment = new NearbyRouteFragment();
             } else if (itemId == R.id.nav_clubs) {
                 fragment = new PlaceholderFragment();
             } else if (itemId == R.id.nav_you) {
