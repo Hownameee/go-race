@@ -70,10 +70,6 @@ public class NotificationViewModel extends ViewModel {
         notificationsResult.setValue(new Result.Success<>(new ArrayList<>(allNotifications)));
     }
 
-    public void registerDeviceToken(String token) {
-        repository.registerDeviceToken(token);
-    }
-
     public LiveData<Result<List<NotificationModel>>> getNotifications() {
         if (!hasLoaded) {
             refreshNotifications();

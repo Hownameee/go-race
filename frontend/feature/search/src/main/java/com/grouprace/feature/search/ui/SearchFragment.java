@@ -107,12 +107,6 @@ public class SearchFragment extends Fragment {
                 searchRunnable = () -> {
                     String query = s.toString().trim();
 
-                    if (query.length() < 2) {
-                        lastQuery = "";
-                        viewModel.search(""); // load suggested
-                        return;
-                    }
-
                     if (!query.equals(lastQuery)) {
                         lastQuery = query;
                         viewModel.search(query);

@@ -32,7 +32,7 @@ async function handleInvalidTokens(responses, tokens) {
 
   if (invalidTokens.length > 0) {
     console.log('[fcm] removing invalid tokens:', invalidTokens.length);
-    await deviceTokenService.removeTokens(invalidTokens);
+    await deviceTokenService.removeInvalidTokens(invalidTokens);
   }
 }
 

@@ -37,4 +37,8 @@ public class LoginViewModel extends ViewModel {
 
         return repository.login(payload);
     }
+
+    public LiveData<Result<Boolean>>  registerDeviceToken(String token) {
+        return repository.registerDeviceToken(token);
+    }
 }

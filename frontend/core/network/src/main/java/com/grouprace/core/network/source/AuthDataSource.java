@@ -12,6 +12,7 @@ import com.grouprace.core.network.model.auth.LoginResponse;
 import com.grouprace.core.network.model.auth.RequestPasswordResetOtpPayload;
 import com.grouprace.core.network.model.auth.RegisterPayload;
 import com.grouprace.core.network.model.auth.VerifyPasswordResetOtpPayload;
+import com.grouprace.core.network.model.notification.RegisterDeviceTokenRequest;
 import com.grouprace.core.network.model.user.ResetPasswordWithOtpPayload;
 import com.grouprace.core.network.utils.ApiResponse;
 
@@ -192,4 +193,30 @@ public class AuthDataSource {
 
         return fallbackMessage;
     }
+
+    public LiveData<Result<Boolean>> registerDeviceToken(String token) {
+        MutableLiveData<Result<Boolean>> result = new MutableLiveData<>();
+        result.setValue(new Result.Loading<>());
+
+        RegisterDeviceTokenRequest body = new RegisterDeviceTokenRequest(token, "android");
+
+        apiService.registerDeviceToken(body).enqueue(new Callback<ApiResponse<Object>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Object>> call, Response<ApiResponse<Object>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Log.d("DeviceToken", "register success=" + response.body().isSuccess());
+                } else {
+                    Log.e("DeviceToken", "register HTTP " + response.code() + " " + response.message());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<Object>> call, Throwable t) {
+                Log.e("DeviceToken", "register failure: " + t.getMessage());
+            }
+        });
+
+        return result;
+    }
+
 }
