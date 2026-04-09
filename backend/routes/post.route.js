@@ -77,4 +77,26 @@ router.delete(
   postController.deleteComment,
 );
 
+router.post(
+  '/api/posts/:postId/comments/:commentId/like',
+  auth,
+  validation(commentIdParamsSchema, 'params'),
+  postController.likeComment,
+);
+
+router.delete(
+  '/api/posts/:postId/comments/:commentId/like',
+  auth,
+  validation(commentIdParamsSchema, 'params'),
+  postController.unlikeComment,
+);
+
+router.get(
+  '/api/posts/:postId/comments/:commentId/replies',
+  auth,
+  validation(commentIdParamsSchema, 'params'),
+  validation(getCommentsQuerySchema, 'query'),
+  postController.getReplies,
+);
+
 export default router;

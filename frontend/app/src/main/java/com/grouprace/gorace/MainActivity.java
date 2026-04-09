@@ -26,15 +26,10 @@ import com.grouprace.feature.tracking.ui.TrackingFragment;
 
 import androidx.lifecycle.ViewModelProvider;
 
-import javax.inject.Inject;
-
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class MainActivity extends AppCompatActivity {
-
-    @Inject
-    SessionManager sessionManager; // Keep for some direct checks or remove if fully reactive
 
     private BottomNavigationView bottomNav;
     private MainViewModel viewModel;

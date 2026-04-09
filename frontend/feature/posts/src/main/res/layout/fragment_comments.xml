@@ -50,6 +50,35 @@
         android:textColor="@color/error_red"
         android:visibility="gone" />
 
+    <!-- Reply Banner -->
+    <LinearLayout
+        android:id="@+id/layout_reply_indicator"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp"
+        android:background="#1A1A1A"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tv_replying_to"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Replying to @username"
+            android:textColor="@color/text_tertiary"
+            android:textSize="12sp" />
+
+        <ImageView
+            android:id="@+id/btn_cancel_reply"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            app:tint="@color/text_tertiary" />
+    </LinearLayout>
+
     <!-- Input Bar -->
     <LinearLayout
         android:layout_width="match_parent"

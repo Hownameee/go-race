@@ -14,6 +14,9 @@ public interface PostDao {
     LiveData<List<PostEntity>> getAllPosts();
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void upsert(PostEntity post);
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     void upsertAll(List<PostEntity> posts);
 
     @Query("DELETE FROM posts")

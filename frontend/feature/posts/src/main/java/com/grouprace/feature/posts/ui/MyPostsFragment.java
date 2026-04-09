@@ -62,6 +62,10 @@ public class MyPostsFragment extends Fragment {
             @Override
             public void onCommentClicked(Post post) {
             }
+
+            @Override
+            public void onShareClicked(Post post) {
+            }
         });
         recyclerView.setAdapter(postAdapter);
 

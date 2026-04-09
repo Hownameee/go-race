@@ -12,13 +12,18 @@ public class Post {
     private String viewMode;
     private String createdAt;
     private String username;
-    private String displayName;
+    private String fullName;
     private String profilePictureUrl;
+    private String activityType;
+    private Integer durationSeconds;
+    private Double distanceKm;
+    private Double speed;
+    private String recordImageUrl;
     private boolean isLiked;
 
     public Post() {}
 
-    public Post(int postId, Integer recordId, int ownerId, String title, String description, String photoUrl, int likeCount, int commentCount, String viewMode, String createdAt, String username, String displayName, String profilePictureUrl) {
+    public Post(int postId, Integer recordId, int ownerId, String title, String description, String photoUrl, int likeCount, int commentCount, String viewMode, String createdAt, String username, String fullName, String profilePictureUrl, String activityType, Integer durationSeconds, Double distanceKm, Double speed, String recordImageUrl) {
         this.postId = postId;
         this.recordId = recordId;
         this.ownerId = ownerId;
@@ -30,8 +35,13 @@ public class Post {
         this.viewMode = viewMode;
         this.createdAt = createdAt;
         this.username = username;
-        this.displayName = displayName;
+        this.fullName = fullName;
         this.profilePictureUrl = profilePictureUrl;
+        this.activityType = activityType;
+        this.durationSeconds = durationSeconds;
+        this.distanceKm = distanceKm;
+        this.speed = speed;
+        this.recordImageUrl = recordImageUrl;
     }
 
     public int getPostId() { return postId; }
@@ -56,10 +66,20 @@ public class Post {
     public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
-    public String getDisplayName() { return displayName; }
-    public void setDisplayName(String displayName) { this.displayName = displayName; }
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
     public String getProfilePictureUrl() { return profilePictureUrl; }
     public void setProfilePictureUrl(String profilePictureUrl) { this.profilePictureUrl = profilePictureUrl; }
+    public String getActivityType() { return activityType; }
+    public void setActivityType(String activityType) { this.activityType = activityType; }
+    public Integer getDurationSeconds() { return durationSeconds; }
+    public void setDurationSeconds(Integer durationSeconds) { this.durationSeconds = durationSeconds; }
+    public Double getDistanceKm() { return distanceKm; }
+    public void setDistanceKm(Double distanceKm) { this.distanceKm = distanceKm; }
+    public Double getSpeed() { return speed; }
+    public void setSpeed(Double speed) { this.speed = speed; }
+    public String getRecordImageUrl() { return recordImageUrl; }
+    public void setRecordImageUrl(String recordImageUrl) { this.recordImageUrl = recordImageUrl; }
     public boolean isLiked() { return isLiked; }
     public void setLiked(boolean liked) { this.isLiked = liked; }
 }

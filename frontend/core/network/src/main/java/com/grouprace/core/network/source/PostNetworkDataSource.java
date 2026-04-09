@@ -8,6 +8,7 @@ import com.grouprace.core.network.api.PostApiService;
 import com.grouprace.core.network.model.post.NetworkPost;
 import com.grouprace.core.network.model.post.PostPayload;
 import com.grouprace.core.network.model.post.CreateCommentRequest;
+import com.grouprace.core.network.model.post.CreatePostRequest;
 import com.grouprace.core.network.model.post.CommentPayload;
 import com.grouprace.core.network.utils.ApiResponse;
 
@@ -152,15 +153,15 @@ public class PostNetworkDataSource {
 
         return liveData;
     }
-    public LiveData<Result<CommentPayload>> getComments(int postId) {
+    public LiveData<Result<CommentPayload>> getComments(int postId, String cursor, int limit) {
         MutableLiveData<Result<CommentPayload>> liveData = new MutableLiveData<>();
         liveData.postValue(new Result.Loading<>());
 
-        apiService.getComments(postId).enqueue(new Callback<ApiResponse<CommentPayload>>() {
+        apiService.getComments(postId, cursor, limit).enqueue(new Callback<ApiResponse<CommentPayload>>() {
             @Override
             public void onResponse(Call<ApiResponse<CommentPayload>> call, Response<ApiResponse<CommentPayload>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                    Log.d("PostNetworkDataSource", "Successfully fetched " + response.body().getData().getComments().size() + " comments"); 
+                    Log.d("PostNetworkDataSource", "Successfully fetched comments"); 
                     liveData.postValue(new Result.Success<>(response.body().getData()));
                 } else {
                     String msg = response.body() != null ? response.body().getMessage() : "HTTP " + response.code();
@@ -180,11 +181,86 @@ public class PostNetworkDataSource {
         return liveData;
     }
 
-    public LiveData<Result<Boolean>> createComment(int postId, String content) {
+    public LiveData<Result<Boolean>> likeComment(int postId, int commentId) {
         MutableLiveData<Result<Boolean>> liveData = new MutableLiveData<>();
         liveData.postValue(new Result.Loading<>());
 
-        CreateCommentRequest request = new CreateCommentRequest(content);
+        apiService.likeComment(postId, commentId).enqueue(new Callback<ApiResponse<Void>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    liveData.postValue(new Result.Success<>(true));
+                } else {
+                    String msg = response.body() != null ? response.body().getMessage() : "HTTP " + response.code();
+                    liveData.postValue(new Result.Error<>(new Exception(msg), msg));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
+                Exception ex = (t instanceof Exception) ? (Exception) t : new Exception(t);
+                liveData.postValue(new Result.Error<>(ex, "Network Failure: " + t.getMessage()));
+            }
+        });
+
+        return liveData;
+    }
+
+    public LiveData<Result<Boolean>> unlikeComment(int postId, int commentId) {
+        MutableLiveData<Result<Boolean>> liveData = new MutableLiveData<>();
+        liveData.postValue(new Result.Loading<>());
+
+        apiService.unlikeComment(postId, commentId).enqueue(new Callback<ApiResponse<Void>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    liveData.postValue(new Result.Success<>(true));
+                } else {
+                    String msg = response.body() != null ? response.body().getMessage() : "HTTP " + response.code();
+                    liveData.postValue(new Result.Error<>(new Exception(msg), msg));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
+                Exception ex = (t instanceof Exception) ? (Exception) t : new Exception(t);
+                liveData.postValue(new Result.Error<>(ex, "Network Failure: " + t.getMessage()));
+            }
+        });
+
+        return liveData;
+    }
+
+    public LiveData<Result<CommentPayload>> getReplies(int postId, int commentId, String cursor, int limit) {
+        MutableLiveData<Result<CommentPayload>> liveData = new MutableLiveData<>();
+        liveData.postValue(new Result.Loading<>());
+
+        apiService.getReplies(postId, commentId, cursor, limit).enqueue(new Callback<ApiResponse<CommentPayload>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<CommentPayload>> call, Response<ApiResponse<CommentPayload>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    liveData.postValue(new Result.Success<>(response.body().getData()));
+                } else {
+                    String msg = response.body() != null ? response.body().getMessage() : "HTTP " + response.code();
+                    liveData.postValue(new Result.Error<>(new Exception(msg), msg));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<CommentPayload>> call, Throwable t) {
+                Exception ex = (t instanceof Exception) ? (Exception) t : new Exception(t);
+                liveData.postValue(new Result.Error<>(ex, "Network Failure: " + t.getMessage()));
+            }
+        });
+
+        return liveData;
+    }
+
+    public LiveData<Result<Boolean>> createComment(int postId, String content, Integer parentId) {
+        MutableLiveData<Result<Boolean>> liveData = new MutableLiveData<>();
+        liveData.postValue(new Result.Loading<>());
+
+        CreateCommentRequest request = new CreateCommentRequest(content, parentId);
 
         apiService.createComment(postId, request).enqueue(new Callback<ApiResponse<Void>>() {
             @Override
@@ -230,6 +306,33 @@ public class PostNetworkDataSource {
             @Override
             public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
                 Log.e("PostNetworkDataSource", "Delete comment network failure: " + t.getMessage(), t);
+                Exception ex = (t instanceof Exception) ? (Exception) t : new Exception(t);
+                liveData.postValue(new Result.Error<>(ex, "Network Failure: " + t.getMessage()));
+            }
+        });
+
+        return liveData;
+    }
+    public LiveData<Result<Boolean>> createPost(CreatePostRequest request) {
+        MutableLiveData<Result<Boolean>> liveData = new MutableLiveData<>();
+        liveData.postValue(new Result.Loading<>());
+
+        apiService.createPost(request).enqueue(new Callback<ApiResponse<Void>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    Log.d("PostNetworkDataSource", "Post created successfully");
+                    liveData.postValue(new Result.Success<>(true));
+                } else {
+                    String msg = response.body() != null ? response.body().getMessage() : "HTTP " + response.code();
+                    Log.e("PostNetworkDataSource", "Create post failed: " + msg);
+                    liveData.postValue(new Result.Error<>(new Exception(msg), msg));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
+                Log.e("PostNetworkDataSource", "Create post network failure: " + t.getMessage(), t);
                 Exception ex = (t instanceof Exception) ? (Exception) t : new Exception(t);
                 liveData.postValue(new Result.Error<>(ex, "Network Failure: " + t.getMessage()));
             }

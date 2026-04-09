@@ -6,6 +6,7 @@ import androidx.lifecycle.Transformations;
 
 import com.grouprace.core.model.Post;
 import com.grouprace.core.model.Comment;
+import com.grouprace.core.network.model.post.CreatePostRequest;
 import com.grouprace.core.network.model.post.NetworkPost;
 import com.grouprace.core.network.model.post.NetworkComment;
 import com.grouprace.core.network.model.post.CommentPayload;
@@ -72,8 +73,9 @@ public class PostRepositoryImpl implements PostRepository {
                             p.getPostId(), p.getRecordId(), p.getOwnerId(), p.getTitle(),
                             p.getDescription(), p.getPhotoUrl(), p.getLikeCount(),
                             p.getCommentCount(), p.getViewMode(), p.getCreatedAt(),
-                            p.getUsername(), p.getDisplayName(), p.getProfilePictureUrl(),
-                            p.isLiked()
+                            p.getUsername(), p.getFullName(), p.getProfilePictureUrl(),
+                            p.getActivityType(), p.getDurationSeconds(), p.getDistanceKm(),
+                            p.getSpeed(), p.getRecordImageUrl(), p.isLiked()
                         );
                     })
                     .collect(Collectors.toList());
@@ -103,8 +105,8 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public LiveData<Result<List<Comment>>> getComments(int postId) {
-        return Transformations.map(postNetworkDataSource.getComments(postId), result -> {
+    public LiveData<Result<List<Comment>>> getComments(int postId, String cursor, int limit) {
+        return Transformations.map(postNetworkDataSource.getComments(postId, cursor, limit), result -> {
             if (result instanceof Result.Success) {
                 CommentPayload payload = ((Result.Success<CommentPayload>) result).data;
                 List<Comment> comments = payload.getComments().stream()
@@ -121,12 +123,62 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public LiveData<Result<Boolean>> createComment(int postId, String content) {
-        return postNetworkDataSource.createComment(postId, content);
+    public LiveData<Result<Boolean>> createComment(int postId, String content, Integer parentId) {
+        return postNetworkDataSource.createComment(postId, content, parentId);
     }
 
     @Override
     public LiveData<Result<Boolean>> deleteComment(int postId, int commentId) {
         return postNetworkDataSource.deleteComment(postId, commentId);
+    }
+
+    @Override
+    public LiveData<Result<Boolean>> likeComment(int postId, int commentId) {
+        return postNetworkDataSource.likeComment(postId, commentId);
+    }
+
+    @Override
+    public LiveData<Result<Boolean>> unlikeComment(int postId, int commentId) {
+        return postNetworkDataSource.unlikeComment(postId, commentId);
+    }
+
+    @Override
+    public LiveData<Result<List<Comment>>> getReplies(int postId, int commentId, String cursor, int limit) {
+        return Transformations.map(postNetworkDataSource.getReplies(postId, commentId, cursor, limit), result -> {
+            if (result instanceof Result.Success) {
+                CommentPayload payload = ((Result.Success<CommentPayload>) result).data;
+                List<Comment> comments = payload.getComments().stream()
+                        .map(NetworkComment::asExternalModel)
+                        .collect(Collectors.toList());
+                return new Result.Success<>(comments);
+            } else if (result instanceof Result.Error) {
+                Result.Error<CommentPayload> error = (Result.Error<CommentPayload>) result;
+                return new Result.Error<>(error.exception, error.message);
+            } else {
+                return new Result.Loading<>();
+            }
+        });
+    }
+
+    @Override
+    public LiveData<Result<Boolean>> createPost(String title, String description, Integer recordId) {
+        CreatePostRequest request = new CreatePostRequest(0, title, description); // ownerId will be handled by backend or auth interceptor
+        request.setRecordId(recordId);
+        
+        MutableLiveData<Result<Boolean>> resultData = new MutableLiveData<>();
+        resultData.postValue(new Result.Loading<>());
+
+        postNetworkDataSource.createPost(request).observeForever(result -> {
+            if (result instanceof Result.Success) {
+                // Trigger a sync to update the local feed with the new post
+                syncPosts(null, 1);
+                resultData.postValue(new Result.Success<>(true));
+            } else if (result instanceof Result.Error) {
+                Result.Error<?> error = (Result.Error<?>) result;
+                resultData.postValue(new Result.Error<>(error.exception, error.message));
+            }
+        });
+
+        return resultData;
     }
 }
