@@ -5,6 +5,7 @@ import com.grouprace.core.network.model.auth.LoginResponse;
 import com.grouprace.core.network.model.auth.RequestPasswordResetOtpPayload;
 import com.grouprace.core.network.model.auth.RegisterPayload;
 import com.grouprace.core.network.model.auth.VerifyPasswordResetOtpPayload;
+import com.grouprace.core.network.model.notification.RegisterDeviceTokenRequest;
 import com.grouprace.core.network.model.user.ResetPasswordWithOtpPayload;
 import com.grouprace.core.network.utils.ApiResponse;
 
@@ -30,4 +31,7 @@ public interface AuthApiService {
 
     @PATCH("/api/auth/password/reset")
     Call<ApiResponse<Void>> resetPasswordWithOtp(@Body ResetPasswordWithOtpPayload payload);
+
+    @POST("api/device-tokens")
+    Call<ApiResponse<Object>> registerDeviceToken(@Body RegisterDeviceTokenRequest body);
 }

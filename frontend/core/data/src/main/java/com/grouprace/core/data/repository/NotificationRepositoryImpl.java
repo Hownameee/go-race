@@ -52,11 +52,6 @@ public class NotificationRepositoryImpl implements NotificationRepository {
     }
 
     @Override
-    public void registerDeviceToken(String token) {
-        networkDataSource.registerDeviceToken(token);
-    }
-
-    @Override
     public void addNotification(NotificationModel notification) {
         cache.add(0, notification);
         notificationsLiveData.postValue(new Result.Success<>(new ArrayList<>(cache)));

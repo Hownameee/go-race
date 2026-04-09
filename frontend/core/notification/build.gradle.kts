@@ -37,8 +37,7 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-    implementation("io.socket:socket.io-client:2.0.1")
-    implementation("org.json:json:20230227")
 
     implementation(project(":core:model"))
+    implementation(project(":core:system"))
 }
