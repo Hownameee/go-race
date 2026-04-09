@@ -2,9 +2,12 @@ package com.grouprace.core.network.di;
 
 import java.util.concurrent.TimeUnit;
 
+import javax.inject.Named;
 import javax.inject.Singleton;
+import com.grouprace.core.network.api.DirectionsApiService;
 import com.grouprace.core.network.api.NotificationApiService;
 import com.grouprace.core.network.api.RecordApiService;
+import com.grouprace.core.network.api.SearchBoxApiService;
 import com.grouprace.core.network.api.UserApiService;
 
 import dagger.Module;
@@ -20,14 +23,10 @@ import com.grouprace.core.network.api.SearchApiService;
 import com.grouprace.core.network.utils.AuthInterceptor;
 import com.grouprace.core.network.utils.SessionManager;
 
-import javax.inject.Singleton;
-
-import java.util.concurrent.TimeUnit;
-
 @Module
 @InstallIn(SingletonComponent.class)
 public class NetworkModule {
-    private static final String BASE_URL = "http://10.0.2.2:5000/";
+    private static final String BASE_URL = "http://172.104.190.228:5000/";
 
     @Provides
     @Singleton
@@ -97,5 +96,34 @@ public class NetworkModule {
     @Singleton
     public UserApiService provideUserApiService(Retrofit retrofit) {
         return retrofit.create(UserApiService.class);
+    }
+
+    // Mapbox REST APIs (no auth interceptor — token passed as query param)
+    @Provides
+    @Singleton
+    @Named("mapbox")
+    public Retrofit provideMapboxRetrofit(HttpLoggingInterceptor loggingInterceptor) {
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addInterceptor(loggingInterceptor)
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .build();
+        return new Retrofit.Builder()
+                .baseUrl("https://api.mapbox.com/")
+                .client(client)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+    }
+
+    @Provides
+    @Singleton
+    public SearchBoxApiService provideSearchBoxApiService(@Named("mapbox") Retrofit retrofit) {
+        return retrofit.create(SearchBoxApiService.class);
+    }
+
+    @Provides
+    @Singleton
+    public DirectionsApiService provideDirectionsApiService(@Named("mapbox") Retrofit retrofit) {
+        return retrofit.create(DirectionsApiService.class);
     }
 }

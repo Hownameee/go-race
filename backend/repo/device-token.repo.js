@@ -32,6 +32,13 @@ const deviceTokenRepository = {
     `;
     return await db.prepare(sql).all();
   },
+
+  deleteByTokens: async function (tokens) {
+    if (!Array.isArray(tokens) || tokens.length === 0) return;
+    const placeholders = tokens.map(() => '?').join(',');
+    const sql = `DELETE FROM device_tokens WHERE token IN (${placeholders})`;
+    await db.prepare(sql).run(...tokens);
+  },
 };
 
 export default deviceTokenRepository;

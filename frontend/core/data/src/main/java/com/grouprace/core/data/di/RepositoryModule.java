@@ -2,6 +2,8 @@ package com.grouprace.core.data.di;
 
 import com.grouprace.core.data.repository.AuthRepository;
 import com.grouprace.core.data.repository.AuthRepositoryImpl;
+import com.grouprace.core.data.repository.NearbyRouteRepository;
+import com.grouprace.core.data.repository.NearbyRouteRepositoryImpl;
 import com.grouprace.core.data.repository.NotificationRepository;
 import com.grouprace.core.data.repository.NotificationRepositoryImpl;
 import com.grouprace.core.data.repository.PostRepository;
@@ -44,4 +46,7 @@ public abstract class RepositoryModule {
 
     @Binds
     public abstract UserRepository bindUserRepository(UserRepositoryImpl impl);
+
+    @Binds
+    public abstract NearbyRouteRepository bindNearbyRouteRepository(NearbyRouteRepositoryImpl impl);
 }

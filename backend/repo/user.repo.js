@@ -36,40 +36,44 @@ const userRepo = {
 
   getSuggestUser: (currentUserId, limit) => {
     const sql = `
+      WITH mutuals AS (
+        SELECT 
+          f2.following_id AS user_id,
+          COUNT(*) AS mutual_count
+        FROM FOLLOW f1
+        JOIN FOLLOW f2 
+          ON f1.following_id = f2.follower_id
+        WHERE f1.follower_id = ?  -- currentUserId
+        GROUP BY f2.following_id
+      ),
+      followers AS (
+        SELECT 
+          following_id AS user_id,
+          COUNT(*) AS follower_count
+        FROM FOLLOW
+        GROUP BY following_id
+      )
       SELECT 
-        u.user_id, 
-        u.fullname, 
+        u.user_id,
+        u.fullname,
         u.address,
         u.avatar_url,
-        (
-          -- 1. Mutual Connections: Count how many people the current user follows 
-          -- who ALSO follow this suggested user.
-          SELECT COUNT(*)
-          FROM FOLLOW f1
-          JOIN FOLLOW f2 ON f1.following_id = f2.follower_id
-          WHERE f1.follower_id = ? AND f2.following_id = u.user_id
-        ) AS mutual_count,
-        (
-          -- 2. Popularity Fallback: Total number of followers this user has.
-          SELECT COUNT(*)
-          FROM FOLLOW
-          WHERE following_id = u.user_id
-        ) AS follower_count
+        COALESCE(m.mutual_count, 0) AS mutual_count,
+        COALESCE(f.follower_count, 0) AS follower_count
       FROM USERS u
-      WHERE u.user_id != ? -- Exclude the current user
+      LEFT JOIN mutuals m ON u.user_id = m.user_id
+      LEFT JOIN followers f ON u.user_id = f.user_id
+      WHERE u.user_id != ?  -- Exclude current user
         AND u.user_id NOT IN (
-          -- Exclude users the current user is already following
           SELECT following_id 
           FROM FOLLOW 
-          WHERE follower_id = ?
+          WHERE follower_id = ?  -- Exclude already followed
         )
-      -- Rank by mutuals first, then popularity, then randomize ties to keep it fresh
-      ORDER BY mutual_count DESC, follower_count DESC, RANDOM()
+      ORDER BY mutual_count DESC, follower_count DESC
       LIMIT ?
     `;
 
-    return db
-      .prepare(sql)
+    return db.prepare(sql)
       .all(currentUserId, currentUserId, currentUserId, limit);
   },
 
@@ -94,12 +98,13 @@ const userRepo = {
       FROM USERS u
       JOIN USER_FTS fts ON u.user_id = fts.rowid
       WHERE USER_FTS MATCH ?
-      AND u.user_id != ? -- Loại bỏ chính mình khỏi kết quả tìm kiếm
+        AND u.user_id != ? -- Exclude current user only
       ORDER BY bm25(USER_FTS)
       LIMIT ?
     `;
 
-    return db.prepare(sql).all(currentUserId, keyword, currentUserId, limit);
+    return db.prepare(sql)
+      .all(currentUserId, keyword, currentUserId, limit);
   },
 
   updateUserById: (userId, updateData) => {

@@ -12,6 +12,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.grouprace.core.common.result.Result;
@@ -83,7 +84,9 @@ public class ActivitySummaryFragment extends Fragment {
                 btnSave.setText("Saving...");
             } else if (result instanceof Result.Success) {
                 Toast.makeText(requireContext(), "Activity saved!", Toast.LENGTH_SHORT).show();
-                requireActivity().getSupportFragmentManager().popBackStack();
+                // Pop all back stack (TrackingFragment + this) to return to NearbyRouteFragment
+                requireActivity().getSupportFragmentManager()
+                        .popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
             } else if (result instanceof Result.Error) {
                 btnSave.setEnabled(true);
                 btnSave.setText("Save");
