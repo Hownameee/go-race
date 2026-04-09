@@ -83,12 +83,8 @@ const userRepo = {
   },
 
   searchUsersByName: (currentUserId, search, limit) => {
-    const keyword = search
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean)
-      .map((w) => w + '*')
-      .join(' ');
+    const keyword = `%${search.trim()}%`;
+    const prefixKeyword = `${search.trim()}%`;
 
     const sql = `
       SELECT 
@@ -101,15 +97,16 @@ const userRepo = {
               WHERE follower_id = ? AND following_id = u.user_id
           ) AS is_following
       FROM USERS u
-      JOIN USER_FTS fts ON u.user_id = fts.rowid
-      WHERE USER_FTS MATCH ?
+      WHERE u.fullname LIKE ? COLLATE NOCASE
         AND u.user_id != ? -- Exclude current user only
-      ORDER BY bm25(USER_FTS)
+      ORDER BY
+        CASE WHEN u.fullname LIKE ? COLLATE NOCASE THEN 0 ELSE 1 END,
+        u.fullname COLLATE NOCASE ASC
       LIMIT ?
     `;
 
     return db.prepare(sql)
-      .all(currentUserId, keyword, currentUserId, limit);
+      .all(currentUserId, keyword, currentUserId, prefixKeyword, limit);
   },
 
   updateUserById: (userId, updateData) => {

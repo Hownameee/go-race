@@ -106,8 +106,7 @@ public class LoginFragment extends Fragment {
                 buttonLogin.setEnabled(true);
                 buttonLogin.setText("Login");
                 Toast.makeText(requireContext(), "Login successful!", Toast.LENGTH_SHORT).show();
-
-                    handleFcmToken();
+                handleFcmToken();
                 try {
                     Class<?> mainActivityClass = Class.forName("com.grouprace.gorace.MainActivity");
                     Intent intent = new Intent(requireActivity(), mainActivityClass);
@@ -120,11 +119,9 @@ public class LoginFragment extends Fragment {
             } else if (result instanceof Result.Error) {
                 buttonLogin.setEnabled(true);
                 buttonLogin.setText("Login");
-
-                    String errorMsg = ((Result.Error<Void>) result).message;
-                    Toast.makeText(requireContext(), errorMsg, Toast.LENGTH_SHORT).show();
-                }
-            });
+                String errorMsg = ((Result.Error<Void>) result).message;
+                Toast.makeText(requireContext(), errorMsg, Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
