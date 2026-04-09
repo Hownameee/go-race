@@ -11,7 +11,6 @@ public interface NotificationRepository {
 
     LiveData<Result<List<NotificationModel>>> getNotifications();
     void refreshNotifications();
-    void registerDeviceToken(String token);
 
     void addNotification(NotificationModel notification);
 

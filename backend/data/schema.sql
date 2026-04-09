@@ -125,29 +125,30 @@ CREATE INDEX IF NOT EXISTS idx_like_post_user ON LIKE(post_id, user_id);
 
 ---FTS5 extension for search user
 CREATE VIRTUAL TABLE IF NOT EXISTS USER_FTS USING FTS5(
-    username,
+    fullname,
     content="USERS",
     content_rowid="user_id"
 );
 
 ---trigger FTS user
 CREATE TRIGGER  IF NOT EXISTS USER_AI AFTER INSERT ON USERS BEGIN
-  INSERT INTO USER_FTS(rowid, username)
-  VALUES (NEW.user_id, NEW.username);
+  INSERT INTO USER_FTS(rowid, fullname)
+  VALUES (NEW.user_id, NEW.fullname);
 END;
 
 CREATE TRIGGER IF NOT EXISTS USER_AD AFTER DELETE ON USERS BEGIN
-  INSERT INTO USER_FTS(USER_FTS, rowid, username)
-  VALUES('delete', OLD.user_id, OLD.username);
+  INSERT INTO USER_FTS(USER_FTS, rowid, fullname)
+  VALUES('delete', OLD.user_id, OLD.fullname);
 END;
 
 CREATE TRIGGER IF NOT EXISTS USER_AU AFTER UPDATE ON USERS BEGIN
-  INSERT INTO USER_FTS(USER_FTS, rowid, username)
-  VALUES('delete', OLD.user_id, OLD.username);
+  INSERT INTO USER_FTS(USER_FTS, rowid, fullname)
+  VALUES('delete', OLD.user_id, OLD.fullname);
 
-  INSERT INTO USER_FTS(rowid, username)
-  VALUES (NEW.user_id, NEW.username);
+  INSERT INTO USER_FTS(rowid, fullname)
+  VALUES (NEW.user_id, NEW.fullname);
 END;
+
 CREATE TABLE IF NOT EXISTS ROUTE_POINTS (
     point_id INTEGER PRIMARY KEY AUTOINCREMENT,
     record_id INTEGER NOT NULL,

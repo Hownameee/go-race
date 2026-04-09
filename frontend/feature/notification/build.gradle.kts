@@ -47,7 +47,7 @@ dependencies {
 
     // Hilt
     implementation(libs.hilt.android)
-    implementation(libs.google.firebase.messaging)
+//    implementation(libs.google.firebase.messaging)
     annotationProcessor(libs.hilt.compiler)
 
     testImplementation(libs.junit)

@@ -50,6 +50,8 @@ dependencies {
     implementation(project(":core:data"))
     implementation(project(":core:network"))
     implementation(project(":core:system"))
+    implementation(project(":core:notification"))
+    implementation(project(":core:common"))
     implementation(project(":core:navigation"))
     implementation(project(":feature:search"))
     implementation(libs.hilt.android)
