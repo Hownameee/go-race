@@ -21,7 +21,12 @@ public interface PostRepository {
     LiveData<Result<Boolean>> likePost(int postId);
     LiveData<Result<Boolean>> unlikePost(int postId);
     
-    LiveData<Result<List<Comment>>> getComments(int postId);
-    LiveData<Result<Boolean>> createComment(int postId, String content);
+    LiveData<Result<List<Comment>>> getComments(int postId, String cursor, int limit);
+    LiveData<Result<Boolean>> createComment(int postId, String content, Integer parentId);
     LiveData<Result<Boolean>> deleteComment(int postId, int commentId);
+
+    LiveData<Result<Boolean>> likeComment(int postId, int commentId);
+    LiveData<Result<Boolean>> unlikeComment(int postId, int commentId);
+    LiveData<Result<List<Comment>>> getReplies(int postId, int commentId, String cursor, int limit);
+    LiveData<Result<Boolean>> createPost(String title, String description, Integer recordId);
 }

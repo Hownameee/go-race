@@ -96,8 +96,8 @@ const postController = {
     try {
       const postId = parseInt(req.params.postId);
       const userId = req.user.userId;
-      const { content } = req.body;
-      const comment = await postService.createComment(postId, userId, content);
+      const { content, parentId } = req.body;
+      const comment = await postService.createComment(postId, userId, content, parentId);
       return res.created(comment, 'Comment created successfully.');
     } catch (error) {
       if (error.status === 409) {
@@ -111,8 +111,9 @@ const postController = {
   async getComments(req, res, next) {
     try {
       const postId = parseInt(req.params.postId);
+      const userId = req.user.userId;
       const { cursor, limit } = req.query;
-      const result = await postService.getComments(postId, cursor, limit);
+      const result = await postService.getComments(postId, userId, cursor, limit);
       return res.ok(result, 'Comments retrieved successfully.');
     } catch (error) {
       if (error.status === 409) {
@@ -132,6 +133,52 @@ const postController = {
       return res.ok(result, 'Comment deleted successfully.');
     } catch (error) {
       if (error.status === 409 || error.status === 404) {
+        console.error(error);
+        return res.violate(null, error.message);
+      }
+      return next(error);
+    }
+  },
+
+  async likeComment(req, res, next) {
+    try {
+      const commentId = parseInt(req.params.commentId);
+      const userId = req.user.userId;
+      const result = await postService.likeComment(commentId, userId);
+      return res.created(result, 'Comment liked successfully.');
+    } catch (error) {
+      if (error.status === 409) {
+        console.error(error);
+        return res.violate(null, error.message);
+      }
+      return next(error);
+    }
+  },
+
+  async unlikeComment(req, res, next) {
+    try {
+      const commentId = parseInt(req.params.commentId);
+      const userId = req.user.userId;
+      const result = await postService.unlikeComment(commentId, userId);
+      return res.ok(result, 'Comment unliked successfully.');
+    } catch (error) {
+      if (error.status === 409) {
+        console.error(error);
+        return res.violate(null, error.message);
+      }
+      return next(error);
+    }
+  },
+
+  async getReplies(req, res, next) {
+    try {
+      const commentId = parseInt(req.params.commentId);
+      const userId = req.user.userId;
+      const { cursor, limit } = req.query;
+      const result = await postService.getReplies(commentId, userId, cursor, limit);
+      return res.ok(result, 'Replies retrieved successfully.');
+    } catch (error) {
+      if (error.status === 409) {
         console.error(error);
         return res.violate(null, error.message);
       }

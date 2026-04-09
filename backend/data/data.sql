@@ -32,17 +32,24 @@ VALUES
 
 -- Insert mock posts
 INSERT OR IGNORE INTO POST (record_id, owner_id, title, description, photo_url, like_count, comment_count, view_mode, created_at) VALUES
-(1, 1, 'Morning Run', 'Great start to the day!', 'http://example.com/post1.jpg', 2, 2, 'Everyone', '2023-10-01 06:00:00'),
+(1, 1, 'Morning Run', 'Great start to the day!', 'http://example.com/post1.jpg', 2, 3, 'Everyone', '2023-10-01 06:00:00'),
 (2, 2, 'Evening Walk', 'Relaxing walk in the park.', 'http://example.com/post2.jpg', 1, 1, 'Followers', '2023-10-02 18:00:00'),
 (3, 1, 'Interval Training', 'Pushed my limits today.', 'http://example.com/post3.jpg', 1, 1, 'Everyone', '2023-10-03 06:30:00'),
 (NULL, 3, 'Rest Day', 'Taking a break today.', NULL, 1, 0, 'Everyone', '2023-10-04 07:00:00');
 
--- Insert mock comments
-INSERT OR IGNORE INTO COMMENT (post_id, user_id, content) VALUES
-(1, 2, 'Great job John!'),
-(1, 3, 'Inspiring speed!'),
-(2, 1, 'Looks so peaceful.'),
-(3, 2, 'Keep it up!');
+-- Insert mock comments (explict comment_id for parenting)
+INSERT OR IGNORE INTO COMMENT (comment_id, post_id, user_id, content, like_count, reply_count, parent_id) VALUES
+(1, 1, 2, 'Great job John!', 2, 1, NULL),
+(2, 1, 3, 'Inspiring speed!', 0, 0, NULL),
+(3, 2, 1, 'Looks so peaceful.', 1, 0, NULL),
+(4, 3, 2, 'Keep it up!', 0, 0, NULL),
+(5, 1, 3, 'I agree!', 0, 0, 1); -- Reply to comment 1
+
+-- Insert mock comment likes
+INSERT OR IGNORE INTO COMMENT_LIKE (comment_id, user_id) VALUES
+(1, 1),
+(1, 3),
+(3, 2);
 
 -- Insert mock likes
 INSERT OR IGNORE INTO LIKE (post_id, user_id) VALUES

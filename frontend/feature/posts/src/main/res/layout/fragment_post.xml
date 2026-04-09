@@ -6,122 +6,48 @@
     android:layout_height="match_parent"
     android:background="@color/black">
 
-    <!-- Top App Bar -->
-    <include
-        android:id="@+id/top_bar"
-        layout="@layout/layout_top_app_bar"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- Stats Row -->
-    <LinearLayout
-        android:id="@+id/stats_row"
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingHorizontal="16dp"
-        android:layout_marginTop="8dp"
-        android:weightSum="3"
-        app:layout_constraintTop_toBottomOf="@id/top_bar">
+        android:layout_height="match_parent">
 
-        <!-- Activities Card -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="100dp"
-            android:layout_weight="1"
-            android:background="@drawable/bg_stat_card"
-            android:orientation="vertical"
-            android:padding="12dp"
-            android:layout_marginEnd="6dp">
-            
-            <TextView
-                android:layout_width="wrap_content"
+        <com.google.android.material.appbar.AppBarLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/black"
+            app:elevation="0dp">
+
+            <include
+                android:id="@+id/top_bar"
+                layout="@layout/layout_top_app_bar"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Activities"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
+                app:layout_scrollFlags="scroll|enterAlways" />
 
-            <TextView
-                android:layout_width="wrap_content"
+            <include
+                android:id="@+id/stats_row"
+                layout="@layout/layout_today_stats"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="0"
-                android:layout_marginTop="8dp"
-                android:textColor="@color/text_primary"
-                android:textSize="32sp"
-                android:textStyle="bold" />
-        </LinearLayout>
+                app:layout_scrollFlags="scroll|enterAlways" />
 
-        <!-- Time Card -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="100dp"
-            android:layout_weight="1"
-            android:background="@drawable/bg_stat_card"
-            android:orientation="vertical"
-            android:padding="12dp"
-            android:layout_marginHorizontal="6dp">
+        </com.google.android.material.appbar.AppBarLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Time"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_posts"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="100dp"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            tools:listitem="@layout/item_post" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0m"
-                android:layout_marginTop="8dp"
-                android:textColor="@color/text_primary"
-                android:textSize="32sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <!-- Distance Card -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="100dp"
-            android:layout_weight="1"
-            android:background="@drawable/bg_stat_card"
-            android:orientation="vertical"
-            android:padding="12dp"
-            android:layout_marginStart="6dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Distance"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0km"
-                android:layout_marginTop="8dp"
-                android:textColor="@color/text_primary"
-                android:textSize="32sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-    </LinearLayout>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_posts"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="16dp"
-        android:clipToPadding="false"
-        android:paddingBottom="16dp"
-        app:layout_constraintTop_toBottomOf="@id/stats_row"
-        app:layout_constraintBottom_toBottomOf="parent"
-        tools:listitem="@layout/item_post" />
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     <!-- Shared Loading State -->
     <include
         android:id="@+id/loading_state"
         layout="@layout/layout_loading_state"
-        app:layout_constraintTop_toBottomOf="@id/stats_row"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -130,9 +56,101 @@
     <include
         android:id="@+id/error_state"
         layout="@layout/layout_error_state"
-        app:layout_constraintTop_toBottomOf="@id/stats_row"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Overlay for FAB expansion -->
+    <View
+        android:id="@+id/fab_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#B3000000"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true"
+        android:elevation="8dp" />
+
+    <!-- Sub-FAB Group: Post with Activity -->
+    <LinearLayout
+        android:id="@+id/layout_fab_activity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:visibility="gone"
+        android:elevation="10dp"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="24dp"
+        app:layout_constraintBottom_toTopOf="@id/layout_fab_post"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Post with Activity"
+            android:textColor="@color/white"
+            android:background="@drawable/bg_stat_card"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="8dp"
+            android:layout_marginEnd="16dp"
+            android:elevation="4dp" />
+
+        <ImageView
+            android:id="@+id/fab_activity"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:padding="12dp"
+            android:background="@drawable/bg_fab_small"
+            android:src="@drawable/ic_run" />
+    </LinearLayout>
+
+    <!-- Sub-FAB Group: Simple Post -->
+    <LinearLayout
+        android:id="@+id/layout_fab_post"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:visibility="gone"
+        android:elevation="10dp"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="24dp"
+        app:layout_constraintBottom_toTopOf="@id/fab_main"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Post"
+            android:textColor="@color/white"
+            android:background="@drawable/bg_stat_card"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="8dp"
+            android:layout_marginEnd="16dp"
+            android:elevation="4dp" />
+
+        <ImageView
+            android:id="@+id/fab_post"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:padding="12dp"
+            android:background="@drawable/bg_fab_small"
+            android:src="@drawable/ic_comment" />
+    </LinearLayout>
+
+    <!-- Main FAB -->
+    <ImageView
+        android:id="@+id/fab_main"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_margin="16dp"
+        android:padding="16dp"
+        android:background="@drawable/bg_fab"
+        android:src="@drawable/ic_add"
+        android:elevation="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

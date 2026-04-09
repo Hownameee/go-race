@@ -24,12 +24,13 @@ import com.grouprace.core.model.Comment;
 import com.grouprace.feature.posts.R;
 import com.grouprace.feature.posts.ui.adapter.CommentAdapter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
-public class CommentFragment extends BottomSheetDialogFragment {
+public class CommentFragment extends BottomSheetDialogFragment implements CommentAdapter.OnCommentActionListener {
 
     private static final String ARG_POST_ID = "post_id";
 
@@ -42,6 +43,13 @@ public class CommentFragment extends BottomSheetDialogFragment {
     private TextView tvError;
     private EditText etComment;
     private ImageView btnSend;
+
+    private View layoutReplyIndicator;
+    private TextView tvReplyingTo;
+    private ImageView btnCancelReply;
+
+    private Integer parentId = null;
+    private List<Comment> currentComments = new ArrayList<>();
 
     public static CommentFragment newInstance(int postId) {
         CommentFragment fragment = new CommentFragment();
@@ -75,7 +83,11 @@ public class CommentFragment extends BottomSheetDialogFragment {
         etComment = view.findViewById(R.id.et_comment);
         btnSend = view.findViewById(R.id.btn_send);
 
-        adapter = new CommentAdapter();
+        layoutReplyIndicator = view.findViewById(R.id.layout_reply_indicator);
+        tvReplyingTo = view.findViewById(R.id.tv_replying_to);
+        btnCancelReply = view.findViewById(R.id.btn_cancel_reply);
+
+        adapter = new CommentAdapter(this);
         rvComments.setLayoutManager(new LinearLayoutManager(getContext()));
         rvComments.setAdapter(adapter);
 
@@ -84,6 +96,16 @@ public class CommentFragment extends BottomSheetDialogFragment {
 
         observeViewModel();
         setupInput();
+        setupReplyBanner();
+    }
+
+    private void setupReplyBanner() {
+        btnCancelReply.setOnClickListener(v -> cancelReply());
+    }
+
+    private void cancelReply() {
+        parentId = null;
+        layoutReplyIndicator.setVisibility(View.GONE);
     }
 
     private void observeViewModel() {
@@ -94,7 +116,8 @@ public class CommentFragment extends BottomSheetDialogFragment {
             } else if (result instanceof Result.Success) {
                 loadingBar.setVisibility(View.GONE);
                 tvError.setVisibility(View.GONE);
-                adapter.submitList(((Result.Success<List<Comment>>) result).data);
+                currentComments = new ArrayList<>(((Result.Success<List<Comment>>) result).data);
+                adapter.submitList(currentComments);
             } else if (result instanceof Result.Error) {
                 loadingBar.setVisibility(View.GONE);
                 tvError.setVisibility(View.VISIBLE);
@@ -107,11 +130,24 @@ public class CommentFragment extends BottomSheetDialogFragment {
         btnSend.setOnClickListener(v -> {
             String content = etComment.getText().toString().trim();
             if (!content.isEmpty()) {
-                viewModel.createComment(postId, content).observe(getViewLifecycleOwner(), result -> {
+                viewModel.createComment(postId, content, parentId).observe(getViewLifecycleOwner(), result -> {
                     if (result instanceof Result.Success) {
                         etComment.setText("");
+                        Integer finishedParentId = parentId; // Capture for reply refresh
+                        cancelReply();
                         hideKeyboard();
-                        viewModel.loadComments(postId); // Refresh
+                        
+                        if (finishedParentId == null) {
+                            viewModel.loadComments(postId); // Refresh all for new top-level
+                        } else {
+                            // Find parent and refresh its replies specifically
+                            for (Comment c : currentComments) {
+                                if (c.getCommentId() == finishedParentId) {
+                                    onViewRepliesClicked(c);
+                                    break;
+                                }
+                            }
+                        }
                         Toast.makeText(getContext(), "Comment posted", Toast.LENGTH_SHORT).show();
                     } else if (result instanceof Result.Error) {
                         Toast.makeText(getContext(), "Failed: " + ((Result.Error<?>) result).message, Toast.LENGTH_SHORT).show();
@@ -126,6 +162,68 @@ public class CommentFragment extends BottomSheetDialogFragment {
         if (view != null) {
             InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+    }
+
+    @Override
+    public void onLikeClicked(Comment comment, int position) {
+        // Optimistic UI update
+        if (position >= 0 && position < currentComments.size()) {
+            Comment old = currentComments.get(position);
+            // Verify it's the same comment to be safe
+            if (old.getCommentId() == comment.getCommentId()) {
+                boolean newLiked = !old.isLiked();
+                int newCount = old.getLikeCount() + (newLiked ? 1 : -1);
+                
+                // Re-create comment object with new values (immutable approach)
+                Comment updated = new Comment(
+                    old.getCommentId(), old.getPostId(), old.getUserId(), old.getContent(),
+                    old.getCreatedAt(), old.getUsername(), old.getFullName(), old.getAvatarUrl(), newCount,
+                        old.getReplyCount(), newLiked, old.getParentId()
+                );
+                
+                currentComments.set(position, updated);
+                adapter.submitList(new ArrayList<>(currentComments));
+            }
+        }
+
+        viewModel.likeComment(postId, comment.getCommentId(), !comment.isLiked()).observe(getViewLifecycleOwner(), result -> {
+            if (result instanceof Result.Error) {
+                // Revert on error
+                viewModel.loadComments(postId); 
+                Toast.makeText(getContext(), "Like failed", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    @Override
+    public void onReplyClicked(Comment comment) {
+        parentId = comment.getCommentId();
+        tvReplyingTo.setText("Replying to @" + comment.getUsername());
+        layoutReplyIndicator.setVisibility(View.VISIBLE);
+        etComment.requestFocus();
+        InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.showSoftInput(etComment, InputMethodManager.SHOW_IMPLICIT);
+    }
+
+    @Override
+    public void onViewRepliesClicked(Comment comment) {
+        viewModel.loadReplies(postId, comment.getCommentId()).observe(getViewLifecycleOwner(), result -> {
+            if (result instanceof Result.Success) {
+                List<Comment> replies = ((Result.Success<List<Comment>>) result).data;
+                insertReplies(comment, replies);
+            }
+        });
+    }
+
+    private void insertReplies(Comment parent, List<Comment> replies) {
+        int index = currentComments.indexOf(parent);
+        if (index != -1) {
+            // Remove existing replies from this parent first to avoid duplicates if clicked multiple times
+            currentComments.removeIf(c -> parent.getCommentId() == (c.getParentId() != null ? c.getParentId() : -1));
+            currentComments.addAll(index + 1, replies);
+            adapter.submitList(new ArrayList<>(currentComments));
+            adapter.notifyItemChanged(index); // Refresh parent to maybe hide "View X replies" or change it to "Hide"
         }
     }
 }

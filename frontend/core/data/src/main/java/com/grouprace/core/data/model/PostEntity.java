@@ -18,11 +18,16 @@ public class PostEntity {
     public String viewMode;
     public String createdAt;
     public String username;
-    public String displayName;
+    public String fullName;
     public String profilePictureUrl;
+    public String activityType;
+    public Integer durationSeconds;
+    public Double distanceKm;
+    public Double speed;
+    public String recordImageUrl;
     public boolean isLiked;
 
-    public PostEntity(int postId, Integer recordId, int ownerId, String title, String description, String photoUrl, int likeCount, int commentCount, String viewMode, String createdAt, String username, String displayName, String profilePictureUrl, boolean isLiked) {
+    public PostEntity(int postId, Integer recordId, int ownerId, String title, String description, String photoUrl, int likeCount, int commentCount, String viewMode, String createdAt, String username, String fullName, String profilePictureUrl, String activityType, Integer durationSeconds, Double distanceKm, Double speed, String recordImageUrl, boolean isLiked) {
         this.postId = postId;
         this.recordId = recordId;
         this.ownerId = ownerId;
@@ -34,13 +39,18 @@ public class PostEntity {
         this.viewMode = viewMode;
         this.createdAt = createdAt;
         this.username = username;
-        this.displayName = displayName;
+        this.fullName = fullName;
         this.profilePictureUrl = profilePictureUrl;
+        this.activityType = activityType;
+        this.durationSeconds = durationSeconds;
+        this.distanceKm = distanceKm;
+        this.speed = speed;
+        this.recordImageUrl = recordImageUrl;
         this.isLiked = isLiked;
     }
 
     public Post asExternalModel() {
-        Post post = new Post(postId, recordId, ownerId, title, description, photoUrl, likeCount, commentCount, viewMode, createdAt, username, displayName, profilePictureUrl);
+        Post post = new Post(postId, recordId, ownerId, title, description, photoUrl, likeCount, commentCount, viewMode, createdAt, username, fullName, profilePictureUrl, activityType, durationSeconds, distanceKm, speed, recordImageUrl);
         post.setLiked(isLiked);
         return post;
     }

@@ -13,11 +13,15 @@ import com.grouprace.core.model.Record;
 import com.grouprace.core.network.model.NetworkRecord;
 import com.grouprace.core.network.model.record.RecordWeeklyPointResponse;
 import com.grouprace.core.network.model.record.RecordWeeklySummaryResponse;
+import com.grouprace.core.model.TodaySummary;
 import com.grouprace.core.network.source.RecordDataSource;
 import com.grouprace.core.network.source.RecordNetworkDataSource;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -143,6 +147,26 @@ public class RecordRepositoryImpl implements RecordRepository {
         });
 
         return resultData;
+    }
+
+    @Override
+    public LiveData<List<Record>> getTodayRecords() {
+        String todayPrefix = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        return Transformations.map(
+                recordDao.getTodayRecords(todayPrefix),
+                entities -> entities.stream()
+                        .map(RecordEntity::asExternalModel)
+                        .collect(Collectors.toList())
+        );
+    }
+
+    @Override
+    public LiveData<TodaySummary> getTodaySummary() {
+        String todayPrefix = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        return Transformations.map(
+                recordDao.getTodaySummary(todayPrefix),
+                entity -> entity != null ? entity.asExternalModel() : new com.grouprace.core.model.TodaySummary(0, 0, 0.0f)
+        );
     }
 
     private WeeklyRecordSummary mapToWeeklySummary(RecordWeeklySummaryResponse response) {

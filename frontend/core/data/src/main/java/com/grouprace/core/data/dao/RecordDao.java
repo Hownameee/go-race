@@ -8,6 +8,7 @@ import androidx.room.Query;
 import androidx.room.Update;
 
 import com.grouprace.core.data.model.RecordEntity;
+import com.grouprace.core.data.model.TodaySummaryEntity;
 
 import java.util.List;
 
@@ -28,4 +29,13 @@ public interface RecordDao {
 
     @Query("SELECT * FROM record ORDER BY recordId DESC LIMIT :limit")
     LiveData<List<RecordEntity>> getRecords(int limit);
+
+    @Query("SELECT * FROM record WHERE startTime LIKE :todayPrefix || '%' ORDER BY recordId DESC")
+    LiveData<List<RecordEntity>> getTodayRecords(String todayPrefix);
+
+    @Query("SELECT COUNT(*) as activityCount, " +
+           "COALESCE(SUM(duration), 0) as totalDurationSeconds, " +
+           "COALESCE(SUM(distance), 0) as totalDistanceKm " +
+           "FROM record WHERE startTime LIKE :todayPrefix || '%'")
+    LiveData<TodaySummaryEntity> getTodaySummary(String todayPrefix);
 }

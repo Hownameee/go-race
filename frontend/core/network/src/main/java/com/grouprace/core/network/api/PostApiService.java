@@ -32,7 +32,31 @@ public interface PostApiService {
     Call<ApiResponse<Void>> unlikePost(@Path("postId") int postId);
 
     @GET("api/posts/{postId}/comments")
-    Call<ApiResponse<CommentPayload>> getComments(@Path("postId") int postId);
+    Call<ApiResponse<CommentPayload>> getComments(
+        @Path("postId") int postId,
+        @Query("cursor") String cursor,
+        @Query("limit") int limit
+    );
+
+    @POST("api/posts/{postId}/comments/{commentId}/like")
+    Call<ApiResponse<Void>> likeComment(
+        @Path("postId") int postId,
+        @Path("commentId") int commentId
+    );
+
+    @DELETE("api/posts/{postId}/comments/{commentId}/like")
+    Call<ApiResponse<Void>> unlikeComment(
+        @Path("postId") int postId,
+        @Path("commentId") int commentId
+    );
+
+    @GET("api/posts/{postId}/comments/{commentId}/replies")
+    Call<ApiResponse<CommentPayload>> getReplies(
+        @Path("postId") int postId,
+        @Path("commentId") int commentId,
+        @Query("cursor") String cursor,
+        @Query("limit") int limit
+    );
     
     @POST("api/posts/{postId}/comments")
     Call<ApiResponse<Void>> createComment(
@@ -40,7 +64,7 @@ public interface PostApiService {
         @Body CreateCommentRequest request
     );
 
-    @DELETE("api/posts/{postId}/comment/{commentId}")
+    @DELETE("api/posts/{postId}/comments/{commentId}")
     Call<ApiResponse<Void>> deleteComment(
         @Path("postId") int postId,
         @Path("commentId") int commentId

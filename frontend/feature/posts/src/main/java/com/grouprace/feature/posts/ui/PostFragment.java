@@ -2,6 +2,7 @@ package com.grouprace.feature.posts.ui;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -11,13 +12,18 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.grouprace.core.common.TimeUtils;
 import com.grouprace.feature.posts.R;
 import com.grouprace.feature.posts.ui.adapter.PostAdapter;
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.Post;
 import com.grouprace.core.system.ui.TopAppBarConfig;
 import com.grouprace.core.system.ui.TopAppBarHelper;
+import com.grouprace.core.system.ui.TodayStatsHelper;
 import com.grouprace.core.navigation.AppNavigator;
+
+import java.util.Locale;
+
 import javax.inject.Inject;
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -33,6 +39,11 @@ public class PostFragment extends Fragment {
     private ProgressBar progressBar;
     private TextView tvError;
     private boolean isLoadingPage = false;
+    private View fabOverlay;
+    private View layoutFabPost;
+    private View layoutFabActivity;
+    private ImageView fabMain;
+    private boolean isFabExpanded = false;
 
     public PostFragment() {
         super(R.layout.fragment_post);
@@ -47,6 +58,8 @@ public class PostFragment extends Fragment {
         rvPosts = view.findViewById(R.id.rv_posts);
         progressBar = view.findViewById(R.id.loading_state);
         tvError = view.findViewById(R.id.error_state);
+
+        setupFab(view);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(requireContext());
         rvPosts.setLayoutManager(layoutManager);
@@ -79,6 +92,34 @@ public class PostFragment extends Fragment {
                 CommentFragment.newInstance(post.getPostId())
                         .show(getChildFragmentManager(), "CommentBottomSheet");
             }
+
+            @Override
+            public void onShareClicked(Post post) {
+                double distance = post.getDistanceKm() != null ? post.getDistanceKm() : 0.0;
+                int seconds = post.getDurationSeconds() != null ? post.getDurationSeconds() : 0;
+                String pace;
+                if (distance > 0 && seconds > 0) {
+                    double paceMinKm = (seconds / 60.0) / distance;
+                    int paceMin = (int) paceMinKm;
+                    int paceSec = (int) ((paceMinKm - paceMin) * 60);
+                    pace = String.format(Locale.getDefault(), "%d:%02d /km", paceMin, paceSec);
+                } else {
+                    pace = "--:--";
+                }
+
+                double speedVal = post.getSpeed() != null ? post.getSpeed() : 0.0;
+                String speedStr = String.format(Locale.getDefault(), "%.1f km/h", speedVal);
+
+                ShareActivityFragment.newInstance(
+                        post.getTitle(),
+                        String.format(Locale.getDefault(), "%.2f km", distance),
+                        pace,
+                        TimeUtils.formatDuration(seconds),
+                        post.getFullName(),
+                        post.getRecordImageUrl(),
+                        speedStr
+                ).show(getChildFragmentManager(), "ShareBottomSheet");
+            }
         });
         rvPosts.setAdapter(postAdapter);
 
@@ -97,6 +138,17 @@ public class PostFragment extends Fragment {
                     rvPosts.setVisibility(View.VISIBLE);
                     tvError.setVisibility(View.GONE);
                 }
+            }
+        });
+
+        viewModel.getTodaySummary().observe(getViewLifecycleOwner(), summary -> {
+            if (summary != null) {
+                TodayStatsHelper.bind(
+                    getView(), 
+                    summary.activityCount, 
+                    summary.totalDurationSeconds, 
+                    summary.totalDistanceKm
+                );
             }
         });
 
@@ -172,5 +224,82 @@ public class PostFragment extends Fragment {
                     }
                 })
                 .build();
+    }
+
+    private void setupFab(View view) {
+        fabOverlay = view.findViewById(R.id.fab_overlay);
+        layoutFabPost = view.findViewById(R.id.layout_fab_post);
+        layoutFabActivity = view.findViewById(R.id.layout_fab_activity);
+        fabMain = view.findViewById(R.id.fab_main);
+
+        fabMain.setOnClickListener(v -> toggleFab());
+        fabOverlay.setOnClickListener(v -> collapseFab());
+
+        view.findViewById(R.id.fab_post).setOnClickListener(v -> {
+            collapseFab();
+            appNavigator.openAddPost(this, false);
+        });
+
+        view.findViewById(R.id.fab_activity).setOnClickListener(v -> {
+            collapseFab();
+            appNavigator.openAddPost(this, true);
+        });
+        
+        // Ensure initial state
+        collapseFabImmediately();
+    }
+
+    private void toggleFab() {
+        if (isFabExpanded) {
+            collapseFab();
+        } else {
+            expandFab();
+        }
+    }
+
+    private void expandFab() {
+        isFabExpanded = true;
+        fabOverlay.setVisibility(View.VISIBLE);
+        fabOverlay.setAlpha(0f);
+        fabOverlay.animate().alpha(1f).setDuration(200).start();
+
+        fabMain.animate().rotation(45f).setDuration(200).start();
+
+        layoutFabPost.setVisibility(View.VISIBLE);
+        layoutFabPost.setAlpha(0f);
+        layoutFabPost.setTranslationY(20f);
+        layoutFabPost.animate().alpha(1f).translationY(0f).setDuration(200).start();
+
+        layoutFabActivity.setVisibility(View.VISIBLE);
+        layoutFabActivity.setAlpha(0f);
+        layoutFabActivity.setTranslationY(20f);
+        layoutFabActivity.animate().alpha(1f).translationY(0f).setDuration(200).setStartDelay(50).start();
+    }
+
+    private void collapseFab() {
+        isFabExpanded = false;
+        fabOverlay.animate().alpha(0f).setDuration(200).withEndAction(() -> fabOverlay.setVisibility(View.GONE)).start();
+
+        fabMain.animate().rotation(0f).setDuration(200).start();
+
+        layoutFabPost.animate().alpha(0f).translationY(20f).setDuration(200).withEndAction(() -> layoutFabPost.setVisibility(View.GONE)).start();
+        layoutFabActivity.animate().alpha(0f).translationY(20f).setDuration(200).setStartDelay(50).withEndAction(() -> layoutFabActivity.setVisibility(View.GONE)).start();
+    }
+
+    private void collapseFabImmediately() {
+        isFabExpanded = false;
+        if (fabOverlay != null) {
+            fabOverlay.setVisibility(View.GONE);
+            fabOverlay.setAlpha(0f);
+        }
+        if (fabMain != null) fabMain.setRotation(0f);
+        if (layoutFabPost != null) layoutFabPost.setVisibility(View.GONE);
+        if (layoutFabActivity != null) layoutFabActivity.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        collapseFabImmediately();
     }
 }
