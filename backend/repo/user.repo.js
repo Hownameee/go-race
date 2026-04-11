@@ -2,17 +2,52 @@ import db from '../utils/db/db.js';
 
 const SAFE_COLUMNS = `
   user_id, role, username, fullname, email, birthdate, 
-  avatar_url, nationality, address, height_cm, weight_kg,
+  avatar_url, bio, province_city, country, height_cm, weight_kg,
   created_at, updated_at
 `;
 
 const userRepo = {
+  getUserByGoogleSub: (googleSub) => {
+    const sql = `SELECT * FROM USERS WHERE google_sub = ?`;
+    return db.prepare(sql).get(googleSub);
+  },
+
+  createGoogleUser: (user) => {
+    const {
+      username,
+      fullname,
+      email,
+      hashedPassword,
+      birthdate,
+      googleSub,
+      avatarUrl,
+    } = user;
+
+    const sql = `
+      INSERT INTO USERS (
+        username, fullname, email, hashed_password, birthdate,
+        auth_provider, google_sub, avatar_url
+      )
+      VALUES (?, ?, ?, ?, ?, 'google', ?, ?);
+    `;
+
+    return db
+      .prepare(sql)
+      .run(username, fullname, email, hashedPassword, birthdate, googleSub, avatarUrl)
+      .lastInsertRowid;
+  },
+
   getAllUsers: (offset = 0, limit = 10) => {
     const sql = `SELECT ${SAFE_COLUMNS} FROM USERS LIMIT ? OFFSET ?`;
     return db.prepare(sql).all(limit, offset);
   },
   getUserById: (userId) => {
     const sql = `SELECT ${SAFE_COLUMNS} FROM USERS WHERE user_id = ?`;
+    return db.prepare(sql).get(userId);
+  },
+
+  getUserAuthById: (userId) => {
+    const sql = `SELECT user_id, email, hashed_password FROM USERS WHERE user_id = ?`;
     return db.prepare(sql).get(userId);
   },
 
@@ -56,7 +91,12 @@ const userRepo = {
       SELECT 
         u.user_id,
         u.fullname,
-        u.address,
+        CASE
+          WHEN u.province_city IS NOT NULL AND u.country IS NOT NULL THEN u.province_city || ', ' || u.country
+          WHEN u.province_city IS NOT NULL THEN u.province_city
+          WHEN u.country IS NOT NULL THEN u.country
+          ELSE NULL
+        END AS address,
         u.avatar_url,
         COALESCE(m.mutual_count, 0) AS mutual_count,
         COALESCE(f.follower_count, 0) AS follower_count
@@ -78,33 +118,35 @@ const userRepo = {
   },
 
   searchUsersByName: (currentUserId, search, limit) => {
-    const keyword = search
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean)
-      .map((w) => w + '*')
-      .join(' ');
+    const keyword = `%${search.trim()}%`;
+    const prefixKeyword = `${search.trim()}%`;
 
     const sql = `
       SELECT 
           u.user_id, 
           u.fullname, 
-          u.address, 
+          CASE
+              WHEN u.province_city IS NOT NULL AND u.country IS NOT NULL THEN u.province_city || ', ' || u.country
+              WHEN u.province_city IS NOT NULL THEN u.province_city
+              WHEN u.country IS NOT NULL THEN u.country
+              ELSE NULL
+          END AS address,
           u.avatar_url,
           EXISTS (
               SELECT 1 FROM FOLLOW 
               WHERE follower_id = ? AND following_id = u.user_id
           ) AS is_following
       FROM USERS u
-      JOIN USER_FTS fts ON u.user_id = fts.rowid
-      WHERE USER_FTS MATCH ?
+      WHERE u.fullname LIKE ? COLLATE NOCASE
         AND u.user_id != ? -- Exclude current user only
-      ORDER BY bm25(USER_FTS)
+      ORDER BY
+        CASE WHEN u.fullname LIKE ? COLLATE NOCASE THEN 0 ELSE 1 END,
+        u.fullname COLLATE NOCASE ASC
       LIMIT ?
     `;
 
     return db.prepare(sql)
-      .all(currentUserId, keyword, currentUserId, limit);
+      .all(currentUserId, keyword, currentUserId, prefixKeyword, limit);
   },
 
   updateUserById: (userId, updateData) => {

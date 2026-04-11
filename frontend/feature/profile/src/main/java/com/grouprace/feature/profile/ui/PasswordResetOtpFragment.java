@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.KeyEvent;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -51,7 +53,9 @@ public class PasswordResetOtpFragment extends Fragment {
         EditText otpInput = view.findViewById(R.id.password_reset_otp_input);
         Button submitButton = view.findViewById(R.id.password_reset_otp_submit_button);
 
-        if (viewModel.getResetEmail() != null) {
+        if (viewModel.isProfileOtpFlow() && viewModel.getCurrentEmail() != null) {
+            messageView.setText("Enter the OTP sent to " + viewModel.getCurrentEmail() + ".");
+        } else if (viewModel.getResetEmail() != null) {
             messageView.setText("Enter the OTP sent to " + viewModel.getResetEmail() + ".");
         }
 
@@ -63,8 +67,19 @@ public class PasswordResetOtpFragment extends Fragment {
             }
         });
 
-        submitButton.setOnClickListener(v -> {
+        Runnable submitOtpAction = () -> {
             String otpCode = otpInput.getText().toString();
+            if (viewModel.isProfileOtpFlow()) {
+                if (otpCode == null || otpCode.trim().isEmpty()) {
+                    Toast.makeText(requireContext(), "Please enter OTP.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                viewModel.setVerifiedResetOtp(otpCode);
+                navigator.openSetNewPassword(this);
+                return;
+            }
+
             viewModel.verifyResetOtp(otpCode).observe(getViewLifecycleOwner(), result -> {
                 if (result instanceof Result.Loading) {
                     submitButton.setEnabled(false);
@@ -80,6 +95,23 @@ public class PasswordResetOtpFragment extends Fragment {
                     Toast.makeText(requireContext(), ((Result.Error<Void>) result).message, Toast.LENGTH_SHORT).show();
                 }
             });
-        });
+        };
+
+        submitButton.setOnClickListener(v -> submitOtpAction.run());
+        otpInput.setOnEditorActionListener((v, actionId, event) -> handleSubmitAction(actionId, event, submitOtpAction));
+    }
+
+    private boolean handleSubmitAction(int actionId, KeyEvent event, Runnable action) {
+        boolean isDoneAction = actionId == EditorInfo.IME_ACTION_DONE;
+        boolean isEnterKey = event != null
+                && event.getKeyCode() == KeyEvent.KEYCODE_ENTER
+                && event.getAction() == KeyEvent.ACTION_DOWN;
+
+        if (isDoneAction || isEnterKey) {
+            action.run();
+            return true;
+        }
+
+        return false;
     }
 }

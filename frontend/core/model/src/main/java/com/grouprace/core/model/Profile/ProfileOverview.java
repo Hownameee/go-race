@@ -4,6 +4,7 @@ public class ProfileOverview {
     private int userId;
     private String fullname;
     private String avatarUrl;
+    private String bio;
     private String city;
     private String country;
     private int totalFollowings;
@@ -11,11 +12,12 @@ public class ProfileOverview {
 
     public ProfileOverview() {}
 
-    public ProfileOverview(int userId, String fullname, String avatarUrl, String city,
+    public ProfileOverview(int userId, String fullname, String avatarUrl, String bio, String city,
                            String country, int totalFollowings, int totalFollowers) {
         this.userId = userId;
         this.fullname = fullname;
         this.avatarUrl = avatarUrl;
+        this.bio = bio;
         this.city = city;
         this.country = country;
         this.totalFollowings = totalFollowings;
@@ -30,6 +32,9 @@ public class ProfileOverview {
 
     public String getAvatarUrl() { return avatarUrl; }
     public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
+
+    public String getBio() { return bio; }
+    public void setBio(String bio) { this.bio = bio; }
 
     public String getCity() { return city; }
     public void setCity(String city) { this.city = city; }

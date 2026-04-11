@@ -53,3 +53,17 @@ export async function getImageUrlS3(key, expiresIn = 3600 * 12) {
     throw error;
   }
 }
+
+export function isS3StoredImage(value) {
+  return typeof value === 'string'
+    && value.trim().length > 0
+    && !/^https?:\/\//i.test(value);
+}
+
+export async function resolveImageUrl(value, expiresIn = 3600 * 12) {
+  if (!isS3StoredImage(value)) {
+    return value;
+  }
+
+  return getImageUrlS3(value, expiresIn);
+}

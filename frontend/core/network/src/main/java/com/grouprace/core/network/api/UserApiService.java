@@ -5,8 +5,9 @@ import com.grouprace.core.network.model.user.ChangePasswordPayload;
 import com.grouprace.core.network.model.user.ConfirmEmailChangePayload;
 import com.grouprace.core.network.model.user.MyProfileInfoPayload;
 import com.grouprace.core.network.model.user.ProfileOverviewResponse;
-import com.grouprace.core.network.model.user.RequestEmailOtpPayload;
+import com.grouprace.core.network.model.user.RequestNewEmailOtpPayload;
 import com.grouprace.core.network.model.user.ResetPasswordWithOtpPayload;
+import com.grouprace.core.network.model.user.VerifyEmailOtpPayload;
 import com.grouprace.core.network.model.user.VerifyCurrentPasswordPayload;
 import com.grouprace.core.network.utils.ApiResponse;
 
@@ -25,7 +26,13 @@ public interface UserApiService {
     Call<ApiResponse<MyProfileInfoPayload>> getMyInfo();
 
     @POST("/api/users/me/email/request-otp")
-    Call<ApiResponse<Void>> requestEmailChangeOtp(@Body RequestEmailOtpPayload payload);
+    Call<ApiResponse<Void>> requestEmailChangeOtp();
+
+    @POST("/api/users/me/email/verify-otp")
+    Call<ApiResponse<Void>> verifyEmailChangeOtp(@Body VerifyEmailOtpPayload payload);
+
+    @POST("/api/users/me/email/request-new-otp")
+    Call<ApiResponse<Void>> requestNewEmailChangeOtp(@Body RequestNewEmailOtpPayload payload);
 
     @PATCH("/api/users/me/email")
     Call<ApiResponse<Void>> confirmEmailChange(@Body ConfirmEmailChangePayload payload);

@@ -56,8 +56,18 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public LiveData<Result<Void>> requestEmailChangeOtp(String newEmail) {
-        return userDataSource.requestEmailChangeOtp(newEmail);
+    public LiveData<Result<Void>> requestEmailChangeOtp() {
+        return userDataSource.requestEmailChangeOtp();
+    }
+
+    @Override
+    public LiveData<Result<Void>> verifyEmailChangeOtp(String otpCode) {
+        return userDataSource.verifyEmailChangeOtp(otpCode);
+    }
+
+    @Override
+    public LiveData<Result<Void>> requestNewEmailChangeOtp(String newEmail) {
+        return userDataSource.requestNewEmailChangeOtp(newEmail);
     }
 
     @Override
@@ -109,6 +119,7 @@ public class UserRepositoryImpl implements UserRepository {
                 response.getUserId(),
                 response.getFullname(),
                 response.getAvatarUrl(),
+                response.getBio(),
                 response.getCity(),
                 response.getCountry(),
                 response.getTotalFollowings(),
@@ -127,8 +138,9 @@ public class UserRepositoryImpl implements UserRepository {
                 payload.getEmail(),
                 payload.getBirthdate(),
                 payload.getAvatarUrl(),
-                payload.getNationality(),
-                payload.getAddress(),
+                payload.getBio(),
+                payload.getProvinceCity(),
+                payload.getCountry(),
                 payload.getHeightCm(),
                 payload.getWeightKg()
         );
@@ -145,8 +157,9 @@ public class UserRepositoryImpl implements UserRepository {
                 profileInfo.getEmail(),
                 profileInfo.getBirthdate(),
                 profileInfo.getAvatarUrl(),
-                profileInfo.getNationality(),
-                profileInfo.getAddress(),
+                profileInfo.getBio(),
+                profileInfo.getProvinceCity(),
+                profileInfo.getCountry(),
                 profileInfo.getHeightCm(),
                 profileInfo.getWeightKg()
         );

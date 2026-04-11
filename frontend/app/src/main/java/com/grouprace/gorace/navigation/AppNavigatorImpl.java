@@ -115,6 +115,16 @@ public class AppNavigatorImpl implements AppNavigator {
     }
 
     @Override
+    public void openRegister(Fragment currentFragment, String fullname, String email) {
+        navigateTo(currentFragment, RegisterFragment.newInstance(fullname, email));
+    }
+
+    @Override
+    public void openRegister(Fragment currentFragment, String fullname, String email, String googleIdToken) {
+        navigateTo(currentFragment, RegisterFragment.newInstance(fullname, email, googleIdToken));
+    }
+
+    @Override
     public void navigateToVisualEditor(Fragment currentFragment, String photoUri, String title, String distance, String time, String speed) {
         navigateTo(currentFragment, VisualEditorFragment.newInstance(photoUri, title, distance, time, speed));
     }
