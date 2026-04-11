@@ -62,6 +62,28 @@ const clubRepo = {
     `;
     return db.prepare(sql).run(clubId, userId, status);
   },
+
+  leaveClub: (clubId, userId) => {
+    const sql = `
+      DELETE FROM CLUB_MEMBERS
+      WHERE club_id = ? AND user_id = ?
+    `;
+    return db.prepare(sql).run(clubId, userId);
+  },
+
+  getClubById: (clubId, currentUserId = 0) => {
+    const sql = `
+      SELECT 
+          c.*,
+          EXISTS(
+              SELECT 1 FROM CLUB_MEMBERS cm 
+              WHERE cm.club_id = c.club_id AND cm.user_id = ?
+          ) as is_joined
+      FROM CLUBS c
+      WHERE c.club_id = ?
+    `;
+    return db.prepare(sql).get(currentUserId, clubId);
+  },
 };
 
 export default clubRepo;

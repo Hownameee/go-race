@@ -48,6 +48,30 @@ const clubService = {
       throw e;
     }
   },
+
+  leaveClub: async (currentUserId, clubId) => {
+    const club = clubRepo.getClubById(clubId, currentUserId);
+    if (!club) {
+      const error = new Error('Club not found.');
+      error.status = 404;
+      throw error;
+    }
+
+    if (!club.is_joined) {
+      const error = new Error('You are not a member of this club.');
+      error.status = 400;
+      throw error;
+    }
+
+    if (club.leader_id === currentUserId) {
+      const error = new Error('Club leader cannot leave the club. Transfer ownership or delete the club first.');
+      error.status = 400;
+      throw error;
+    }
+
+    clubRepo.leaveClub(clubId, currentUserId);
+    return { message: 'Left club successfully.' };
+  },
 };
 
 export default clubService;

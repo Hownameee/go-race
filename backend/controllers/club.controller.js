@@ -7,7 +7,7 @@ const clubController = {
       const limit = 10;
       const result = await clubService.getSuggestClubs(currentUserId, limit);
 
-      return res.ok({ clubs: result }, 'Suggested clubs fetched successfully.');
+      return res.ok(result, 'Suggested clubs fetched successfully.');
     } catch (error) {
       if (error.status === 409) {
         console.error(error);
@@ -47,6 +47,21 @@ const clubController = {
       return res.ok({ result }, result.message);
     } catch (error) {
       if (error.status === 409 || error.status === 404) {
+        return res.violate(null, error.message);
+      }
+      return next(error);
+    }
+  },
+
+  leaveClub: async function (req, res, next) {
+    try {
+      const currentUserId = req.user.userId;
+      const clubId = req.params.clubId;
+      const result = await clubService.leaveClub(currentUserId, clubId);
+
+      return res.ok({ result }, result.message);
+    } catch (error) {
+      if (error.status === 400 || error.status === 404) {
         return res.violate(null, error.message);
       }
       return next(error);
