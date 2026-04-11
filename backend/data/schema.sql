@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS NOTIFICATIONS (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER,
-    type TEXT CHECK (type IN ('like','comment','follow','system')) NOT NULL,
+    type TEXT CHECK (type IN ('like','comment','follow','system', 'club_join_request', 'club_approved', 'club_event', 'club_announcement')) NOT NULL,
     actor_id INTEGER,
     activity_id INTEGER,
     title TEXT NOT NULL,
@@ -76,10 +76,12 @@ CREATE TABLE IF NOT EXISTS POST (
     photo_url TEXT,
     like_count INTEGER DEFAULT 0,
     comment_count INTEGER DEFAULT 0,
+    club_id INTEGER DEFAULT NULL,
     view_mode TEXT NOT NULL CHECK (view_mode IN ('Everyone', 'Followers', 'Self')) DEFAULT 'Everyone',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (record_id) REFERENCES RECORD(record_id) ON DELETE SET NULL,
-    FOREIGN KEY (owner_id) REFERENCES USERS(user_id) ON DELETE CASCADE
+    FOREIGN KEY (owner_id) REFERENCES USERS(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (club_id) REFERENCES CLUBS(club_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS COMMENT (
@@ -131,40 +133,36 @@ CREATE INDEX IF NOT EXISTS idx_follow_follower ON FOLLOW(follower_id, created_at
 CREATE INDEX IF NOT EXISTS idx_post_created_at ON POST(created_at);
 
 -- Indexes for efficient cursor-based pagination on COMMENT
-CREATE INDEX IF NOT EXISTS idx_comment_post_created ON COMMENT(post_id, parent_id, created_at);
-
--- Index for efficient comment like lookups
-CREATE INDEX IF NOT EXISTS idx_comment_like_user ON COMMENT_LIKE(comment_id, user_id);
+CREATE INDEX IF NOT EXISTS idx_comment_post_created ON COMMENT(post_id, created_at);
 
 -- Index for efficient like lookups
 CREATE INDEX IF NOT EXISTS idx_like_post_user ON LIKE(post_id, user_id);
 
 ---FTS5 extension for search user
 CREATE VIRTUAL TABLE IF NOT EXISTS USER_FTS USING FTS5(
-    fullname,
+    username,
     content="USERS",
     content_rowid="user_id"
 );
 
 ---trigger FTS user
 CREATE TRIGGER  IF NOT EXISTS USER_AI AFTER INSERT ON USERS BEGIN
-  INSERT INTO USER_FTS(rowid, fullname)
-  VALUES (NEW.user_id, NEW.fullname);
+  INSERT INTO USER_FTS(rowid, username)
+  VALUES (NEW.user_id, NEW.username);
 END;
 
 CREATE TRIGGER IF NOT EXISTS USER_AD AFTER DELETE ON USERS BEGIN
-  INSERT INTO USER_FTS(USER_FTS, rowid, fullname)
-  VALUES('delete', OLD.user_id, OLD.fullname);
+  INSERT INTO USER_FTS(USER_FTS, rowid, username)
+  VALUES('delete', OLD.user_id, OLD.username);
 END;
 
 CREATE TRIGGER IF NOT EXISTS USER_AU AFTER UPDATE ON USERS BEGIN
-  INSERT INTO USER_FTS(USER_FTS, rowid, fullname)
-  VALUES('delete', OLD.user_id, OLD.fullname);
+  INSERT INTO USER_FTS(USER_FTS, rowid, username)
+  VALUES('delete', OLD.user_id, OLD.username);
 
-  INSERT INTO USER_FTS(rowid, fullname)
-  VALUES (NEW.user_id, NEW.fullname);
+  INSERT INTO USER_FTS(rowid, username)
+  VALUES (NEW.user_id, NEW.username);
 END;
-
 CREATE TABLE IF NOT EXISTS ROUTE_POINTS (
     point_id INTEGER PRIMARY KEY AUTOINCREMENT,
     record_id INTEGER NOT NULL,
@@ -177,3 +175,157 @@ CREATE TABLE IF NOT EXISTS ROUTE_POINTS (
 );
 
 CREATE INDEX IF NOT EXISTS idx_route_points_record ON ROUTE_POINTS(record_id);
+
+-- club
+-- trang riêng club
+CREATE TABLE IF NOT EXISTS CLUBS (
+    club_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT,
+    avatar_s3_key TEXT,
+    privacy_type TEXT DEFAULT 'public' CHECK (privacy_type IN ('public', 'private')), -- public: vào thẳng, private: cần duyệt (Req 5)
+    leader_id INTEGER NOT NULL, -- Club Leader
+    member_count INTEGER DEFAULT 1,
+    post_count INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (leader_id) REFERENCES USERS(user_id) ON DELETE SET NULL
+);
+
+-- quản lý duyệt xóa theo role
+CREATE TABLE IF NOT EXISTS CLUB_MEMBERS (
+    club_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    role TEXT DEFAULT 'member' CHECK (role IN ('admin', 'member')),
+    status TEXT DEFAULT 'approved' CHECK (status IN ('pending', 'approved', 'rejected')), -- pending dành cho private club
+    joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
+    PRIMARY KEY (club_id, user_id),
+    FOREIGN KEY (club_id) REFERENCES CLUBS(club_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE
+);
+
+-- tạo sự kiện club
+CREATE TABLE IF NOT EXISTS CLUB_EVENTS (
+    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    club_id INTEGER NOT NULL,
+    created_by INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    start_time DATETIME NOT NULL,
+    end_time DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (club_id) REFERENCES CLUBS(club_id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES USERS(user_id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS CLUB_EVENT_PARTICIPANTS (
+    event_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
+    PRIMARY KEY (event_id, user_id),
+    FOREIGN KEY (event_id) REFERENCES CLUB_EVENTS(event_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE
+);
+
+-- ==========================================
+-- TRIGGERS CHO MEMBER_COUNT (Bảng CLUB_MEMBERS)
+-- ==========================================
+
+-- 1. Khi có người MỚI tham gia (và được duyệt luôn, ví dụ public club)
+CREATE TRIGGER IF NOT EXISTS trigger_club_member_insert
+AFTER INSERT ON CLUB_MEMBERS
+WHEN NEW.status = 'approved'
+BEGIN
+    UPDATE CLUBS 
+    SET member_count = member_count + 1 
+    WHERE club_id = NEW.club_id;
+END;
+
+-- 2. Khi CẬP NHẬT trạng thái (ví dụ: Admin duyệt từ 'pending' -> 'approved' HOẶC kick từ 'approved' -> 'banned')
+CREATE TRIGGER IF NOT EXISTS trigger_club_member_update
+AFTER UPDATE OF status ON CLUB_MEMBERS
+BEGIN
+    -- Nếu chuyển thành 'approved' -> Tăng 1
+    UPDATE CLUBS 
+    SET member_count = member_count + 1 
+    WHERE club_id = NEW.club_id 
+      AND OLD.status != 'approved' 
+      AND NEW.status = 'approved';
+      
+    -- Nếu đang từ 'approved' bị đổi sang cái khác (banned, rejected) -> Giảm 1
+    UPDATE CLUBS 
+    SET member_count = member_count - 1 
+    WHERE club_id = NEW.club_id 
+      AND OLD.status = 'approved' 
+      AND NEW.status != 'approved';
+END;
+
+-- 3. Khi người dùng RỜI KHỎI club (xóa record)
+CREATE TRIGGER IF NOT EXISTS trigger_club_member_delete
+AFTER DELETE ON CLUB_MEMBERS
+WHEN OLD.status = 'approved'
+BEGIN
+    UPDATE CLUBS 
+    SET member_count = member_count - 1 
+    WHERE club_id = OLD.club_id;
+END;
+
+
+-- ==========================================
+-- TRIGGERS CHO POST_COUNT (Bảng POST)
+-- ==========================================
+
+-- 1. Khi có bài viết MỚI được đăng vào Club
+CREATE TRIGGER IF NOT EXISTS trigger_club_post_insert
+AFTER INSERT ON POST
+WHEN NEW.club_id IS NOT NULL
+BEGIN
+    UPDATE CLUBS 
+    SET post_count = post_count + 1 
+    WHERE club_id = NEW.club_id;
+END;
+
+-- 3. Khi bài viết trong Club bị XÓA
+CREATE TRIGGER IF NOT EXISTS trigger_club_post_delete
+AFTER DELETE ON POST
+WHEN OLD.club_id IS NOT NULL
+BEGIN
+    UPDATE CLUBS 
+    SET post_count = post_count - 1 
+    WHERE club_id = OLD.club_id;
+END;
+
+--- FTS5 extension cho search Club
+CREATE VIRTUAL TABLE IF NOT EXISTS CLUB_FTS USING FTS5(
+    name,
+    description,
+    content="CLUBS",
+    content_rowid="club_id"
+);
+
+--- Trigger khi INSERT Club mới
+CREATE TRIGGER IF NOT EXISTS CLUB_AI AFTER INSERT ON CLUBS BEGIN
+  INSERT INTO CLUB_FTS(rowid, name, description)
+  VALUES (NEW.club_id, NEW.name, NEW.description);
+END;
+
+--- Trigger khi DELETE Club
+CREATE TRIGGER IF NOT EXISTS CLUB_AD AFTER DELETE ON CLUBS BEGIN
+  INSERT INTO CLUB_FTS(CLUB_FTS, rowid, name, description)
+  VALUES('delete', OLD.club_id, OLD.name, OLD.description);
+END;
+
+--- Trigger khi UPDATE Club (Tên hoặc Mô tả)
+CREATE TRIGGER IF NOT EXISTS CLUB_AU AFTER UPDATE ON CLUBS BEGIN
+  -- Xóa dữ liệu cũ trong chỉ mục
+  INSERT INTO CLUB_FTS(CLUB_FTS, rowid, name, description)
+  VALUES('delete', OLD.club_id, OLD.name, OLD.description);
+
+  -- Thêm dữ liệu mới vào chỉ mục
+  INSERT INTO CLUB_FTS(rowid, name, description)
+  VALUES (NEW.club_id, NEW.name, NEW.description);
+END;
