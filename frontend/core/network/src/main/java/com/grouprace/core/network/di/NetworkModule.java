@@ -3,6 +3,7 @@ package com.grouprace.core.network.di;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Singleton;
+import com.grouprace.core.network.api.ClubApiService;
 import com.grouprace.core.network.api.NotificationApiService;
 import com.grouprace.core.network.api.RecordApiService;
 import com.grouprace.core.network.api.UserApiService;
@@ -97,5 +98,11 @@ public class NetworkModule {
     @Singleton
     public UserApiService provideUserApiService(Retrofit retrofit) {
         return retrofit.create(UserApiService.class);
+    }
+
+    @Provides
+    @Singleton
+    public ClubApiService provideClubApiService(Retrofit retrofit) {
+        return retrofit.create(ClubApiService.class);
     }
 }

@@ -1,0 +1,114 @@
+> Task :core:common:preBuild UP-TO-DATE
+> Task :core:common:preDebugBuild UP-TO-DATE
+> Task :core:common:generateDebugResValues UP-TO-DATE
+> Task :core:common:generateDebugResources UP-TO-DATE
+> Task :core:common:packageDebugResources UP-TO-DATE
+> Task :core:common:processDebugNavigationResources UP-TO-DATE
+> Task :core:common:parseDebugLocalResources UP-TO-DATE
+> Task :core:common:generateDebugRFile UP-TO-DATE
+> Task :core:common:javaPreCompileDebug UP-TO-DATE
+> Task :core:common:compileDebugJavaWithJavac UP-TO-DATE
+> Task :core:common:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:data:preBuild UP-TO-DATE
+> Task :core:data:preDebugBuild UP-TO-DATE
+> Task :core:data:generateDebugResValues UP-TO-DATE
+> Task :core:data:generateDebugResources UP-TO-DATE
+> Task :core:data:packageDebugResources UP-TO-DATE
+> Task :core:data:processDebugNavigationResources UP-TO-DATE
+> Task :core:data:parseDebugLocalResources UP-TO-DATE
+> Task :core:data:generateDebugRFile UP-TO-DATE
+> Task :core:common:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:data:javaPreCompileDebug UP-TO-DATE
+> Task :core:model:preBuild UP-TO-DATE
+> Task :core:model:preDebugBuild UP-TO-DATE
+> Task :core:model:generateDebugResValues UP-TO-DATE
+> Task :core:model:generateDebugResources UP-TO-DATE
+> Task :core:model:packageDebugResources UP-TO-DATE
+> Task :core:model:processDebugNavigationResources UP-TO-DATE
+> Task :core:model:parseDebugLocalResources UP-TO-DATE
+> Task :core:model:generateDebugRFile UP-TO-DATE
+> Task :core:model:javaPreCompileDebug UP-TO-DATE
+> Task :core:model:compileDebugJavaWithJavac UP-TO-DATE
+> Task :core:model:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:network:preBuild UP-TO-DATE
+> Task :core:network:preDebugBuild UP-TO-DATE
+> Task :core:network:generateDebugResValues UP-TO-DATE
+> Task :core:network:generateDebugResources UP-TO-DATE
+> Task :core:network:packageDebugResources UP-TO-DATE
+> Task :core:network:processDebugNavigationResources UP-TO-DATE
+> Task :core:network:parseDebugLocalResources UP-TO-DATE
+> Task :core:network:generateDebugRFile UP-TO-DATE
+> Task :core:model:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:network:javaPreCompileDebug UP-TO-DATE
+> Task :core:network:compileDebugJavaWithJavac UP-TO-DATE
+> Task :core:network:transformDebugClassesWithAsm UP-TO-DATE
+> Task :core:network:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:notification:preBuild UP-TO-DATE
+> Task :core:notification:preDebugBuild UP-TO-DATE
+> Task :core:notification:generateDebugResValues UP-TO-DATE
+> Task :core:notification:generateDebugResources UP-TO-DATE
+> Task :core:notification:packageDebugResources UP-TO-DATE
+> Task :core:notification:processDebugNavigationResources UP-TO-DATE
+> Task :core:notification:parseDebugLocalResources UP-TO-DATE
+> Task :core:notification:generateDebugRFile UP-TO-DATE
+> Task :core:notification:javaPreCompileDebug UP-TO-DATE
+> Task :core:notification:compileDebugJavaWithJavac UP-TO-DATE
+> Task :core:notification:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:service:preBuild UP-TO-DATE
+> Task :core:service:preDebugBuild UP-TO-DATE
+> Task :core:service:generateDebugResValues UP-TO-DATE
+> Task :core:service:generateDebugResources UP-TO-DATE
+> Task :core:service:packageDebugResources UP-TO-DATE
+> Task :core:service:processDebugNavigationResources UP-TO-DATE
+> Task :core:service:parseDebugLocalResources UP-TO-DATE
+> Task :core:service:generateDebugRFile UP-TO-DATE
+> Task :core:service:javaPreCompileDebug UP-TO-DATE
+> Task :core:service:compileDebugJavaWithJavac UP-TO-DATE
+> Task :core:service:bundleLibCompileToJarDebug UP-TO-DATE
+
+> Task :core:data:compileDebugJavaWithJavac FAILED
+/home/nam/Documents/2026_HK8/mobile/mobile-project/frontend/core/data/src/main/java/com/grouprace/core/data/repository/MockClubRepositoryImpl.java:20: error: MockClubRepositoryImpl is not abstract and does not override abstract method syncDiscoverClubs(int,int) in ClubRepository
+public class MockClubRepositoryImpl implements ClubRepository {
+       ^
+/home/nam/Documents/2026_HK8/mobile/mobile-project/frontend/core/data/src/main/java/com/grouprace/core/data/repository/MockClubRepositoryImpl.java:25: error: method does not override or implement a method from a supertype
+    @Override
+    ^
+/home/nam/Documents/2026_HK8/mobile/mobile-project/frontend/core/data/src/main/java/com/grouprace/core/data/repository/MockClubRepositoryImpl.java:35: error: method does not override or implement a method from a supertype
+    @Override
+    ^
+Note: /home/nam/Documents/2026_HK8/mobile/mobile-project/frontend/core/data/src/main/java/com/grouprace/core/data/di/DatabaseModule.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+3 errors
+
+[Incubating] Problems report is available at: file:///home/nam/Documents/2026_HK8/mobile/mobile-project/frontend/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':core:data:compileDebugJavaWithJavac'.
+> Compilation failed; see the compiler output below.
+  /home/nam/Documents/2026_HK8/mobile/mobile-project/frontend/core/data/src/main/java/com/grouprace/core/data/repository/MockClubRepositoryImpl.java:20: error: MockClubRepositoryImpl is not abstract and does not override abstract method syncDiscoverClubs(int,int) in ClubRepository
+  public class MockClubRepositoryImpl implements ClubRepository {
+         ^
+  /home/nam/Documents/2026_HK8/mobile/mobile-project/frontend/core/data/src/main/java/com/grouprace/core/data/repository/MockClubRepositoryImpl.java:25: error: method does not override or implement a method from a supertype
+      @Override
+      ^
+  /home/nam/Documents/2026_HK8/mobile/mobile-project/frontend/core/data/src/main/java/com/grouprace/core/data/repository/MockClubRepositoryImpl.java:35: error: method does not override or implement a method from a supertype
+      @Override
+      ^
+  Note: /home/nam/Documents/2026_HK8/mobile/mobile-project/frontend/core/data/src/main/java/com/grouprace/core/data/di/DatabaseModule.java uses or overrides a deprecated API.
+  Note: Recompile with -Xlint:deprecation for details.
+  3 errors
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.13/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 2s
+56 actionable tasks: 1 executed, 55 up-to-date

@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.grouprace.core.network.utils.SessionManager;
 import com.grouprace.core.system.ui.PlaceholderFragment;
+import com.grouprace.feature.club.ui.ClubsFragment;
 import com.grouprace.feature.profile.ui.ProfileFragment;
 import com.grouprace.feature.login.ui.LoginFragment;
 import com.grouprace.feature.posts.ui.PostFragment;
@@ -49,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (itemId == R.id.nav_record) {
                 fragment = new TrackingFragment();
             } else if (itemId == R.id.nav_clubs) {
-                fragment = new PlaceholderFragment();
+                fragment = new ClubsFragment();
             } else if (itemId == R.id.nav_you) {
                 fragment = new ProfileFragment();
             }

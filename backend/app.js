@@ -18,6 +18,7 @@ import userRoute from './routes/user.route.js';
 import recordRoute from './routes/record.route.js';
 import notificationRouter from './routes/notification.route.js';
 import deviceTokenRouter from './routes/device-token.route.js';
+import clubRouter from './routes/club.route.js';
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -34,7 +35,9 @@ app.use('/api/auth', authRoute);
 app.use(auth);
 
 app.use('/api/users', userRoute);
+app.use('/api/clubs', clubRouter);
 app.use('/api/records', recordRoute);
+
 app.use('/api/notifications', notificationRouter);
 app.use('/api/device-tokens', deviceTokenRouter);
 

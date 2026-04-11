@@ -1,3 +1,57 @@
+# ⚙️ BACKEND_SKILL.md - Node.js Server Manual
+
+This document provides the architectural rules, directory structure, and coding conventions for the backend API of the application. The backend is built with Node.js, Express, and SQLite.
+
+---
+
+## 1. Architecture Pattern (Strict Layering)
+The backend strictly follows a Layered Architecture to separate concerns. Data must flow sequentially through these layers. **Do not skip layers.**
+
+**Flow:** `Route` ➡️ `Controller` ➡️ `Service` ➡️ `Repository` / `Utils`
+
+* **Routes (`routes/`):** Defines API endpoints, attaches validation middlewares, and routes requests to the appropriate Controller.
+* **Controllers (`controllers/`):** Handles HTTP request/response logic ONLY. It extracts data from `req`, passes it to the Service, and formats the response using `res.ok()`, `res.created()`, or `res.error()` (via `restResponse.js`). **No business logic here.**
+* **Services (`services/`):** The heart of the application. Contains all business logic, validation logic, and orchestration. It calls Repositories to interact with the database or Utils for external tools.
+* **Repositories (`repo/`):** Pure database interaction. Contains raw SQL queries. **No business logic here.** Returns data to the Service.
+* **Utils (`utils/`):** External integrations (S3, Firebase, Mapbox API), validation schemas (Zod), and shared helper functions.
+
+---
+
+## 2. Directory Guide
+
+* **`config/`**: Centralized environment variable getters and configuration files (e.g., Mail, Map, S3, Firebase).
+* **`data/`**: Database initialization and state. Contains `schema.sql` (table definitions), `data.sql` (mock/sample data), and `seed.js` (script to reset and populate the DB).
+* **`middlewares/`**: Express middlewares for authorization (`auth.middleware.js`), input validation (`validation.js`), global error handling (`errorHandler.js`), and custom response formatting (`restResponse.js`).
+* **`utils/schemas/`**: Zod schemas used for validating incoming request bodies/params.
+
+---
+
+## 3. Database Rules (SQLite)
+* We use raw SQL queries via standard database drivers. **Do not use ORMs.**
+* Always use parameterized queries (`?`) to prevent SQL injection.
+* Foreign keys must utilize `ON DELETE CASCADE` or `ON DELETE SET NULL` to maintain data integrity.
+* FTS5 extensions are used for high-performance searches (e.g., searching for Users).
+* Reference **Section 5** for the exact current database schema.
+
+---
+
+## 4. STRICT CODING CONVENTIONS FOR AI
+
+Read and adhere to these rules before writing any backend code:
+
+* **RULE 1 - READ BEFORE WRITE (SYNC WITH EXISTING CODE):** Before generating new code, you MUST analyze existing files in the same layer to match their style, naming conventions, and error-handling patterns. Do not invent new patterns if a standard one already exists in the project.
+* **RULE 2 - SCHEMA-DRIVEN VALIDATION:** All incoming POST/PUT request data must be validated using a Zod schema defined in `utils/schemas/` before the Controller processes it.
+* **RULE 3 - ERROR HANDLING:** Never crash the server. Catch errors in the Service layer and throw appropriate custom errors or pass them to the Controller so `restResponse.js` can return a standardized JSON error response.
+* **RULE 4 - NO HARDCODED SECRETS:** Always retrieve API keys, tokens, and secrets from the `config/` folder.
+* **RULE 5 - ENGLISH ONLY:** All code, variables, functions, and inline comments detailing business logic must be written in clear English.
+
+---
+
+## 5. Current Database Schema
+
+When writing SQL queries in the `repo/` layer, strictly adhere to the following table structures, foreign keys, and indexes:
+
+```sql
 CREATE TABLE IF NOT EXISTS NOTIFICATIONS (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER,
@@ -76,12 +130,10 @@ CREATE TABLE IF NOT EXISTS POST (
     photo_url TEXT,
     like_count INTEGER DEFAULT 0,
     comment_count INTEGER DEFAULT 0,
-    club_id INTEGER DEFAULT NULL,
     view_mode TEXT NOT NULL CHECK (view_mode IN ('Everyone', 'Followers', 'Self')) DEFAULT 'Everyone',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (record_id) REFERENCES RECORD(record_id) ON DELETE SET NULL,
-    FOREIGN KEY (owner_id) REFERENCES USERS(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (club_id) REFERENCES CLUBS(club_id) ON DELETE CASCADE
+    FOREIGN KEY (owner_id) REFERENCES USERS(user_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS COMMENT (
@@ -150,6 +202,7 @@ CREATE TRIGGER IF NOT EXISTS USER_AU AFTER UPDATE ON USERS BEGIN
   INSERT INTO USER_FTS(rowid, username)
   VALUES (NEW.user_id, NEW.username);
 END;
+
 CREATE TABLE IF NOT EXISTS ROUTE_POINTS (
     point_id INTEGER PRIMARY KEY AUTOINCREMENT,
     record_id INTEGER NOT NULL,
@@ -172,8 +225,6 @@ CREATE TABLE IF NOT EXISTS CLUBS (
     avatar_s3_key TEXT,
     privacy_type TEXT DEFAULT 'public' CHECK (privacy_type IN ('public', 'private')), -- public: vào thẳng, private: cần duyệt (Req 5)
     leader_id INTEGER NOT NULL, -- Club Leader
-    member_count INTEGER DEFAULT 1,
-    post_count INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     
@@ -217,71 +268,3 @@ CREATE TABLE IF NOT EXISTS CLUB_EVENT_PARTICIPANTS (
     FOREIGN KEY (event_id) REFERENCES CLUB_EVENTS(event_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE
 );
-
--- ==========================================
--- TRIGGERS CHO MEMBER_COUNT (Bảng CLUB_MEMBERS)
--- ==========================================
-
--- 1. Khi có người MỚI tham gia (và được duyệt luôn, ví dụ public club)
-CREATE TRIGGER IF NOT EXISTS trigger_club_member_insert
-AFTER INSERT ON CLUB_MEMBERS
-WHEN NEW.status = 'approved'
-BEGIN
-    UPDATE CLUBS 
-    SET member_count = member_count + 1 
-    WHERE club_id = NEW.club_id;
-END;
-
--- 2. Khi CẬP NHẬT trạng thái (ví dụ: Admin duyệt từ 'pending' -> 'approved' HOẶC kick từ 'approved' -> 'banned')
-CREATE TRIGGER IF NOT EXISTS trigger_club_member_update
-AFTER UPDATE OF status ON CLUB_MEMBERS
-BEGIN
-    -- Nếu chuyển thành 'approved' -> Tăng 1
-    UPDATE CLUBS 
-    SET member_count = member_count + 1 
-    WHERE club_id = NEW.club_id 
-      AND OLD.status != 'approved' 
-      AND NEW.status = 'approved';
-      
-    -- Nếu đang từ 'approved' bị đổi sang cái khác (banned, rejected) -> Giảm 1
-    UPDATE CLUBS 
-    SET member_count = member_count - 1 
-    WHERE club_id = NEW.club_id 
-      AND OLD.status = 'approved' 
-      AND NEW.status != 'approved';
-END;
-
--- 3. Khi người dùng RỜI KHỎI club (xóa record)
-CREATE TRIGGER IF NOT EXISTS trigger_club_member_delete
-AFTER DELETE ON CLUB_MEMBERS
-WHEN OLD.status = 'approved'
-BEGIN
-    UPDATE CLUBS 
-    SET member_count = member_count - 1 
-    WHERE club_id = OLD.club_id;
-END;
-
-
--- ==========================================
--- TRIGGERS CHO POST_COUNT (Bảng POST)
--- ==========================================
-
--- 1. Khi có bài viết MỚI được đăng vào Club
-CREATE TRIGGER IF NOT EXISTS trigger_club_post_insert
-AFTER INSERT ON POST
-WHEN NEW.club_id IS NOT NULL
-BEGIN
-    UPDATE CLUBS 
-    SET post_count = post_count + 1 
-    WHERE club_id = NEW.club_id;
-END;
-
--- 3. Khi bài viết trong Club bị XÓA
-CREATE TRIGGER IF NOT EXISTS trigger_club_post_delete
-AFTER DELETE ON POST
-WHEN OLD.club_id IS NOT NULL
-BEGIN
-    UPDATE CLUBS 
-    SET post_count = post_count - 1 
-    WHERE club_id = OLD.club_id;
-END;
