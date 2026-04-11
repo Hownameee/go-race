@@ -6,9 +6,11 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.ImageView;
 import android.widget.Button;
 import android.widget.EditText;
@@ -47,8 +49,9 @@ public class EditProfileFragment extends Fragment {
     private EditText editFullName;
     private EditText editUsername;
     private EditText editBirthdate;
-    private EditText editAddress;
-    private EditText editNationality;
+    private EditText editBio;
+    private EditText editProvinceCity;
+    private EditText editCountry;
     private EditText editHeight;
     private EditText editWeight;
     private Uri selectedAvatarUri;
@@ -86,8 +89,9 @@ public class EditProfileFragment extends Fragment {
         editFullName = view.findViewById(R.id.edit_profile_full_name);
         editUsername = view.findViewById(R.id.edit_profile_username);
         editBirthdate = view.findViewById(R.id.edit_profile_birthdate);
-        editAddress = view.findViewById(R.id.edit_profile_address);
-        editNationality = view.findViewById(R.id.edit_profile_nationality);
+        editBio = view.findViewById(R.id.edit_profile_bio);
+        editProvinceCity = view.findViewById(R.id.edit_profile_province_city);
+        editCountry = view.findViewById(R.id.edit_profile_country);
         editHeight = view.findViewById(R.id.edit_profile_height);
         editWeight = view.findViewById(R.id.edit_profile_weight);
     }
@@ -97,6 +101,18 @@ public class EditProfileFragment extends Fragment {
         saveButton.setOnClickListener(v -> saveMyInfo());
         changeAvatarButton.setOnClickListener(v -> avatarPickerLauncher.launch("image/*"));
         DatePickerHelper.attachDatePicker(this, editBirthdate);
+        editWeight.setOnEditorActionListener((v, actionId, event) -> {
+            boolean isDoneAction = actionId == EditorInfo.IME_ACTION_DONE;
+            boolean isEnterKey = event != null
+                    && event.getKeyCode() == KeyEvent.KEYCODE_ENTER
+                    && event.getAction() == KeyEvent.ACTION_DOWN;
+
+            if (isDoneAction || isEnterKey) {
+                saveMyInfo();
+                return true;
+            }
+            return false;
+        });
     }
 
     private void observeViewModel() {
@@ -130,8 +146,9 @@ public class EditProfileFragment extends Fragment {
                 editUsername.getText().toString().trim(),
                 editFullName.getText().toString().trim(),
                 editBirthdate.getText().toString().trim(),
-                editNationality.getText().toString().trim(),
-                editAddress.getText().toString().trim(),
+                editBio.getText().toString().trim(),
+                editProvinceCity.getText().toString().trim(),
+                editCountry.getText().toString().trim(),
                 editHeight.getText().toString().trim(),
                 editWeight.getText().toString().trim()
         ).observe(getViewLifecycleOwner(), result -> {
@@ -203,8 +220,9 @@ public class EditProfileFragment extends Fragment {
         bindEditText(editFullName, profileInfo.getFullname());
         bindEditText(editUsername, profileInfo.getUsername());
         bindEditText(editBirthdate, profileInfo.getBirthdate());
-        bindEditText(editAddress, profileInfo.getAddress());
-        bindEditText(editNationality, profileInfo.getNationality());
+        bindEditText(editBio, profileInfo.getBio());
+        bindEditText(editProvinceCity, profileInfo.getProvinceCity());
+        bindEditText(editCountry, profileInfo.getCountry());
         bindEditText(editHeight, profileInfo.getHeightCm() != null ? String.valueOf(profileInfo.getHeightCm()) : null);
         bindEditText(editWeight, profileInfo.getWeightKg() != null ? String.valueOf(profileInfo.getWeightKg()) : null);
         loadAvatarPreview(profileInfo.getAvatarUrl());

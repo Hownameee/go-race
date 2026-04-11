@@ -5,6 +5,22 @@ const STRONG_PASSWORD_REGEX =
 const STRONG_PASSWORD_MSG =
   'Password must be at least 8 characters and include uppercase, lowercase, numbers, and special characters';
 
+export const googleAuthSchema = z
+  .object({
+    id_token: z.string().min(1, 'Google ID token is required'),
+    username: z
+      .string()
+      .min(3, 'Username must be at least 3 characters long')
+      .max(50, 'Username cannot exceed 50 characters')
+      .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores')
+      .optional(),
+    birthdate: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Birthdate must be in YYYY-MM-DD format')
+      .optional(),
+  })
+  .strict();
+
 export const registerSchema = z
   .object({
     username: z
@@ -55,10 +71,12 @@ export const updateProfileSchema = z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/, 'Birthdate must be in YYYY-MM-DD format')
       .optional(),
+    bio: z.string().max(500, 'Bio is too long').optional(),
     avatarUrl: z.string().url('Invalid avatar URL format').optional(),
     avatar_url: z.string().url('Invalid avatar URL format').optional(),
-    nationality: z.string().max(50, 'Nationality is too long').optional(),
-    address: z.string().max(255, 'Address is too long').optional(),
+    provinceCity: z.string().max(100, 'Province / City is too long').optional(),
+    province_city: z.string().max(100, 'Province / City is too long').optional(),
+    country: z.string().max(100, 'Country is too long').optional(),
     heightCm: z
       .number()
       .positive('Height must be a positive number')
@@ -90,9 +108,10 @@ export const updateProfileSchema = z
     fullname: data.fullname,
     email: data.email,
     birthdate: data.birthdate,
+    bio: data.bio,
     avatarUrl: data.avatarUrl ?? data.avatar_url,
-    nationality: data.nationality,
-    address: data.address,
+    provinceCity: data.provinceCity ?? data.province_city,
+    country: data.country,
     heightCm: data.heightCm ?? data.height_cm,
     weightKg: data.weightKg ?? data.weight_kg,
     password: data.password,

@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.KeyEvent;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -59,7 +61,7 @@ public class ChangePasswordFragment extends Fragment {
             }
         });
 
-        continueButton.setOnClickListener(v -> {
+        Runnable continueAction = () -> {
             String currentPassword = currentPasswordInput.getText().toString();
             viewModel.verifyCurrentPassword(currentPassword).observe(getViewLifecycleOwner(), result -> {
                 if (result instanceof Result.Loading) {
@@ -76,9 +78,26 @@ public class ChangePasswordFragment extends Fragment {
                     Toast.makeText(requireContext(), ((Result.Error<Void>) result).message, Toast.LENGTH_SHORT).show();
                 }
             });
-        });
+        };
+
+        continueButton.setOnClickListener(v -> continueAction.run());
+        currentPasswordInput.setOnEditorActionListener((v, actionId, event) -> handleSubmitAction(actionId, event, continueAction));
 
         forgotButton.setOnClickListener(v -> requestOtpForCurrentEmail(forgotButton));
+    }
+
+    private boolean handleSubmitAction(int actionId, KeyEvent event, Runnable action) {
+        boolean isDoneAction = actionId == EditorInfo.IME_ACTION_DONE;
+        boolean isEnterKey = event != null
+                && event.getKeyCode() == KeyEvent.KEYCODE_ENTER
+                && event.getAction() == KeyEvent.ACTION_DOWN;
+
+        if (isDoneAction || isEnterKey) {
+            action.run();
+            return true;
+        }
+
+        return false;
     }
 
     private void requestOtpForCurrentEmail(Button forgotButton) {

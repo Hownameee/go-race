@@ -82,10 +82,6 @@ const userController = {
       const user = await userService.getUserById(userId);
       if (!user) return res.notFound();
 
-      const city = user.address ? user.address.split(",").slice(-2, -1)[0]?.trim() || null : null;
-      const country = user.address ? user.address.split(",").slice(-1)[0]?.trim() || null : null;
-
-
       const followersCount = await followService.countFollowers(userId);
       const followingCount = await followService.countFollowings(userId);
 
@@ -93,8 +89,9 @@ const userController = {
         user_id: user.user_id,
         fullname: user.fullname,
         avatar_url: user.avatar_url,
-        city,
-        country,
+        bio: user.bio ?? null,
+        city: user.province_city ?? null,
+        country: user.country ?? null,
         total_followers: followersCount,
         total_followings: followingCount,
       };

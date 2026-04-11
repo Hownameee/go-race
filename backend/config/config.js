@@ -9,6 +9,7 @@ const config = {
   FIREBASE_SERVICE_ACCOUNT_PATH:
     process.env.FIREBASE_SERVICE_ACCOUNT_PATH ||
     './config/serviceAccountKey.json',
+  GOOGLE_WEB_CLIENT_ID: process.env.GOOGLE_WEB_CLIENT_ID,
 };
 
 export default config;

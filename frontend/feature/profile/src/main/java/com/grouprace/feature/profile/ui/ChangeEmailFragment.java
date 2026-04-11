@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.KeyEvent;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -71,7 +73,7 @@ public class ChangeEmailFragment extends Fragment {
 
         updateNewEmailOtpUi(messageView, newEmailInput, otpLabel, otpInput, saveEmailButton);
 
-        saveEmailButton.setOnClickListener(v -> {
+        Runnable submitChangeEmail = () -> {
             String newEmail = newEmailInput.getText().toString();
             if (!viewModel.isNewEmailOtpRequested()) {
                 viewModel.requestNewEmailOtp(newEmail).observe(getViewLifecycleOwner(), result -> {
@@ -109,7 +111,25 @@ public class ChangeEmailFragment extends Fragment {
                             Toast.makeText(requireContext(), ((Result.Error<Void>) result).message, Toast.LENGTH_SHORT).show();
                         }
                     });
-        });
+        };
+
+        saveEmailButton.setOnClickListener(v -> submitChangeEmail.run());
+        newEmailInput.setOnEditorActionListener((v, actionId, event) -> handleSubmitAction(actionId, event, submitChangeEmail));
+        otpInput.setOnEditorActionListener((v, actionId, event) -> handleSubmitAction(actionId, event, submitChangeEmail));
+    }
+
+    private boolean handleSubmitAction(int actionId, KeyEvent event, Runnable action) {
+        boolean isDoneAction = actionId == EditorInfo.IME_ACTION_DONE;
+        boolean isEnterKey = event != null
+                && event.getKeyCode() == KeyEvent.KEYCODE_ENTER
+                && event.getAction() == KeyEvent.ACTION_DOWN;
+
+        if (isDoneAction || isEnterKey) {
+            action.run();
+            return true;
+        }
+
+        return false;
     }
 
     private void updateNewEmailOtpUi(

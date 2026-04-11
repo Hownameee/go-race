@@ -7,6 +7,8 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.network.api.AuthApiService;
+import com.grouprace.core.network.model.auth.GoogleAuthPayload;
+import com.grouprace.core.network.model.auth.GoogleAuthResponse;
 import com.grouprace.core.network.model.auth.LoginPayload;
 import com.grouprace.core.network.model.auth.LoginResponse;
 import com.grouprace.core.network.model.auth.RequestPasswordResetOtpPayload;
@@ -81,6 +83,15 @@ public class AuthDataSource {
                 "Reset password failed.",
                 "Reset password",
                 ignored -> null
+        );
+    }
+
+    public  LiveData<Result<GoogleAuthResponse>> googleAuth(GoogleAuthPayload payload) {
+        return executeCall(
+            apiService.googleAuth(payload),
+            "Google authentication failed.",
+            "Google auth",
+            response -> response
         );
     }
 
@@ -188,5 +199,4 @@ public class AuthDataSource {
 
         return result;
     }
-
 }

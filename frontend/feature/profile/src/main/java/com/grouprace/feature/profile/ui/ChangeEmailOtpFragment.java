@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.KeyEvent;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -66,7 +68,7 @@ public class ChangeEmailOtpFragment extends Fragment {
             requestOtp(messageView, submitButton);
         }
 
-        submitButton.setOnClickListener(v -> viewModel.verifyOtp(otpInput.getText().toString())
+        Runnable submitOtp = () -> viewModel.verifyOtp(otpInput.getText().toString())
                 .observe(getViewLifecycleOwner(), result -> {
                     if (result instanceof Result.Loading) {
                         submitButton.setEnabled(false);
@@ -82,7 +84,24 @@ public class ChangeEmailOtpFragment extends Fragment {
                         submitButton.setText("Verify OTP");
                         Toast.makeText(requireContext(), ((Result.Error<Void>) result).message, Toast.LENGTH_SHORT).show();
                     }
-                }));
+                });
+
+        submitButton.setOnClickListener(v -> submitOtp.run());
+        otpInput.setOnEditorActionListener((v, actionId, event) -> handleSubmitAction(actionId, event, submitOtp));
+    }
+
+    private boolean handleSubmitAction(int actionId, KeyEvent event, Runnable action) {
+        boolean isDoneAction = actionId == EditorInfo.IME_ACTION_DONE;
+        boolean isEnterKey = event != null
+                && event.getKeyCode() == KeyEvent.KEYCODE_ENTER
+                && event.getAction() == KeyEvent.ACTION_DOWN;
+
+        if (isDoneAction || isEnterKey) {
+            action.run();
+            return true;
+        }
+
+        return false;
     }
 
     private void requestOtp(TextView messageView, Button submitButton) {

@@ -49,8 +49,9 @@ public class EditProfileViewModel extends ViewModel {
             String username,
             String fullname,
             String birthdate,
-            String nationality,
-            String address,
+            String bio,
+            String provinceCity,
+            String country,
             String heightText,
             String weightText
     ) {
@@ -75,8 +76,9 @@ public class EditProfileViewModel extends ViewModel {
                 null,
                 birthdate,
                 currentAvatarUrl,
-                emptyToNull(nationality),
-                emptyToNull(address),
+                emptyToNull(bio),
+                emptyToNull(provinceCity),
+                emptyToNull(country),
                 heightCm,
                 weightKg
         );

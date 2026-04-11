@@ -83,17 +83,39 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="vertical"
             android:layout_marginBottom="24dp">
 
             <Button
                 android:id="@+id/login_submit_button"
                 android:layout_width="match_parent"
-                android:layout_height="55dp"
+                android:layout_height="wrap_content"
                 android:text="Login"
                 android:background="@drawable/bg_button_rounded"
                 android:backgroundTint="@null"
                 app:backgroundTint="@null"
-                android:textColor="@color/black" />
+                android:textColor="@color/black"
+                android:layout_marginBottom="24dp"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/login_google_button"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:text="Continue with Google"
+                android:textAllCaps="false"
+                android:background="@drawable/bg_input_rounded"
+                android:backgroundTint="@null"
+                android:textColor="@android:color/black"
+                app:backgroundTint="@null"
+                app:icon="@drawable/ic_google"
+                app:iconGravity="textStart"
+                app:iconPadding="12dp"
+                app:iconSize="18dp"
+                app:iconTint="@null"
+                app:rippleColor="#12000000"
+                app:strokeWidth="0dp" />
+
+
         </LinearLayout>
 
         <LinearLayout

@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.KeyEvent;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -64,7 +66,7 @@ public class SetNewPasswordFragment extends Fragment {
             }
         });
 
-        saveButton.setOnClickListener(v -> viewModel.submitNewPassword(
+        Runnable savePasswordAction = () -> viewModel.submitNewPassword(
                 newPasswordInput.getText().toString(),
                 confirmPasswordInput.getText().toString()
         ).observe(getViewLifecycleOwner(), result -> {
@@ -93,6 +95,23 @@ public class SetNewPasswordFragment extends Fragment {
                 saveButton.setText("Save Password");
                 Toast.makeText(requireContext(), ((Result.Error<Void>) result).message, Toast.LENGTH_SHORT).show();
             }
-        }));
+        });
+
+        saveButton.setOnClickListener(v -> savePasswordAction.run());
+        confirmPasswordInput.setOnEditorActionListener((v, actionId, event) -> handleSubmitAction(actionId, event, savePasswordAction));
+    }
+
+    private boolean handleSubmitAction(int actionId, KeyEvent event, Runnable action) {
+        boolean isDoneAction = actionId == EditorInfo.IME_ACTION_DONE;
+        boolean isEnterKey = event != null
+                && event.getKeyCode() == KeyEvent.KEYCODE_ENTER
+                && event.getAction() == KeyEvent.ACTION_DOWN;
+
+        if (isDoneAction || isEnterKey) {
+            action.run();
+            return true;
+        }
+
+        return false;
     }
 }

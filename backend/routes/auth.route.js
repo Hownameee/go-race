@@ -2,6 +2,7 @@ import express from 'express';
 import authController from '../controllers/auth.controller.js';
 import validation from '../middlewares/validation.js';
 import {
+  googleAuthSchema,
   loginSchema,
   registerSchema,
   requestPasswordResetOtpByEmailSchema,
@@ -11,6 +12,7 @@ import {
 
 const router = express.Router();
 
+router.post('/google', validation(googleAuthSchema), authController.googleAuth);
 router.post('/register', validation(registerSchema), authController.register);
 router.post('/login', validation(loginSchema), authController.login);
 router.post('/password/request-otp', validation(requestPasswordResetOtpByEmailSchema), authController.requestPasswordResetOtp);

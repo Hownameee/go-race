@@ -23,6 +23,14 @@ async function attachAvatarUrls(items) {
 }
 
 const userService = {
+  getUserByGoogleSub: async function (googleSub) {
+    return await userRepo.getUserByGoogleSub(googleSub);
+  },
+
+  createGoogleUser: async function (userData) {
+    return userRepo.createGoogleUser(userData);
+  },
+  
   getAllUsers: async function (offset = 0, limit = 10) {
     const users = await userRepo.getAllUsers(offset, limit);
     return attachAvatarUrls(users);
@@ -66,8 +74,9 @@ const userService = {
       email: updateData.email,
       birthdate: updateData.birthdate,
       avatar_url: updateData.avatarUrl,
-      nationality: updateData.nationality,
-      address: updateData.address,
+      bio: updateData.bio,
+      province_city: updateData.provinceCity,
+      country: updateData.country,
       height_cm: updateData.heightCm,
       weight_kg: updateData.weightKg,
     };

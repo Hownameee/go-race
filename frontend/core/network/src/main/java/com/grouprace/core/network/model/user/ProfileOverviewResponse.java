@@ -12,6 +12,9 @@ public class ProfileOverviewResponse {
     @SerializedName("avatar_url")
     private String avatarUrl;
 
+    @SerializedName("bio")
+    private String bio;
+
     @SerializedName("city")
     private String city;
 
@@ -34,6 +37,9 @@ public class ProfileOverviewResponse {
 
     public String getAvatarUrl() { return avatarUrl; }
     public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
+
+    public String getBio() { return bio; }
+    public void setBio(String bio) { this.bio = bio; }
 
     public String getCity() { return city; }
     public void setCity(String city) { this.city = city; }

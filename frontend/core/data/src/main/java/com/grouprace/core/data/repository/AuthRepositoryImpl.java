@@ -5,6 +5,8 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.network.model.auth.GoogleAuthPayload;
+import com.grouprace.core.network.model.auth.GoogleAuthResponse;
 import com.grouprace.core.network.model.auth.LoginPayload;
 import com.grouprace.core.network.model.auth.RegisterPayload;
 import com.grouprace.core.network.source.AuthDataSource;
@@ -76,6 +78,29 @@ public class AuthRepositoryImpl implements AuthRepository {
     public void logout() {
         sessionManager.clearSession();
         _isLoggedIn.setValue(false);
+    }
+
+    @Override
+    public LiveData<Result<GoogleAuthResponse>> googleAuth(GoogleAuthPayload payload) {
+        LiveData<Result<GoogleAuthResponse>> networkResult = authNetworkDataSource.googleAuth(payload);
+
+        return Transformations.map(networkResult, result -> {
+            if (result instanceof  Result.Loading) {
+                return new Result.Loading<>();
+            } else if (result instanceof Result.Success) {
+                GoogleAuthResponse response = ((Result.Success<GoogleAuthResponse>) result).data;
+
+                if (response != null && response.getToken() != null && !response.getToken().isEmpty()) {
+                  sessionManager.saveAuthToken(response.getToken());
+                  _isLoggedIn.setValue(true);
+                }
+
+                return new Result.Success<>(response);
+            } else {
+                Result.Error<GoogleAuthResponse> error = (Result.Error<GoogleAuthResponse>) result;
+                return new Result.Error<>(error.exception, error.message);
+            }
+        });
     }
 
     @Override

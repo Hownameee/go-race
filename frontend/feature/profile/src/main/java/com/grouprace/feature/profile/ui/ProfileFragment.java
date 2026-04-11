@@ -51,6 +51,7 @@ public class ProfileFragment extends Fragment {
     private LinearLayout profileRootContent;
     private TextView profileFullname;
     private ImageView profileAvatar;
+    private TextView profileBio;
     private TextView profileCity;
     private TextView profileCountry;
     private TextView profileTotalFollowings;
@@ -87,6 +88,7 @@ public class ProfileFragment extends Fragment {
         profileRootContent = view.findViewById(R.id.profile_root_content);
         profileAvatar = view.findViewById(R.id.avatar);
         profileFullname = view.findViewById(R.id.profile_fullname);
+        profileBio = view.findViewById(R.id.profile_bio);
         profileCity = view.findViewById(R.id.profile_city);
         profileCountry = view.findViewById(R.id.profile_country);
         profileTotalFollowings = view.findViewById(R.id.profile_total_followings);
@@ -185,6 +187,7 @@ public class ProfileFragment extends Fragment {
         }
 
         ViewHelper.bindOptionalText(profileFullname, overview.getFullname());
+        ViewHelper.bindOptionalText(profileBio, overview.getBio());
         ViewHelper.bindOptionalText(profileCity, overview.getCity());
         ViewHelper.bindOptionalText(profileCountry, overview.getCountry());
         profileTotalFollowings.setText(String.valueOf(overview.getTotalFollowings()));
