@@ -76,10 +76,12 @@ CREATE TABLE IF NOT EXISTS POST (
     photo_url TEXT,
     like_count INTEGER DEFAULT 0,
     comment_count INTEGER DEFAULT 0,
+    club_id INTEGER DEFAULT NULL,
     view_mode TEXT NOT NULL CHECK (view_mode IN ('Everyone', 'Followers', 'Self')) DEFAULT 'Everyone',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (record_id) REFERENCES RECORD(record_id) ON DELETE SET NULL,
-    FOREIGN KEY (owner_id) REFERENCES USERS(user_id) ON DELETE CASCADE
+    FOREIGN KEY (owner_id) REFERENCES USERS(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (club_id) REFERENCES CLUBS(club_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS COMMENT (
@@ -187,6 +189,8 @@ CREATE TABLE IF NOT EXISTS CLUBS (
     avatar_s3_key TEXT,
     privacy_type TEXT DEFAULT 'public' CHECK (privacy_type IN ('public', 'private')), -- public: vào thẳng, private: cần duyệt (Req 5)
     leader_id INTEGER NOT NULL, -- Club Leader
+    member_count INTEGER DEFAULT 1,
+    post_count INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     
@@ -230,3 +234,71 @@ CREATE TABLE IF NOT EXISTS CLUB_EVENT_PARTICIPANTS (
     FOREIGN KEY (event_id) REFERENCES CLUB_EVENTS(event_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE
 );
+
+-- ==========================================
+-- TRIGGERS CHO MEMBER_COUNT (Bảng CLUB_MEMBERS)
+-- ==========================================
+
+-- 1. Khi có người MỚI tham gia (và được duyệt luôn, ví dụ public club)
+CREATE TRIGGER IF NOT EXISTS trigger_club_member_insert
+AFTER INSERT ON CLUB_MEMBERS
+WHEN NEW.status = 'approved'
+BEGIN
+    UPDATE CLUBS 
+    SET member_count = member_count + 1 
+    WHERE club_id = NEW.club_id;
+END;
+
+-- 2. Khi CẬP NHẬT trạng thái (ví dụ: Admin duyệt từ 'pending' -> 'approved' HOẶC kick từ 'approved' -> 'banned')
+CREATE TRIGGER IF NOT EXISTS trigger_club_member_update
+AFTER UPDATE OF status ON CLUB_MEMBERS
+BEGIN
+    -- Nếu chuyển thành 'approved' -> Tăng 1
+    UPDATE CLUBS 
+    SET member_count = member_count + 1 
+    WHERE club_id = NEW.club_id 
+      AND OLD.status != 'approved' 
+      AND NEW.status = 'approved';
+      
+    -- Nếu đang từ 'approved' bị đổi sang cái khác (banned, rejected) -> Giảm 1
+    UPDATE CLUBS 
+    SET member_count = member_count - 1 
+    WHERE club_id = NEW.club_id 
+      AND OLD.status = 'approved' 
+      AND NEW.status != 'approved';
+END;
+
+-- 3. Khi người dùng RỜI KHỎI club (xóa record)
+CREATE TRIGGER IF NOT EXISTS trigger_club_member_delete
+AFTER DELETE ON CLUB_MEMBERS
+WHEN OLD.status = 'approved'
+BEGIN
+    UPDATE CLUBS 
+    SET member_count = member_count - 1 
+    WHERE club_id = OLD.club_id;
+END;
+
+
+-- ==========================================
+-- TRIGGERS CHO POST_COUNT (Bảng POST)
+-- ==========================================
+
+-- 1. Khi có bài viết MỚI được đăng vào Club
+CREATE TRIGGER IF NOT EXISTS trigger_club_post_insert
+AFTER INSERT ON POST
+WHEN NEW.club_id IS NOT NULL
+BEGIN
+    UPDATE CLUBS 
+    SET post_count = post_count + 1 
+    WHERE club_id = NEW.club_id;
+END;
+
+-- 3. Khi bài viết trong Club bị XÓA
+CREATE TRIGGER IF NOT EXISTS trigger_club_post_delete
+AFTER DELETE ON POST
+WHEN OLD.club_id IS NOT NULL
+BEGIN
+    UPDATE CLUBS 
+    SET post_count = post_count - 1 
+    WHERE club_id = OLD.club_id;
+END;
