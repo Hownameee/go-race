@@ -66,6 +66,10 @@ public class MyPostsFragment extends Fragment {
             @Override
             public void onShareClicked(Post post) {
             }
+
+            @Override
+            public void onReportClicked(Post post) {
+            }
         });
         recyclerView.setAdapter(postAdapter);
 
