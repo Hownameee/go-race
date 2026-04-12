@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/black"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <!-- Drag Handle -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_drag_handle" />
+
+    <!-- Mode Switching -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tab_layout_mode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:tabIndicatorColor="@color/white"
+        app:tabSelectedTextColor="@color/white"
+        app:tabTextColor="#88FFFFFF"
+        android:background="@color/black"
+        app:tabMode="fixed"
+        app:tabGravity="fill" />
+
+    <!-- Color Swatches Row -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/ll_swatches"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- Custom Color Swatch (first) -->
+            <FrameLayout
+                android:id="@+id/fl_custom_swatch"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginEnd="12dp">
+
+                <View
+                    android:id="@+id/swatch_custom"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp" />
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_gravity="center"
+                    android:src="@android:drawable/ic_menu_edit"
+                    app:tint="#88FFFFFF" />
+            </FrameLayout>
+
+            <!-- Preset swatches added programmatically -->
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- HSB Sliders -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="Hue"
+        android:textColor="#AAFFFFFF"
+        android:textSize="12sp" />
+
+    <SeekBar
+        android:id="@+id/seekbar_hue"
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:layout_marginBottom="12dp"
+        android:max="360"
+        android:paddingStart="0dp"
+        android:paddingEnd="0dp"
+        android:splitTrack="false"
+        android:thumbTint="@color/white" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="Saturation"
+        android:textColor="#AAFFFFFF"
+        android:textSize="12sp" />
+
+    <SeekBar
+        android:id="@+id/seekbar_saturation"
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:layout_marginBottom="12dp"
+        android:max="100"
+        android:paddingStart="0dp"
+        android:paddingEnd="0dp"
+        android:splitTrack="false"
+        android:thumbTint="@color/white" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="Brightness"
+        android:textColor="#AAFFFFFF"
+        android:textSize="12sp" />
+
+    <SeekBar
+        android:id="@+id/seekbar_brightness"
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:layout_marginBottom="12dp"
+        android:max="100"
+        android:paddingStart="0dp"
+        android:paddingEnd="0dp"
+        android:splitTrack="false"
+        android:thumbTint="@color/white" />
+
+    <!-- Opacity (Background Only) -->
+    <LinearLayout
+        android:id="@+id/ll_opacity_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="Opacity"
+            android:textColor="#AAFFFFFF"
+            android:textSize="12sp" />
+
+        <SeekBar
+            android:id="@+id/seekbar_opacity"
+            android:layout_width="match_parent"
+            android:layout_height="24dp"
+            android:layout_marginBottom="24dp"
+            android:max="100"
+            android:paddingStart="0dp"
+            android:paddingEnd="0dp"
+            android:splitTrack="false"
+            android:thumbTint="@color/white" />
+    </LinearLayout>
+
+</LinearLayout>
