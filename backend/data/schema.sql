@@ -189,7 +189,7 @@ CREATE TABLE IF NOT EXISTS CLUBS (
     avatar_s3_key TEXT,
     privacy_type TEXT DEFAULT 'public' CHECK (privacy_type IN ('public', 'private')), -- public: vào thẳng, private: cần duyệt (Req 5)
     leader_id INTEGER NOT NULL, -- Club Leader
-    member_count INTEGER DEFAULT 1,
+    member_count INTEGER DEFAULT 0,
     post_count INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,

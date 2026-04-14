@@ -12,11 +12,11 @@ public class Club {
     private String leaderName;
     private int memberCount;
     private int postCount;
-    private boolean isJoined;
+    private String status;
 
     public Club() {}
 
-    public Club(int clubId, String name, String description, String avatarUrl, String privacyType, int leaderId, String leaderName, int memberCount, int postCount, boolean isJoined) {
+    public Club(int clubId, String name, String description, String avatarUrl, String privacyType, int leaderId, String leaderName, int memberCount, int postCount, String status) {
         this.clubId = clubId;
         this.name = name;
         this.description = description;
@@ -26,7 +26,7 @@ public class Club {
         this.leaderName = leaderName;
         this.memberCount = memberCount;
         this.postCount = postCount;
-        this.isJoined = isJoined;
+        this.status = status;
     }
 
     public int getClubId() { return clubId; }
@@ -53,9 +53,9 @@ public class Club {
     public int getMemberCount() { return memberCount; }
     public void setMemberCount(int memberCount) { this.memberCount = memberCount; }
 
-    public boolean isJoined() { return isJoined; }
-    public void setJoined(boolean joined) { isJoined = joined; }
-
     public int getPostCount() { return postCount; }
     public void setPostCount(int postCount) { this.postCount = postCount; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }

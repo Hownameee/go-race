@@ -17,9 +17,9 @@ public class ClubEntity {
     public int memberCount;
     public int postCount;
     public String avatarUrl;
-    public boolean isJoined;
+    public String status;
 
-    public ClubEntity(int clubId, String name, String description, String privacyType, int leaderId, String leaderName, int memberCount, int postCount, String avatarUrl, boolean isJoined) {
+    public ClubEntity(int clubId, String name, String description, String privacyType, int leaderId, String leaderName, int memberCount, int postCount, String avatarUrl, String status) {
         this.clubId = clubId;
         this.name = name;
         this.description = description;
@@ -29,11 +29,11 @@ public class ClubEntity {
         this.memberCount = memberCount;
         this.postCount = postCount;
         this.avatarUrl = avatarUrl;
-        this.isJoined = isJoined;
+        this.status = status;
     }
 
     public Club asExternalModel() {
-        Club club = new Club(clubId, name, description, avatarUrl, privacyType, leaderId, leaderName, memberCount, postCount, isJoined);
+        Club club = new Club(clubId, name, description, avatarUrl, privacyType, leaderId, leaderName, memberCount, postCount, status);
         return club;
     }
 }

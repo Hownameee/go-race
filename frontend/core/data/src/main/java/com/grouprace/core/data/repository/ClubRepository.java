@@ -28,9 +28,11 @@ public interface ClubRepository {
     
     LiveData<Result<ClubStats>> getClubStats(String clubId);
     
-    LiveData<Result<Boolean>> joinClub(String clubId);
+    LiveData<Result<String>> joinClub(String clubId);
     
     LiveData<Result<Boolean>> leaveClub(String clubId);
 
     LiveData<Result<Boolean>> deleteClub(String clubId);
+
+    LiveData<Result<String>> createClub(String name, String description, String privacyType);
 }
