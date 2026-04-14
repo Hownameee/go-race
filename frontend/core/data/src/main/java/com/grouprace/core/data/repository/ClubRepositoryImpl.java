@@ -13,6 +13,7 @@ import com.grouprace.core.model.ClubStats;
 import com.grouprace.core.model.Post;
 import com.grouprace.core.model.Record;
 import com.grouprace.core.network.model.club.ClubListPayload;
+import com.grouprace.core.network.model.club.JoinClubResponse;
 import com.grouprace.core.network.model.club.NetworkClub;
 import com.grouprace.core.network.source.ClubNetworkDataSource;
 
@@ -59,7 +60,7 @@ public class ClubRepositoryImpl implements ClubRepository {
                 List<NetworkClub> networkClubs = payload.getClubs();
 
                 List<ClubEntity> entities = networkClubs != null
-                        ? networkClubs.stream().map(n -> toEntity(n, "my clubs".equals(type)))
+                        ? networkClubs.stream().map(this::toEntity)
                                       .collect(Collectors.toList())
                         : Collections.emptyList();
 
@@ -124,10 +125,29 @@ public class ClubRepositoryImpl implements ClubRepository {
     }
 
     @Override
-    public LiveData<Result<Boolean>> joinClub(String clubId) {
-        MutableLiveData<Result<Boolean>> liveData = new MutableLiveData<>();
-        liveData.setValue(new Result.Success<>(true));
-        return liveData;
+    public LiveData<Result<String>> joinClub(String clubId) {
+        MutableLiveData<Result<String>> result = new MutableLiveData<>();
+        result.setValue(new Result.Loading<>());
+
+        int id = Integer.parseInt(clubId);
+        networkDataSource.joinClub(id).observeForever(networkResult -> {
+            if (networkResult instanceof Result.Success) {
+                String message = ((Result.Success<JoinClubResponse>) networkResult).data.getResult();
+                Executors.newSingleThreadExecutor().execute(() -> {
+                    if ("Joined".equals(message)) {
+                        clubDao.updateStatus(id, "approved");
+                    } else if ("Request sent".equals(message)) {
+                        clubDao.updateStatus(id, "pending");
+                    }
+                });
+                result.postValue(new Result.Success<>(message));
+            } else if (networkResult instanceof Result.Error) {
+                Result.Error<?> error = (Result.Error<?>) networkResult;
+                result.postValue(new Result.Error<>(error.exception, error.message));
+            }
+        });
+
+        return result;
     }
 
     @Override
@@ -144,9 +164,28 @@ public class ClubRepositoryImpl implements ClubRepository {
         return liveData;
     }
 
+    @Override
+    public LiveData<Result<String>> createClub(String name, String description, String privacyType) {
+        MutableLiveData<Result<String>> result = new MutableLiveData<>();
+        result.setValue(new Result.Loading<>());
+
+        com.grouprace.core.network.model.club.CreateClubRequest request = new com.grouprace.core.network.model.club.CreateClubRequest(name, description, privacyType);
+        networkDataSource.createClub(request).observeForever(networkResult -> {
+            if (networkResult instanceof Result.Success) {
+                syncClubs(0, 10);
+                result.postValue(new Result.Success<>(((Result.Success<String>) networkResult).data));
+            } else if (networkResult instanceof Result.Error) {
+                Result.Error<?> error = (Result.Error<?>) networkResult;
+                result.postValue(new Result.Error<>(error.exception, error.message));
+            }
+        });
+
+        return result;
+    }
+
     // ── Helpers ────────────────────────────────────────────────────────────────
 
-    private ClubEntity toEntity(NetworkClub n, boolean isJoined) {
+    private ClubEntity toEntity(NetworkClub n) {
         return new ClubEntity(
                 n.getClubId(),
                 n.getName(),
@@ -157,7 +196,7 @@ public class ClubRepositoryImpl implements ClubRepository {
                 n.getMemberCount(),
                 n.getPostCount(),
                 n.getAvatarUrl(),
-                isJoined
+                n.getStatus()
         );
     }
 

@@ -22,4 +22,5 @@ public interface AppNavigator {
     void navigateToVisualEditor(Fragment currentFragment, String photoUri, String title, String distance, String time, String speed);
     void openAddPost(Fragment currentFragment, boolean withActivity);
     void setBottomNavigationVisibility(Fragment fragment, boolean visible);
+    void navigateToCreateClub(Fragment currentFragment);
 }

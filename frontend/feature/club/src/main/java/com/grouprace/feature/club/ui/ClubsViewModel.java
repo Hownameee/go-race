@@ -82,7 +82,7 @@ public class ClubsViewModel extends ViewModel {
         sync();
     }
 
-    public LiveData<Result<Boolean>> joinClub(String clubId) {
+    public LiveData<Result<String>> joinClub(String clubId) {
         return clubRepository.joinClub(clubId);
     }
 }

@@ -2,6 +2,8 @@ package com.grouprace.feature.club.ui;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,7 +21,6 @@ import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.feature.club.R;
 import com.grouprace.feature.club.ui.adapter.ClubAdapter;
 
-
 import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
@@ -29,7 +30,6 @@ public class ClubsFragment extends Fragment {
 
     @Inject
     AppNavigator appNavigator;
-
     private ClubsViewModel viewModel;
     private RecyclerView recyclerView;
     private ClubAdapter clubAdapter;
@@ -57,7 +57,7 @@ public class ClubsFragment extends Fragment {
             public void onClubClick(Club club) {
                 // Navigate to detail
                 Bundle bundle = new Bundle();
-                bundle.putString("CLUB_ID", ((Integer)(club.getClubId())).toString());
+                bundle.putString("CLUB_ID", ((Integer) (club.getClubId())).toString());
                 ClubDetailFragment detailFragment = new ClubDetailFragment();
                 detailFragment.setArguments(bundle);
 
@@ -67,6 +67,18 @@ public class ClubsFragment extends Fragment {
 
             @Override
             public void onJoinClick(Club club) {
+                viewModel.joinClub(String.valueOf(club.getClubId())).observe(getViewLifecycleOwner(), result -> {
+                    if (result instanceof Result.Error) {
+                        Toast.makeText(getContext(), "Failed to join club", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+
+        Button btnCreateClub = view.findViewById(R.id.button_create_club_action);
+        btnCreateClub.setOnClickListener(v -> {
+            if (appNavigator != null) {
+                appNavigator.navigateToCreateClub(this);
             }
         });
 
@@ -95,6 +107,10 @@ public class ClubsFragment extends Fragment {
                 String type = ((Result.Success<String>) result).data;
                 boolean isDiscover = "discover clubs".equals(type);
                 viewModel.setDiscoverMode(isDiscover);
+            } else if (result instanceof Result.Error) {
+                if (clubAdapter.getItemCount() == 0) {
+                    viewModel.setDiscoverMode(true);
+                }
             }
         });
     }

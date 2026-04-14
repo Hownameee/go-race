@@ -12,18 +12,21 @@ import java.util.List;
 
 @Dao
 public interface ClubDao {
-    @Query("SELECT * FROM clubs WHERE isJoined = 1")
+    @Query("SELECT * FROM clubs WHERE status = 'approved'")
     LiveData<List<ClubEntity>> getMyClubs();
 
-    @Query("SELECT * FROM clubs WHERE isJoined = 0")
+    @Query("SELECT * FROM clubs")
     LiveData<List<ClubEntity>> getDiscoverClubs();
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertClubs(List<ClubEntity> clubs);
 
-    @Query("DELETE FROM clubs WHERE isJoined = 1")
+    @Query("DELETE FROM clubs WHERE status = 'approved'")
     void deleteAllMyClubs();
 
-    @Query("DELETE FROM clubs WHERE isJoined = 0")
+    @Query("DELETE FROM clubs WHERE status IS NULL OR status != 'approved'")
     void deleteAllDiscoverClubs();
+
+    @Query("UPDATE clubs SET status = :status WHERE clubId = :clubId")
+    void updateStatus(int clubId, String status);
 }

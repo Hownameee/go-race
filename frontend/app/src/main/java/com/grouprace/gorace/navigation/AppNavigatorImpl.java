@@ -7,6 +7,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import com.grouprace.gorace.R;
 import com.grouprace.core.navigation.AppNavigator;
+import com.grouprace.feature.club.ui.CreateClubFragment;
 import com.grouprace.feature.notification.ui.NotificationFragment;
 import com.grouprace.feature.posts.ui.MyPostsFragment;
 import com.grouprace.feature.profile.ui.ChangeEmailFragment;
@@ -134,6 +135,9 @@ public class AppNavigatorImpl implements AppNavigator {
         }
     }
 
+    public void navigateToCreateClub(Fragment currentFragment) {
+        navigateTo(currentFragment, new CreateClubFragment());
+    }
 
     private void navigateTo(Fragment currentFragment, Fragment targetFragment) {
         if (currentFragment != null && currentFragment.getView() != null && currentFragment.getView().getParent() != null) {

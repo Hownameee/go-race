@@ -30,8 +30,8 @@ public class NetworkClub {
     @SerializedName("post_count")
     private int postCount;
 
-    @SerializedName("isJoined")
-    private boolean isJoined;
+    @SerializedName("status")
+    private String status;
 
     public int getClubId() { return clubId; }
     public String getName() { return name; }
@@ -42,5 +42,5 @@ public class NetworkClub {
     public String getLeaderName() { return leaderName; }
     public int getMemberCount() { return memberCount; }
     public int getPostCount() { return postCount; }
-    public boolean isJoined() { return isJoined; }
+    public String getStatus() { return status; }
 }

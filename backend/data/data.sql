@@ -80,7 +80,7 @@ VALUES (
 -- club mock data
 INSERT INTO CLUBS (name, description, avatar_s3_key, privacy_type, leader_id)
 VALUES 
-('Hanoi Runners', 'Nhóm chạy vui vẻ khu vực Hồ Tây, giao lưu là chính.Nhóm chạy vui vẻ khu vực Hồ Tây, giao lưu là chính.Nhóm chạy vui vẻ khu vực Hồ Tây, giao lưu là chính.Nhóm chạy vui vẻ khu vực Hồ Tây, giao lưu là chính.Nhóm chạy vui vẻ khu vực Hồ Tây, giao lưu là chính.Nhóm chạy vui vẻ khu vực Hồ Tây, giao lưu là chính.', 'club-avatar-image/thobaymau.jpg', 'public', 1),
+('Hanoi Runners', 'Nhóm chạy vui vẻ khu vực Hồ Tây, giao lưu là chính. Mỗi tuần 1 lần mại zô mại zô', 'club-avatar-image/thobaymau.jpg', 'public', 1),
 ('Elite Marathoners', 'Nhóm chỉ dành cho các runners có pace dưới 5.0. Cần duyệt!', 'club-avatar-image/linux.png', 'private', 2),
 ('Weekend Joggers', 'Chạy nhẹ nhàng mỗi cuối tuần để rèn luyện sức khỏe.', 'club-avatar-image/Ai.jpeg', 'public', 4);
 
