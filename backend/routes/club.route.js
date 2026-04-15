@@ -1,12 +1,14 @@
 import express from 'express';
 import clubController from '../controllers/club.controller.js';
 import validation from '../middlewares/validation.js';
-import { createClubSchema, joinClubSchema } from '../utils/schemas/club.schema.js';
+import { createClubSchema, clubIdSchema } from '../utils/schemas/club.schema.js';
 
 const clubRouter = express.Router();
 
 clubRouter.get('/', clubController.getClubs);
+clubRouter.get('/:clubId', validation(clubIdSchema, 'params'), clubController.getClubById);
 clubRouter.post('/', validation(createClubSchema), clubController.createClub);
-clubRouter.post('/:clubId/join', validation(joinClubSchema, 'params'), clubController.joinClub);
+clubRouter.post('/:clubId/join', validation(clubIdSchema, 'params'), clubController.joinClub);
+clubRouter.post('/:clubId/leave', validation(clubIdSchema, 'params'), clubController.leaveClub);
 
 export default clubRouter;

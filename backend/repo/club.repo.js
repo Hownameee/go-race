@@ -54,12 +54,38 @@ const clubRepo = {
         return db.prepare(sql).get(clubId);
     },
 
+    findByIdAndUserId(userId, clubId) {
+        const sql = `            
+                SELECT
+                c.club_id, 
+                c.name, 
+                c.description, 
+                c.avatar_s3_key, 
+                c.privacy_type,
+                c.leader_id,
+                u.fullname AS leader_name,
+                c.member_count,
+                c.post_count,
+                cm.status
+            FROM CLUBS c
+            JOIN USERS u ON c.leader_id = u.user_id
+            LEFT JOIN CLUB_MEMBERS cm ON c.club_id = cm.club_id AND cm.user_id = ?
+            WHERE c.club_id = ?;
+            `;
+        return db.prepare(sql).get(userId, clubId);
+    },
+
     addMember(clubId, userId, status) {
         const sql = `
             INSERT INTO CLUB_MEMBERS (club_id, user_id, role, status)
             VALUES (?, ?, 'member', ?);
         `;
         return db.prepare(sql).run(clubId, userId, status);
+    },
+
+    removeMember(clubId, userId) {
+        const sql = `DELETE FROM CLUB_MEMBERS WHERE club_id = ? AND user_id = ?;`;
+        return db.prepare(sql).run(clubId, userId);
     },
 
     createClub(name, description, privacyType, leaderId) {

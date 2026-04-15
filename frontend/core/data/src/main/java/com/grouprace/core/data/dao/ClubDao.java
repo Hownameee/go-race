@@ -15,6 +15,9 @@ public interface ClubDao {
     @Query("SELECT * FROM clubs WHERE status = 'approved'")
     LiveData<List<ClubEntity>> getMyClubs();
 
+    @Query("SELECT * FROM clubs WHERE clubId = :clubId")
+    LiveData<ClubEntity> getClubById(int clubId);
+
     @Query("SELECT * FROM clubs")
     LiveData<List<ClubEntity>> getDiscoverClubs();
 
@@ -29,4 +32,7 @@ public interface ClubDao {
 
     @Query("UPDATE clubs SET status = :status WHERE clubId = :clubId")
     void updateStatus(int clubId, String status);
+
+    @Query("UPDATE clubs SET status = NULL WHERE clubId = :clubId")
+    void removeStatus(int clubId);
 }

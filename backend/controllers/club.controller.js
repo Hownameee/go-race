@@ -9,6 +9,13 @@ const clubController = {
         res.ok({ clubs, type });
     },
 
+    getClubById: async (req, res) => {
+        const userId = req.user.userId;
+        const clubId = req.params.clubId;
+        const club = await clubService.getClubByIdAndUserId(userId, clubId);
+        res.ok({ clubs: [club] });
+    },
+
     joinClub: async (req, res) => {
         try {
             const userId = req.user.userId;
@@ -26,11 +33,22 @@ const clubController = {
         }
     },
 
+    leaveClub: async (req, res) => {
+        try {
+            const userId = req.user.userId;
+            const clubId = req.params.clubId;
+            const result = await clubService.leaveClub(clubId, userId);
+            res.ok({ result: result.message });
+        } catch (error) {
+            res.badRequest(null, error.message);
+        }
+    },
+
     createClub: async (req, res) => {
         try {
             const userId = req.user.userId;
             const { name, description, privacy_type } = req.body;
-            
+
             if (!name) {
                 return res.badRequest(null, "Club name is required");
             }

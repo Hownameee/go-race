@@ -1,5 +1,7 @@
 package com.grouprace.core.data.repository;
 
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
@@ -8,16 +10,12 @@ import com.grouprace.core.common.result.Result;
 import com.grouprace.core.data.dao.ClubDao;
 import com.grouprace.core.data.model.ClubEntity;
 import com.grouprace.core.model.Club;
-import com.grouprace.core.model.ClubEvent;
-import com.grouprace.core.model.ClubStats;
-import com.grouprace.core.model.Post;
-import com.grouprace.core.model.Record;
 import com.grouprace.core.network.model.club.ClubListPayload;
+import com.grouprace.core.network.model.club.ClubPayload;
 import com.grouprace.core.network.model.club.JoinClubResponse;
 import com.grouprace.core.network.model.club.NetworkClub;
 import com.grouprace.core.network.source.ClubNetworkDataSource;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -38,14 +36,18 @@ public class ClubRepositoryImpl implements ClubRepository {
 
     @Override
     public LiveData<List<Club>> getLocalMyClubs(int limit) {
-        return Transformations.map(clubDao.getMyClubs(),
-                entities -> entities.stream().map(ClubEntity::asExternalModel).collect(Collectors.toList()));
+        return Transformations.map(clubDao.getMyClubs(), entities -> entities.stream().map(ClubEntity::asExternalModel).collect(Collectors.toList()));
     }
 
     @Override
+    public LiveData<Club> getLocalClubById(int clubId) {
+        return Transformations.map(clubDao.getClubById(clubId), ClubEntity::asExternalModel);
+    }
+
+
+    @Override
     public LiveData<List<Club>> getLocalDiscoverClubs(int limit) {
-        return Transformations.map(clubDao.getDiscoverClubs(),
-                entities -> entities.stream().map(ClubEntity::asExternalModel).collect(Collectors.toList()));
+        return Transformations.map(clubDao.getDiscoverClubs(), entities -> entities.stream().map(ClubEntity::asExternalModel).collect(Collectors.toList()));
     }
 
     @Override
@@ -59,10 +61,7 @@ public class ClubRepositoryImpl implements ClubRepository {
                 String type = payload.getType();
                 List<NetworkClub> networkClubs = payload.getClubs();
 
-                List<ClubEntity> entities = networkClubs != null
-                        ? networkClubs.stream().map(this::toEntity)
-                                      .collect(Collectors.toList())
-                        : Collections.emptyList();
+                List<ClubEntity> entities = networkClubs != null ? networkClubs.stream().map(this::toEntity).collect(Collectors.toList()) : Collections.emptyList();
 
                 // Persist on a background thread
                 Executors.newSingleThreadExecutor().execute(() -> {
@@ -87,42 +86,26 @@ public class ClubRepositoryImpl implements ClubRepository {
         return result;
     }
 
-    // ── Stub implementations (detail screens use these) ───────────────────────
-
     @Override
-    public LiveData<Result<Club>> getClubDetails(String clubId) {
-        MutableLiveData<Result<Club>> liveData = new MutableLiveData<>();
-        liveData.setValue(new Result.Error<>(null, "Not implemented"));
-        return liveData;
+    public void syncClubById(int clubId) {
+        networkDataSource.getClubById(clubId).observeForever(networkResult -> {
+            if (networkResult instanceof Result.Success) {
+                ClubPayload payload = ((Result.Success<ClubPayload>) networkResult).data;
+                List<NetworkClub> networkClubs = payload.getClubs();
+
+                List<ClubEntity> entities = networkClubs != null ? networkClubs.stream().map(this::toEntity).collect(Collectors.toList()) : Collections.emptyList();
+
+                Executors.newSingleThreadExecutor().execute(() -> {
+                    clubDao.insertClubs(entities);
+                });
+
+            } else if (networkResult instanceof Result.Error) {
+                Result.Error<?> error = (Result.Error<?>) networkResult;
+                Log.e(TAG, "syncClubById: Error syncing club with ID " + clubId + ": " + error.message);
+            }
+        });
     }
 
-    @Override
-    public LiveData<Result<List<Post>>> getClubPosts(String clubId) {
-        MutableLiveData<Result<List<Post>>> liveData = new MutableLiveData<>();
-        liveData.setValue(new Result.Success<>(new ArrayList<>()));
-        return liveData;
-    }
-
-    @Override
-    public LiveData<Result<List<Record>>> getClubActivities(String clubId) {
-        MutableLiveData<Result<List<Record>>> liveData = new MutableLiveData<>();
-        liveData.setValue(new Result.Success<>(new ArrayList<>()));
-        return liveData;
-    }
-
-    @Override
-    public LiveData<Result<List<ClubEvent>>> getClubEvents(String clubId) {
-        MutableLiveData<Result<List<ClubEvent>>> liveData = new MutableLiveData<>();
-        liveData.setValue(new Result.Success<>(new ArrayList<>()));
-        return liveData;
-    }
-
-    @Override
-    public LiveData<Result<ClubStats>> getClubStats(String clubId) {
-        MutableLiveData<Result<ClubStats>> liveData = new MutableLiveData<>();
-        liveData.setValue(new Result.Error<>(null, "Not implemented"));
-        return liveData;
-    }
 
     @Override
     public LiveData<Result<String>> joinClub(String clubId) {
@@ -151,17 +134,25 @@ public class ClubRepositoryImpl implements ClubRepository {
     }
 
     @Override
-    public LiveData<Result<Boolean>> leaveClub(String clubId) {
-        MutableLiveData<Result<Boolean>> liveData = new MutableLiveData<>();
-        liveData.setValue(new Result.Success<>(true));
-        return liveData;
-    }
+    public LiveData<Result<String>> leaveClub(String clubId) {
+        MutableLiveData<Result<String>> result = new MutableLiveData<>();
+        result.setValue(new Result.Loading<>());
 
-    @Override
-    public LiveData<Result<Boolean>> deleteClub(String clubId) {
-        MutableLiveData<Result<Boolean>> liveData = new MutableLiveData<>();
-        liveData.setValue(new Result.Success<>(true));
-        return liveData;
+        int id = Integer.parseInt(clubId);
+        networkDataSource.leaveClub(id).observeForever(networkResult -> {
+            if (networkResult instanceof Result.Success) {
+                String message = ((Result.Success<JoinClubResponse>) networkResult).data.getResult();
+                Executors.newSingleThreadExecutor().execute(() -> {
+                    clubDao.removeStatus(id);
+                });
+                result.postValue(new Result.Success<>(message));
+            } else if (networkResult instanceof Result.Error) {
+                Result.Error<?> error = (Result.Error<?>) networkResult;
+                result.postValue(new Result.Error<>(error.exception, error.message));
+            }
+        });
+
+        return result;
     }
 
     @Override
@@ -183,21 +174,8 @@ public class ClubRepositoryImpl implements ClubRepository {
         return result;
     }
 
-    // ── Helpers ────────────────────────────────────────────────────────────────
-
     private ClubEntity toEntity(NetworkClub n) {
-        return new ClubEntity(
-                n.getClubId(),
-                n.getName(),
-                n.getDescription(),
-                n.getPrivacyType(),
-                n.getLeaderId(),
-                n.getLeaderName(),
-                n.getMemberCount(),
-                n.getPostCount(),
-                n.getAvatarUrl(),
-                n.getStatus()
-        );
+        return new ClubEntity(n.getClubId(), n.getName(), n.getDescription(), n.getPrivacyType(), n.getLeaderId(), n.getLeaderName(), n.getMemberCount(), n.getPostCount(), n.getAvatarUrl(), n.getStatus());
     }
 
     private <T> List<T> safeList(List<T> list) {
