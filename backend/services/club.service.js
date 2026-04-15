@@ -31,23 +31,42 @@ const clubService = {
         return { clubs: result, type };
     },
 
+    async getClubByIdAndUserId(userId, clubId) {
+        const club = await clubRepo.findByIdAndUserId(userId, clubId);
+        if (!club) {
+            throw new Error('Club not found');
+        }
+        const { avatar_s3_key, ...itemWithoutS3Key } = club;
+        let avatar_url = null;
+        if (avatar_s3_key) {
+            avatar_url = await getImageUrlS3(avatar_s3_key);
+        }
+        const res = { ...itemWithoutS3Key, avatar_url };
+        return res;
+    },
+
     async joinClub(clubId, userId) {
         const club = await clubRepo.findById(clubId);
         if (!club) {
             throw new Error('Club not found');
         }
 
-        const status = club.privacy_type === 'public' ? 'approved' : 'pending';
-
-        try {
-            clubRepo.addMember(clubId, userId, status);
-            return { status };
-        } catch (error) {
-            if (error.code === 'SQLITE_CONSTRAINT_PRIMARYKEY') {
-                throw new Error('Already a member or request pending');
-            }
-            throw error;
+        if (club.privacy_type === 'public') {
+            await clubRepo.addMember(clubId, userId, 'approved');
+            return { message: "Joined", status: "approved" };
+        } else {
+            await clubRepo.addMember(clubId, userId, 'pending');
+            return { message: "Request sent", status: "pending" };
         }
+    },
+
+    async leaveClub(clubId, userId) {
+        const club = await clubRepo.findById(clubId);
+        if (!club) {
+            throw new Error('Club not found');
+        }
+        await clubRepo.removeMember(clubId, userId);
+        return { message: "Left" };
     },
 
     async createClub(name, description, privacyType, leaderId) {

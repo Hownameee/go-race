@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const joinClubSchema = z.object({
+export const clubIdSchema = z.object({
   clubId: z.coerce
     .number()
     .int()

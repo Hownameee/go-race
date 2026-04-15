@@ -1,6 +1,7 @@
 package com.grouprace.core.network.api;
 
 import com.grouprace.core.network.model.club.ClubListPayload;
+import com.grouprace.core.network.model.club.ClubPayload;
 import com.grouprace.core.network.model.club.JoinClubResponse;
 import com.grouprace.core.network.utils.ApiResponse;
 
@@ -24,6 +25,12 @@ public interface ClubApiService {
     @POST("api/clubs/{clubId}/join")
     Call<ApiResponse<JoinClubResponse>> joinClub(@Path("clubId") int clubId);
 
+    @POST("api/clubs/{clubId}/leave")
+    Call<ApiResponse<JoinClubResponse>> leaveClub(@Path("clubId") int clubId);
+
     @POST("api/clubs")
     Call<ApiResponse<Object>> createClub(@Body CreateClubRequest request);
+
+    @GET("api/clubs/{clubId}")
+    Call<ApiResponse<ClubPayload>> getClub(@Path("clubId") int clubId);
 }
