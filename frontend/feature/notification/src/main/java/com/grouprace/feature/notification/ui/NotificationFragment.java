@@ -66,6 +66,17 @@ public class NotificationFragment extends Fragment {
             if (!notification.isRead()) {
                 viewModel.markAsRead(notification);
             }
+            Intent intent = new Intent();
+            intent.setClassName(
+                    requireContext(),
+                    "com.grouprace.gorace.MainActivity"
+            );
+
+            intent.putExtra("type", notification.getType());
+            intent.putExtra("actor_id", String.valueOf(notification.getActorId()));
+            intent.putExtra("activity_id", String.valueOf(notification.getActivityId()));
+
+            startActivity(intent);
         });
 
         progressBar = view.findViewById(R.id.progressBar);
@@ -102,7 +113,7 @@ public class NotificationFragment extends Fragment {
                     notifications,
                     (a, b) -> a.getId() - b.getId()
             );
-            maybeShowSystemNotification(latest);
+//            maybeShowSystemNotification(latest);
             Log.d("NotificationFragment", "Notifications count: " + notifications.size());
         } else {
             adapter.submitList(Collections.emptyList());
@@ -110,31 +121,31 @@ public class NotificationFragment extends Fragment {
             Log.d("NotificationFragment", "No notifications found");
         }
     }
-    private void maybeShowSystemNotification(NotificationModel latest) {
-        if (latest == null) return;
-
-        if (!hasHydratedInitialList) {
-            hasHydratedInitialList = true;
-            lastShownNotificationId = latest.getId();
-            return;
-        }
-
-        if (lastShownNotificationId != null &&
-                latest.getId() == lastShownNotificationId) {
-            return;
-        }
-
-        lastShownNotificationId = latest.getId();
-
-        Intent intent = new Intent(requireContext(), NotificationFragment.class);
-        com.grouprace.core.notification.NotificationHelper.showNotification(
-                requireContext(),
-                latest.getId(),
-                latest.getTitle(),
-                latest.getMessage(),
-                intent
-        );
-    }
+//    private void maybeShowSystemNotification(NotificationModel latest) {
+//        if (latest == null) return;
+//
+//        if (!hasHydratedInitialList) {
+//            hasHydratedInitialList = true;
+//            lastShownNotificationId = latest.getId();
+//            return;
+//        }
+//
+//        if (lastShownNotificationId != null &&
+//                latest.getId() == lastShownNotificationId) {
+//            return;
+//        }
+//
+//        lastShownNotificationId = latest.getId();
+//
+//        Intent intent = new Intent(requireContext(), NotificationFragment.class);
+//        com.grouprace.core.notification.NotificationHelper.showNotification(
+//                requireContext(),
+//                latest.getId(),
+//                latest.getTitle(),
+//                latest.getMessage(),
+//                intent
+//        );
+//    }
 
     private TopAppBarConfig getTopAppBarConfig() {
         return new TopAppBarConfig.Builder()

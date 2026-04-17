@@ -45,6 +45,7 @@ const notificationService = {
     title,
     message,
   }) {
+    if (userId === actorId) return;
     const id = await notificationRepository.create({
       user_id: userId,
       type,

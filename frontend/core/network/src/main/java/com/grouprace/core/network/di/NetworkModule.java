@@ -28,6 +28,7 @@ import com.grouprace.core.network.utils.SessionManager;
 public class NetworkModule {
     private static final String BASE_URL = "http://10.0.2.2:5000/";
 
+//    private static final String BASE_URL = "http://192.168.1.31:5000/";
     @Provides
     @Singleton
     public HttpLoggingInterceptor provideLoggingInterceptor() {

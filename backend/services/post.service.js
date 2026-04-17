@@ -4,7 +4,6 @@ import followRepo from '../repo/follow.repo.js';
 import userRepo from '../repo/user.repo.js';
 import notificationService from './notification.service.js';
 
-const DEFAULT_LIMIT = 20;
 const FAR_FUTURE = '9999-12-31T23:59:59.999Z';
 
 const postService = {
@@ -20,20 +19,16 @@ const postService = {
     const newPost = await postRepo.insertPost(payload);
 
     try {
-      const user = await userRepo.getUserById(payload.owner_id);
-      const fullname = user ? user.fullname : 'Someone';
+      const fullname = payload.fullname;
       const effectiveCursor = FAR_FUTURE;
-      const effectiveLimit = DEFAULT_LIMIT;
 
       const followers = await followRepo.selectFollowers(
         payload.owner_id,
         effectiveCursor,
-        effectiveLimit,
+        null,
       );
-      console.log(followers)
 
       for (const follower of followers) {
-        console.log(follower.fullname)
         await notificationService.createAndSend({
           userId: follower.user_id,
           type: "post",
@@ -127,8 +122,23 @@ const postService = {
     return { posts, nextCursor };
   },
 
-  async likePost(postId, userId) {
+  async likePost(postId, userId, fullname) {
     const changes = await postRepo.insertLike(postId, userId);
+
+    const owner_id = await postRepo.getPostOwner(postId);
+    try {
+      await notificationService.createAndSend({
+        userId: owner_id.owner_id,
+        type: "post",
+        actorId: userId,
+        activityId: postId,
+        title: "New Like Post",
+        message: `${fullname} just liked your post`,
+      });
+    } catch (err) {
+      console.error("[like post][notification error]", err);
+    }
+
     return { liked: changes > 0 };
   },
 
@@ -137,18 +147,59 @@ const postService = {
     return { unliked: changes > 0 };
   },
 
-  async createComment(postId, userId, content, parentId = null) {
+  async createComment(postId, userId, content, parentId = null, fullname) {
     if (!content || content.trim().length === 0) {
       const error = new Error('Comment content must not be empty.');
       error.status = 409;
       throw error;
     }
 
-    return await postRepo.insertComment(postId, userId, content.trim(), parentId);
+    const newComment = await postRepo.insertComment(postId, userId, content.trim(), parentId);
+    let owner_id;
+    let message;
+    if (parentId != null) {
+      const parentComment = await postRepo.getCommentOwner(parentId);
+      owner_id = parentComment.user_id;
+      message = `${fullname} just replied to your comment`;
+    } else {
+      owner_id = await postRepo.getPostOwner(postId);
+      owner_id = owner_id.owner_id;
+      message = `${fullname} just commented on your post`;
+    }
+
+    try {
+      await notificationService.createAndSend({
+        userId: owner_id,
+        type: "comment",
+        actorId: userId,
+        activityId: postId,
+        title: "New Comment",
+        message: `${message}`,
+      });
+    } catch (err) {
+      console.error("[comment][notification error]", err);
+    }
+
+    return newComment;
   },
 
-  async likeComment(commentId, userId) {
+  async likeComment(commentId, userId, fullname) {
     const changes = await postRepo.insertCommentLike(commentId, userId);
+    const postId = await postRepo.getPostFromCommentId(commentId);
+    const owner_id = await postRepo.getCommentOwner(commentId);
+    try {
+      await notificationService.createAndSend({
+        userId: owner_id.user_id,
+        type: "comment",
+        actorId: userId,
+        activityId: postId.post_id,
+        title: "New Like Comment",
+        message: `${fullname} just liked your comment`,
+      });
+    } catch (err) {
+      console.error("[like comment][notification error]", err);
+    }
+
     return { liked: changes > 0 };
   },
 

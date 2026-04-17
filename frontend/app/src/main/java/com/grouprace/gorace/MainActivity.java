@@ -1,6 +1,7 @@
 package com.grouprace.gorace;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,6 +17,8 @@ import com.grouprace.core.data.TokenManager;
 import com.grouprace.core.network.utils.SessionManager;
 import com.grouprace.core.system.ui.PlaceholderFragment;
 import com.grouprace.feature.login.ui.LoginViewModel;
+import com.grouprace.feature.notification.ui.NotificationFragment;
+import com.grouprace.feature.posts.ui.CommentFragment;
 import com.grouprace.feature.profile.ui.ProfileFragment;
 import com.grouprace.feature.login.ui.LoginFragment;
 import com.grouprace.feature.posts.ui.PostFragment;
@@ -70,6 +73,8 @@ public class MainActivity extends AppCompatActivity {
         requestNotificationPermissionIfNeeded();
 
         retryRegisterFcmToken();
+
+        handleIntent(getIntent());
     }
 
     private void observeViewModel() {
@@ -132,6 +137,103 @@ public class MainActivity extends AppCompatActivity {
             requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},
                     NOTIFICATION_PERMISSION_REQUEST_CODE);
         }
+    }
+
+    private void handleIntent(Intent intent) {
+        if (intent == null) return;
+        Log.d("HANDLE INTENT", "intent" + intent);
+
+        String type = intent.getStringExtra("type");
+
+        Log.d("HANDLE INTENT", "type" + type);
+        if (type == null) return;
+
+        if ("follow".equals(type)) {
+
+            String actorIdStr = intent.getStringExtra("actor_id");
+
+            if (actorIdStr != null && !actorIdStr.isEmpty()) {
+                try {
+                    int userId = Integer.parseInt(actorIdStr);
+
+                    ProfileFragment fragment =
+                            ProfileFragment.newInstance(userId);
+
+                    getSupportFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.fragment_container, fragment)
+                            .addToBackStack(null)
+                            .commit();
+
+                } catch (Exception e) {
+                    Log.e("MainActivity", "Invalid actor_id", e);
+                }
+            }
+
+        } else if ("post".equals(type)) {
+
+            String postIdStr = intent.getStringExtra("activity_id");
+
+            if (postIdStr != null) {
+                try {
+                    int postId = Integer.parseInt(postIdStr);
+
+                    Fragment fragment = new PostFragment();
+
+                    bottomNav.setSelectedItemId(R.id.nav_home);
+
+                    getSupportFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.fragment_container, fragment)
+                            .addToBackStack("post_from_notification")
+                            .commit();
+
+                } catch (Exception e) {
+                    Log.e("MainActivity", "Invalid postId", e);
+                }
+            }
+
+        } else if ("comment".equals(type)) {
+
+            String postIdStr = intent.getStringExtra("activity_id");
+
+            if (postIdStr != null) {
+                try {
+                    int postId = Integer.parseInt(postIdStr);
+
+                    Fragment fragment = CommentFragment.newInstance(postId);
+
+                    bottomNav.setSelectedItemId(R.id.nav_home);
+
+                    getSupportFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.fragment_container, fragment)
+                            .addToBackStack("post_from_notification")
+                            .commit();
+
+                } catch (Exception e) {
+                    Log.e("MainActivity", "Invalid postId", e);
+                }
+            }
+        } else if ("system".equals(type)) {
+
+            Fragment fragment = new NotificationFragment();
+
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragment_container, fragment)
+                    .addToBackStack("system_notification")
+                    .commit();
+        }
+
+        intent.removeExtra("notification_type");
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleIntent(intent);
     }
 
 }
