@@ -106,6 +106,25 @@ const clubRepo = {
             return clubId;
         })();
     },
+
+    findAdmins(clubId) {
+        const sql = `
+            SELECT 
+                u.user_id, 
+                u.fullname, 
+                u.avatar_url, 
+                cm.role,
+                CASE WHEN c.leader_id = u.user_id THEN 1 ELSE 0 END as is_leader
+            FROM CLUB_MEMBERS cm
+            JOIN USERS u ON cm.user_id = u.user_id
+            JOIN CLUBS c ON cm.club_id = c.club_id
+            WHERE cm.club_id = ? 
+              AND cm.role = 'admin' 
+              AND cm.status = 'approved'
+            ORDER BY is_leader DESC, u.fullname ASC;
+        `;
+        return db.prepare(sql).all(clubId);
+    },
 };
 
 export default clubRepo;

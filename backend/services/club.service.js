@@ -78,6 +78,11 @@ const clubService = {
             throw error;
         }
     },
+
+    async getClubAdmins(clubId) {
+        const admins = await clubRepo.findAdmins(clubId);
+        return admins;
+    },
 };
 
 export default clubService;

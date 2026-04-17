@@ -4,11 +4,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
-<<<<<<< HEAD
 import com.grouprace.core.network.api.DirectionsApiService;
-=======
 import com.grouprace.core.network.api.ClubApiService;
->>>>>>> 64018d9 (feat: implement club skeleton and club fragment UI and api)
 import com.grouprace.core.network.api.NotificationApiService;
 import com.grouprace.core.network.api.RecordApiService;
 import com.grouprace.core.network.api.SearchBoxApiService;
@@ -30,7 +27,7 @@ import com.grouprace.core.network.utils.SessionManager;
 @Module
 @InstallIn(SingletonComponent.class)
 public class NetworkModule {
-    private static final String BASE_URL = "http://172.104.190.228:5000/";
+    private static final String BASE_URL = "http://10.0.2.2:5000/";
 
     @Provides
     @Singleton

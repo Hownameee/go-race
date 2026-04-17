@@ -13,6 +13,7 @@ export const createPostSchema = z.object({
     .optional(),
   photo_url: z.string().optional(),
   view_mode: z.enum(['Everyone', 'Followers', 'Self']).default('Everyone'),
+  club_id: z.number().int().positive().optional().nullable(),
 });
 
 export const getPostFeedQuerySchema = z.object({

@@ -184,4 +184,35 @@ public class ClubNetworkDataSource {
 
         return liveData;
     }
+
+    public LiveData<Result<java.util.List<com.grouprace.core.network.model.club.NetworkClubAdmin>>> getAdmins(int clubId) {
+        MutableLiveData<Result<java.util.List<com.grouprace.core.network.model.club.NetworkClubAdmin>>> liveData = new MutableLiveData<>();
+        liveData.setValue(new Result.Loading<>());
+
+        apiService.getAdmins(clubId).enqueue(new Callback<ApiResponse<java.util.List<com.grouprace.core.network.model.club.NetworkClubAdmin>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<java.util.List<com.grouprace.core.network.model.club.NetworkClubAdmin>>> call, Response<ApiResponse<java.util.List<com.grouprace.core.network.model.club.NetworkClubAdmin>>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<java.util.List<com.grouprace.core.network.model.club.NetworkClubAdmin>> apiResponse = response.body();
+                    if (apiResponse.isSuccess() && apiResponse.getData() != null) {
+                        liveData.postValue(new Result.Success<>(apiResponse.getData()));
+                    } else {
+                        Log.e(TAG, "getAdmins: API error - " + apiResponse.getMessage());
+                        liveData.postValue(new Result.Error<>(null, apiResponse.getMessage()));
+                    }
+                } else {
+                    Log.e(TAG, "getAdmins: HTTP " + response.code());
+                    liveData.postValue(new Result.Error<>(null, "HTTP Error: " + response.code()));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<java.util.List<com.grouprace.core.network.model.club.NetworkClubAdmin>>> call, Throwable t) {
+                Log.e(TAG, "getAdmins: network failure - " + t.getMessage(), t);
+                liveData.postValue(new Result.Error<>(new Exception(t), t.getMessage()));
+            }
+        });
+
+        return liveData;
+    }
 }

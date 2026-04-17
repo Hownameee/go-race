@@ -20,10 +20,11 @@ public class Post {
     private Double speed;
     private String recordImageUrl;
     private boolean isLiked;
+    private Integer clubId;
 
     public Post() {}
 
-    public Post(int postId, Integer recordId, int ownerId, String title, String description, String photoUrl, int likeCount, int commentCount, String viewMode, String createdAt, String username, String fullName, String profilePictureUrl, String activityType, Integer durationSeconds, Double distanceKm, Double speed, String recordImageUrl) {
+    public Post(int postId, Integer recordId, int ownerId, String title, String description, String photoUrl, int likeCount, int commentCount, String viewMode, String createdAt, String username, String fullName, String profilePictureUrl, String activityType, Integer durationSeconds, Double distanceKm, Double speed, String recordImageUrl, Integer clubId) {
         this.postId = postId;
         this.recordId = recordId;
         this.ownerId = ownerId;
@@ -42,6 +43,7 @@ public class Post {
         this.distanceKm = distanceKm;
         this.speed = speed;
         this.recordImageUrl = recordImageUrl;
+        this.clubId = clubId;
     }
 
     public int getPostId() { return postId; }
@@ -82,4 +84,6 @@ public class Post {
     public void setRecordImageUrl(String recordImageUrl) { this.recordImageUrl = recordImageUrl; }
     public boolean isLiked() { return isLiked; }
     public void setLiked(boolean liked) { this.isLiked = liked; }
+    public Integer getClubId() { return clubId; }
+    public void setClubId(Integer clubId) { this.clubId = clubId; }
 }

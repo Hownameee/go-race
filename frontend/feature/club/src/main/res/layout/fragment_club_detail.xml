@@ -136,4 +136,69 @@
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintTop_toBottomOf="@id/layout_club_info" />
 
+    <!-- Placeholder and Feed Container -->
+    <FrameLayout
+        android:id="@+id/fl_club_content"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/rv_nav_buttons">
+
+        <!-- Private Club Placeholder -->
+        <LinearLayout
+            android:id="@+id/layout_private_club_placeholder"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="32dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:src="@android:drawable/ic_lock_idle_lock"
+                app:tint="@color/surface_medium" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="This club is private"
+                android:textColor="@color/text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:text="Join this club to see its posts and members."
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- Newsfeed -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_club_posts"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="16dp"
+            android:visibility="visible" />
+
+        <!-- Loading State -->
+        <include
+            android:id="@+id/loading_state"
+            layout="@layout/layout_loading_state" />
+
+        <!-- Error State -->
+        <include
+            android:id="@+id/error_state"
+            layout="@layout/layout_error_state" />
+
+    </FrameLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

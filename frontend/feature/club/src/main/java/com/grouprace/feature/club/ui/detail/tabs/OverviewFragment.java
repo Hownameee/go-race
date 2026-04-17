@@ -1,76 +1,114 @@
 package com.grouprace.feature.club.ui.detail.tabs;
 
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.grouprace.core.common.result.Result;
-import com.grouprace.core.model.Club;
+import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.feature.club.R;
-import com.grouprace.feature.club.ui.ClubDetailViewModel;
+import com.grouprace.feature.club.ui.adapter.ClubAdminAdapter;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
+
+@AndroidEntryPoint
 public class OverviewFragment extends Fragment {
 
-    private ClubDetailViewModel viewModel;
-    private TextView tvName, tvBio, tvLeaderName, tvAdminsNames;
-    private Button btnLeave, btnDelete;
+    private static final String ARG_CLUB_ID = "CLUB_ID";
+    @Inject
+    AppNavigator appNavigator;
+    private OverviewViewModel viewModel;
+    private ClubAdminAdapter adapter;
 
     public OverviewFragment() {
-        super(R.layout.fragment_club_detail_overview);
+        super(R.layout.fragment_club_overview);
+    }
+
+    public static OverviewFragment newInstance(int clubId) {
+        OverviewFragment fragment = new OverviewFragment();
+        Bundle args = new Bundle();
+        args.putInt(ARG_CLUB_ID, clubId);
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        viewModel = new ViewModelProvider(requireParentFragment()).get(ClubDetailViewModel.class);
+        int clubId = getArguments() != null ? getArguments().getInt(ARG_CLUB_ID, -1) : -1;
+        if (clubId == -1) return;
 
-        tvName = view.findViewById(R.id.text_club_name);
-        tvBio = view.findViewById(R.id.text_bio);
-        tvLeaderName = view.findViewById(R.id.text_leader_name);
-        tvAdminsNames = view.findViewById(R.id.text_admins_names);
-        
-        btnLeave = view.findViewById(R.id.button_leave_club);
-        btnDelete = view.findViewById(R.id.button_delete_club);
+        viewModel = new ViewModelProvider(this).get(OverviewViewModel.class);
+        viewModel.setClubId(clubId);
 
-        btnLeave.setOnClickListener(v -> {
-            viewModel.leaveClub().observe(getViewLifecycleOwner(), res -> {
-                if(res instanceof Result.Success) Toast.makeText(getContext(), "Left club", Toast.LENGTH_SHORT).show();
-            });
+        setupViews(view);
+        observeViewModel(view);
+    }
+
+    private void setupViews(View view) {
+        RecyclerView rvAdmins = view.findViewById(R.id.rv_club_admins);
+        rvAdmins.setLayoutManager(new LinearLayoutManager(getContext()));
+        adapter = new ClubAdminAdapter();
+        rvAdmins.setAdapter(adapter);
+
+        view.findViewById(R.id.btn_leave_club_action).setOnClickListener(v -> {
+            new androidx.appcompat.app.AlertDialog.Builder(requireContext()).setTitle("Leave Club").setMessage("Are you sure you want to leave this club?").setPositiveButton("Leave", (dialog, which) -> leaveClub()).setNegativeButton("Cancel", null).show();
         });
+    }
 
-        btnDelete.setOnClickListener(v -> {
-            viewModel.deleteClub().observe(getViewLifecycleOwner(), res -> {
-                if(res instanceof Result.Success) Toast.makeText(getContext(), "Club deleted", Toast.LENGTH_SHORT).show();
-            });
-        });
+    private void observeViewModel(View view) {
+        TextView tvName = view.findViewById(R.id.tv_overview_club_name);
+        TextView tvMembers = view.findViewById(R.id.tv_overview_member_count);
+        TextView tvPrivacy = view.findViewById(R.id.tv_overview_privacy_badge);
+        TextView tvDesc = view.findViewById(R.id.tv_overview_description);
 
-        viewModel.getClubDetails().observe(getViewLifecycleOwner(), result -> {
-            if (result instanceof Result.Success) {
-                Club club = ((Result.Success<Club>) result).data;
+        viewModel.getClub().observe(getViewLifecycleOwner(), club -> {
+            if (club != null) {
                 tvName.setText(club.getName());
-                tvBio.setText(club.getDescription());
-                tvLeaderName.setText(club.getLeaderName());
-                
-//                if (club.getAdmins() != null && !club.getAdmins().isEmpty()) {
-//                    tvAdminsNames.setText(TextUtils.join(", ", club.getAdmins()));
-//                } else {
-//                    tvAdminsNames.setText("None");
-//                }
-                
-                // MOCK logic: Show delete if somehow you are the leader (mocking "user1" check)
-                if ("user1".equals(club.getLeaderId())) {
-                    btnDelete.setVisibility(View.VISIBLE);
+                tvMembers.setText(club.getMemberCount() + " Members");
+
+                if ("private".equalsIgnoreCase(club.getPrivacyType())) {
+                    tvPrivacy.setText("Private");
+                    tvPrivacy.setTextColor(getResources().getColor(com.grouprace.core.system.R.color.error_red, null));
+                    tvPrivacy.setBackgroundResource(R.drawable.bg_badge_private);
                 } else {
-                    btnDelete.setVisibility(View.GONE);
+                    tvPrivacy.setText("Public");
+                    tvPrivacy.setTextColor(android.graphics.Color.parseColor("#00BFA5"));
+                    tvPrivacy.setBackgroundResource(R.drawable.bg_badge_public);
                 }
+
+                tvDesc.setText(club.getDescription());
+
+                boolean isApproved = "approved".equals(club.getStatus());
+                view.findViewById(R.id.btn_leave_club_action).setVisibility(isApproved ? View.VISIBLE : View.GONE);
+            }
+        });
+
+        viewModel.getAdmins().observe(getViewLifecycleOwner(), admins -> {
+            if (admins != null) {
+                adapter.setAdmins(admins);
+            }
+        });
+    }
+
+    private void leaveClub() {
+        viewModel.leaveClub().observe(getViewLifecycleOwner(), result -> {
+            if (result instanceof Result.Success) {
+                Toast.makeText(getContext(), "You have left the club.", Toast.LENGTH_SHORT).show();
+                appNavigator.navigateToClubs(this);
+            } else if (result instanceof Result.Error) {
+                Toast.makeText(getContext(), "Failed to leave club: " + ((Result.Error<?>) result).message, Toast.LENGTH_SHORT).show();
             }
         });
     }

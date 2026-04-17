@@ -26,8 +26,9 @@ public class PostEntity {
     public Double speed;
     public String recordImageUrl;
     public boolean isLiked;
+    public Integer clubId;
 
-    public PostEntity(int postId, Integer recordId, int ownerId, String title, String description, String photoUrl, int likeCount, int commentCount, String viewMode, String createdAt, String username, String fullName, String profilePictureUrl, String activityType, Integer durationSeconds, Double distanceKm, Double speed, String recordImageUrl, boolean isLiked) {
+    public PostEntity(int postId, Integer recordId, int ownerId, String title, String description, String photoUrl, int likeCount, int commentCount, String viewMode, String createdAt, String username, String fullName, String profilePictureUrl, String activityType, Integer durationSeconds, Double distanceKm, Double speed, String recordImageUrl, boolean isLiked, Integer clubId) {
         this.postId = postId;
         this.recordId = recordId;
         this.ownerId = ownerId;
@@ -47,10 +48,11 @@ public class PostEntity {
         this.speed = speed;
         this.recordImageUrl = recordImageUrl;
         this.isLiked = isLiked;
+        this.clubId = clubId;
     }
 
     public Post asExternalModel() {
-        Post post = new Post(postId, recordId, ownerId, title, description, photoUrl, likeCount, commentCount, viewMode, createdAt, username, fullName, profilePictureUrl, activityType, durationSeconds, distanceKm, speed, recordImageUrl);
+        Post post = new Post(postId, recordId, ownerId, title, description, photoUrl, likeCount, commentCount, viewMode, createdAt, username, fullName, profilePictureUrl, activityType, durationSeconds, distanceKm, speed, recordImageUrl, clubId);
         post.setLiked(isLiked);
         return post;
     }

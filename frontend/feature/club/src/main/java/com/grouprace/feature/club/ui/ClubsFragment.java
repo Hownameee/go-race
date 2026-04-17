@@ -20,6 +20,7 @@ import com.grouprace.core.system.ui.TopAppBarConfig;
 import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.feature.club.R;
 import com.grouprace.feature.club.ui.adapter.ClubAdapter;
+import com.grouprace.feature.club.ui.detail.ClubDetailFragment;
 
 import javax.inject.Inject;
 

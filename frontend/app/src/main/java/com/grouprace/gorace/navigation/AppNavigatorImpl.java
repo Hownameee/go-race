@@ -5,6 +5,7 @@ import android.view.ViewGroup;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import com.grouprace.feature.club.ui.ClubsFragment;
 import com.grouprace.gorace.R;
 import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.feature.club.ui.CreateClubFragment;
@@ -121,8 +122,8 @@ public class AppNavigatorImpl implements AppNavigator {
     }
 
     @Override
-    public void openAddPost(Fragment currentFragment, boolean withActivity) {
-        navigateTo(currentFragment, AddPostFragment.newInstance(withActivity));
+    public void openAddPost(Fragment currentFragment, boolean withActivity, Integer clubId) {
+        navigateTo(currentFragment, AddPostFragment.newInstance(withActivity, clubId));
     }
 
     @Override
@@ -134,9 +135,13 @@ public class AppNavigatorImpl implements AppNavigator {
             }
         }
     }
-
+    @Override
     public void navigateToCreateClub(Fragment currentFragment) {
         navigateTo(currentFragment, new CreateClubFragment());
+    }
+    @Override
+    public void navigateToClubs(Fragment currentFragment) {
+        navigateTo(currentFragment, new ClubsFragment());
     }
 
     private void navigateTo(Fragment currentFragment, Fragment targetFragment) {
