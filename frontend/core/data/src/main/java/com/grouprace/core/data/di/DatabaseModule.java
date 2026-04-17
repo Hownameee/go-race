@@ -5,6 +5,7 @@ import android.content.Context;
 import androidx.room.Room;
 
 import com.grouprace.core.data.AppDatabase;
+import com.grouprace.core.data.dao.NotificationDao;
 import com.grouprace.core.data.dao.RecordDao;
 import com.grouprace.core.data.dao.RoutePointDao;
 import com.grouprace.core.data.dao.PostDao;
@@ -44,5 +45,10 @@ public class DatabaseModule {
     @Provides
     public PostDao providePostDao(AppDatabase appDatabase) {
         return appDatabase.postDao();
+    }
+
+    @Provides
+    public NotificationDao provideNotificationDao(AppDatabase appDatabase) {
+        return appDatabase.notificationDao();
     }
 }

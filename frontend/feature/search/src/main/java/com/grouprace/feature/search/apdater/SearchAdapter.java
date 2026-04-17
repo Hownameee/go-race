@@ -61,7 +61,12 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
         holder.tvLocation.setText(user.getAddress());
 
         if (isClubTab) {
-            holder.btnFollow.setVisibility(View.GONE);
+            holder.btnFollow.setVisibility(View.VISIBLE);
+            if (user.isFollowing()) {
+                holder.btnFollow.setText("Joined");
+            } else {
+                holder.btnFollow.setText("Join");
+            }
         } else {
             holder.btnFollow.setVisibility(View.VISIBLE);
             if (user.isFollowing()) {

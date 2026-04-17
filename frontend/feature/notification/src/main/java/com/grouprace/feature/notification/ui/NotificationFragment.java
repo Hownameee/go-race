@@ -80,15 +80,15 @@ public class NotificationFragment extends Fragment {
 
     private void observeNotifications() {
         viewModel.getNotifications().observe(getViewLifecycleOwner(), result -> {
-            progressBar.setVisibility(View.VISIBLE);
-            if (result instanceof Result.Success) {
+            if (result instanceof Result.Loading) {
+                progressBar.setVisibility(View.VISIBLE);
+                tvEmpty.setVisibility(View.GONE);
+            } else if (result instanceof Result.Success) {
                 progressBar.setVisibility(View.GONE);
-
                 List<NotificationModel> notifications =
                         ((Result.Success<List<NotificationModel>>) result).data;
-
                 handleSuccessState(notifications);
-            } else {
+            } else if (result instanceof Result.Error) {
                 progressBar.setVisibility(View.GONE);
             }
         });

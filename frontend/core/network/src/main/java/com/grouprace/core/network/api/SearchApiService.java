@@ -59,4 +59,16 @@ public interface SearchApiService {
     @GET("api/clubs/suggest")
     Call<ApiResponse<List<NetworkUserSearch>>> getSuggestedClubs();
 
+    /**
+     * Tham gia Câu lạc bộ.
+     */
+    @POST("api/clubs/{clubId}/join")
+    Call<ApiResponse<Void>> joinClub(@Path("clubId") int clubId);
+
+    /**
+     * Rời Câu lạc bộ.
+     */
+    @DELETE("api/clubs/{clubId}/join")
+    Call<ApiResponse<Void>> leaveClub(@Path("clubId") int clubId);
+
 }
