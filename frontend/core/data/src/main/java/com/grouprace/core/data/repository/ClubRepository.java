@@ -19,4 +19,7 @@ public interface ClubRepository {
     LiveData<Result<String>> joinClub(String clubId);
     LiveData<Result<String>> leaveClub(String clubId);
     LiveData<Result<String>> createClub(String name, String description, String privacyType);
+
+    LiveData<List<com.grouprace.core.model.ClubAdmin>> getAdminsForClub(int clubId);
+    LiveData<Result<String>> syncAdmins(int clubId);
 }

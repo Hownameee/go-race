@@ -69,4 +69,11 @@ public interface PostApiService {
         @Path("postId") int postId,
         @Path("commentId") int commentId
     );
+
+    @GET("api/clubs/{clubId}/posts")
+    Call<ApiResponse<PostPayload>> getClubPosts(
+        @Path("clubId") int clubId,
+        @Query("cursor") String cursor, 
+        @Query("limit") int limit
+    );
 }

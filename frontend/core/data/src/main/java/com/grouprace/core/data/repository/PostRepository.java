@@ -11,12 +11,14 @@ public interface PostRepository {
      * Observable stream of posts from the local database.
      */
     LiveData<List<Post>> getPosts();
+    LiveData<List<Post>> getPostsByClubId(int clubId);
     LiveData<Result<List<Post>>> getMyPosts(String cursor, int limit);
 
     /**
      * Triggers a network fetch and syncs with the local database.
      */
     LiveData<Result<Boolean>> syncPosts(String cursor, int limit);
+    LiveData<Result<Boolean>> syncClubPosts(int clubId, String cursor, int limit);
 
     LiveData<Result<Boolean>> likePost(int postId);
     LiveData<Result<Boolean>> unlikePost(int postId);
@@ -28,5 +30,5 @@ public interface PostRepository {
     LiveData<Result<Boolean>> likeComment(int postId, int commentId);
     LiveData<Result<Boolean>> unlikeComment(int postId, int commentId);
     LiveData<Result<List<Comment>>> getReplies(int postId, int commentId, String cursor, int limit);
-    LiveData<Result<Boolean>> createPost(String title, String description, Integer recordId);
+    LiveData<Result<Boolean>> createPost(String title, String description, Integer recordId, Integer clubId);
 }

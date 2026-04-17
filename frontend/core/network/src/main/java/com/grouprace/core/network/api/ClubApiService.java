@@ -33,4 +33,7 @@ public interface ClubApiService {
 
     @GET("api/clubs/{clubId}")
     Call<ApiResponse<ClubPayload>> getClub(@Path("clubId") int clubId);
+
+    @GET("api/clubs/{clubId}/admins")
+    Call<ApiResponse<java.util.List<com.grouprace.core.network.model.club.NetworkClubAdmin>>> getAdmins(@Path("clubId") int clubId);
 }

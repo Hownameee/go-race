@@ -1,4 +1,5 @@
 import clubService from '../services/club.service.js';
+import postService from '../services/post.service.js';
 
 const clubController = {
     getClubs: async (req, res) => {
@@ -14,6 +15,21 @@ const clubController = {
         const clubId = req.params.clubId;
         const club = await clubService.getClubByIdAndUserId(userId, clubId);
         res.ok({ clubs: [club] });
+    },
+
+    getClubPosts: async (req, res, next) => {
+        try {
+            const userId = req.user.userId;
+            const clubId = req.params.clubId;
+            const { cursor, limit } = req.query;
+            const result = await postService.getClubPosts(clubId, userId, cursor, limit);
+            res.ok(result, 'Club posts retrieved successfully.');
+        } catch (error) {
+            if (error.status === 403 || error.status === 404) {
+                return res.violate(null, error.message);
+            }
+            next(error);
+        }
     },
 
     joinClub: async (req, res) => {
@@ -55,6 +71,16 @@ const clubController = {
 
             const result = await clubService.createClub(name, description, privacy_type, userId);
             res.ok(result);
+        } catch (error) {
+            res.error(null, error.message);
+        }
+    },
+
+    getAdmins: async (req, res) => {
+        try {
+            const clubId = parseInt(req.params.clubId);
+            const admins = await clubService.getClubAdmins(clubId);
+            res.ok(admins);
         } catch (error) {
             res.error(null, error.message);
         }

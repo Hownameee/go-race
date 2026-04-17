@@ -8,12 +8,16 @@ import androidx.lifecycle.Transformations;
 
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.data.dao.ClubDao;
+import com.grouprace.core.data.dao.ClubAdminDao;
+import com.grouprace.core.data.model.ClubAdminEntity;
 import com.grouprace.core.data.model.ClubEntity;
 import com.grouprace.core.model.Club;
+import com.grouprace.core.model.ClubAdmin;
 import com.grouprace.core.network.model.club.ClubListPayload;
 import com.grouprace.core.network.model.club.ClubPayload;
 import com.grouprace.core.network.model.club.JoinClubResponse;
 import com.grouprace.core.network.model.club.NetworkClub;
+import com.grouprace.core.network.model.club.NetworkClubAdmin;
 import com.grouprace.core.network.source.ClubNetworkDataSource;
 
 import java.util.Collections;
@@ -27,11 +31,13 @@ public class ClubRepositoryImpl implements ClubRepository {
     private static final String TAG = "ClubRepositoryImpl";
     private final ClubNetworkDataSource networkDataSource;
     private final ClubDao clubDao;
+    private final ClubAdminDao clubAdminDao;
 
     @Inject
-    public ClubRepositoryImpl(ClubNetworkDataSource networkDataSource, ClubDao clubDao) {
+    public ClubRepositoryImpl(ClubNetworkDataSource networkDataSource, ClubDao clubDao, ClubAdminDao clubAdminDao) {
         this.networkDataSource = networkDataSource;
         this.clubDao = clubDao;
+        this.clubAdminDao = clubAdminDao;
     }
 
     @Override
@@ -165,6 +171,38 @@ public class ClubRepositoryImpl implements ClubRepository {
             if (networkResult instanceof Result.Success) {
                 syncClubs(0, 10);
                 result.postValue(new Result.Success<>(((Result.Success<String>) networkResult).data));
+            } else if (networkResult instanceof Result.Error) {
+                Result.Error<?> error = (Result.Error<?>) networkResult;
+                result.postValue(new Result.Error<>(error.exception, error.message));
+            }
+        });
+
+        return result;
+    }
+
+    @Override
+    public LiveData<List<ClubAdmin>> getAdminsForClub(int clubId) {
+        return Transformations.map(clubAdminDao.getAdminsForClub(clubId), entities -> 
+            entities.stream().map(ClubAdminEntity::asExternalModel).collect(Collectors.toList())
+        );
+    }
+
+    @Override
+    public LiveData<Result<String>> syncAdmins(int clubId) {
+        MutableLiveData<Result<String>> result = new MutableLiveData<>();
+        result.setValue(new Result.Loading<>());
+
+        networkDataSource.getAdmins(clubId).observeForever(networkResult -> {
+            if (networkResult instanceof Result.Success) {
+                List<NetworkClubAdmin> admins = ((Result.Success<List<NetworkClubAdmin>>) networkResult).data;
+                List<ClubAdminEntity> entities = admins.stream()
+                        .map(n -> new ClubAdminEntity(clubId, n.getUserId(), n.getFullname(), n.getAvatarUrl(), n.isLeader()))
+                        .collect(Collectors.toList());
+
+                Executors.newSingleThreadExecutor().execute(() -> {
+                    clubAdminDao.replaceAdminsForClub(clubId, entities);
+                });
+                result.postValue(new Result.Success<>("Admins synced"));
             } else if (networkResult instanceof Result.Error) {
                 Result.Error<?> error = (Result.Error<?>) networkResult;
                 result.postValue(new Result.Error<>(error.exception, error.message));

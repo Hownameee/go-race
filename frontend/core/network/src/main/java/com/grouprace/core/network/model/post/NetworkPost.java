@@ -59,6 +59,9 @@ public class NetworkPost {
     @SerializedName("record_image_url")
     private String recordImageUrl;
 
+    @SerializedName("club_id")
+    private Integer clubId;
+
     public NetworkPost() {}
 
     public int getPostId() { return postId; }
@@ -119,7 +122,7 @@ public class NetworkPost {
         return new Post(
             postId, recordId, ownerId, title, description, photoUrl,
             likeCount, commentCount, viewMode, createdAt, username, fullName, profilePictureUrl,
-            activityType, durationSeconds, distanceKm, speed, recordImageUrl
+            activityType, durationSeconds, distanceKm, speed, recordImageUrl, clubId
         );
     }
 }

@@ -10,6 +10,7 @@ import com.grouprace.core.data.dao.RecordDao;
 import com.grouprace.core.data.dao.RoutePointDao;
 import com.grouprace.core.data.dao.UserRouteDao;
 import com.grouprace.core.data.dao.PostDao;
+import com.grouprace.core.data.dao.ClubAdminDao;
 
 import dagger.Module;
 import dagger.Provides;
@@ -55,5 +56,10 @@ public class DatabaseModule {
     @Provides
     public ClubDao provideClubDao(AppDatabase appDatabase) {
         return appDatabase.clubDao();
+    }
+
+    @Provides
+    public ClubAdminDao provideClubAdminDao(AppDatabase appDatabase) {
+        return appDatabase.clubAdminDao();
     }
 }

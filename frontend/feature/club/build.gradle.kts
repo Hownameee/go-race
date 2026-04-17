@@ -37,6 +37,7 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:system"))
     implementation(project(":core:navigation"))
+    implementation(project(":feature:posts"))
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation(libs.appcompat)
     implementation(libs.material)
