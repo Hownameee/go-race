@@ -40,4 +40,5 @@ dependencies {
 
     implementation(project(":core:model"))
     implementation(project(":core:system"))
+    implementation(project(":core:navigation"))
 }

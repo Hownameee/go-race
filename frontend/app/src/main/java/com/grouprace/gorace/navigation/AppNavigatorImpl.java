@@ -5,6 +5,9 @@ import android.view.ViewGroup;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import com.grouprace.feature.posts.ui.CommentFragment;
+import com.grouprace.feature.posts.ui.PostFragment;
+import com.grouprace.feature.profile.ui.ProfileFragment;
 import com.grouprace.gorace.R;
 import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.feature.notification.ui.NotificationFragment;
@@ -157,4 +160,17 @@ public class AppNavigatorImpl implements AppNavigator {
                     .commit();
         }
     }
+
+    @Override
+    public void openCommentFragment(Fragment currentFragment, int postId) {
+        CommentFragment fragment = CommentFragment.newInstance(postId);
+        navigateTo(currentFragment, fragment);
+    }
+
+    @Override
+    public void openUserProfile(Fragment currentFragment, int userId) {
+        ProfileFragment fragment = ProfileFragment.newInstance(userId);
+        navigateTo(currentFragment, fragment);
+    }
+
 }

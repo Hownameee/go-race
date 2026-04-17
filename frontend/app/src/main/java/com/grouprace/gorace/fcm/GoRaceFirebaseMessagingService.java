@@ -62,9 +62,8 @@ public class GoRaceFirebaseMessagingService extends FirebaseMessagingService {
         }
 
         Intent intent = new Intent(this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-        // 👉 QUAN TRỌNG: truyền data xuống MainActivity
         if (data != null) {
             for (Map.Entry<String, String> entry : data.entrySet()) {
                 intent.putExtra(entry.getKey(), entry.getValue());
@@ -72,8 +71,6 @@ public class GoRaceFirebaseMessagingService extends FirebaseMessagingService {
         }
 
         int notificationId = (int) System.currentTimeMillis();
-
-        Log.d("HANDLE INTENT", "extras = " + intent.getExtras());
 
         NotificationHelper.showNotification(
                 this,

@@ -26,6 +26,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.NotificationModel;
+import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.feature.notification.R;
 import com.grouprace.feature.notification.ui.apdater.NotificationAdapter;
 
@@ -35,18 +36,19 @@ import java.util.List;
 import com.grouprace.core.system.ui.TopAppBarConfig;
 import com.grouprace.core.system.ui.TopAppBarHelper;
 
+import javax.inject.Inject;
+
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class NotificationFragment extends Fragment {
+    @Inject
+    AppNavigator navigator;
 
     private NotificationViewModel viewModel;
     private NotificationAdapter adapter;
 
     private ProgressBar progressBar;
-
-    private Integer lastShownNotificationId = null;
-    private boolean hasHydratedInitialList = false;
 
     private TextView tvEmpty;
 
@@ -66,17 +68,17 @@ public class NotificationFragment extends Fragment {
             if (!notification.isRead()) {
                 viewModel.markAsRead(notification);
             }
-            Intent intent = new Intent();
-            intent.setClassName(
-                    requireContext(),
-                    "com.grouprace.gorace.MainActivity"
-            );
+            switch (notification.getType()) {
 
-            intent.putExtra("type", notification.getType());
-            intent.putExtra("actor_id", String.valueOf(notification.getActorId()));
-            intent.putExtra("activity_id", String.valueOf(notification.getActivityId()));
+                case "follow":
+                    navigator.openUserProfile(this, notification.getActorId());
+                    break;
 
-            startActivity(intent);
+                case "comment":
+                case "post":
+                    navigator.openCommentFragment(this, notification.getActivityId());
+                    break;
+            }
         });
 
         progressBar = view.findViewById(R.id.progressBar);
@@ -121,31 +123,6 @@ public class NotificationFragment extends Fragment {
             Log.d("NotificationFragment", "No notifications found");
         }
     }
-//    private void maybeShowSystemNotification(NotificationModel latest) {
-//        if (latest == null) return;
-//
-//        if (!hasHydratedInitialList) {
-//            hasHydratedInitialList = true;
-//            lastShownNotificationId = latest.getId();
-//            return;
-//        }
-//
-//        if (lastShownNotificationId != null &&
-//                latest.getId() == lastShownNotificationId) {
-//            return;
-//        }
-//
-//        lastShownNotificationId = latest.getId();
-//
-//        Intent intent = new Intent(requireContext(), NotificationFragment.class);
-//        com.grouprace.core.notification.NotificationHelper.showNotification(
-//                requireContext(),
-//                latest.getId(),
-//                latest.getTitle(),
-//                latest.getMessage(),
-//                intent
-//        );
-//    }
 
     private TopAppBarConfig getTopAppBarConfig() {
         return new TopAppBarConfig.Builder()
