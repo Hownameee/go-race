@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
 
     private BottomNavigationView bottomNav;
     private MainViewModel viewModel;
+    private boolean handledIntent = false;
     private static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 101;
 
     @Override
@@ -128,6 +129,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         retryRegisterFcmToken();
+
+        handleIntent(getIntent());
     }
 
     private void requestNotificationPermissionIfNeeded() {
@@ -139,101 +142,59 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void handleIntent(Intent intent) {
-        if (intent == null) return;
-        Log.d("HANDLE INTENT", "intent" + intent);
-
-        String type = intent.getStringExtra("type");
-
-        Log.d("HANDLE INTENT", "type" + type);
-        if (type == null) return;
-
-        if ("follow".equals(type)) {
-
-            String actorIdStr = intent.getStringExtra("actor_id");
-
-            if (actorIdStr != null && !actorIdStr.isEmpty()) {
-                try {
-                    int userId = Integer.parseInt(actorIdStr);
-
-                    ProfileFragment fragment =
-                            ProfileFragment.newInstance(userId);
-
-                    getSupportFragmentManager()
-                            .beginTransaction()
-                            .replace(R.id.fragment_container, fragment)
-                            .addToBackStack(null)
-                            .commit();
-
-                } catch (Exception e) {
-                    Log.e("MainActivity", "Invalid actor_id", e);
-                }
-            }
-
-        } else if ("post".equals(type)) {
-
-            String postIdStr = intent.getStringExtra("activity_id");
-
-            if (postIdStr != null) {
-                try {
-                    int postId = Integer.parseInt(postIdStr);
-
-                    Fragment fragment = new PostFragment();
-
-                    bottomNav.setSelectedItemId(R.id.nav_home);
-
-                    getSupportFragmentManager()
-                            .beginTransaction()
-                            .replace(R.id.fragment_container, fragment)
-                            .addToBackStack("post_from_notification")
-                            .commit();
-
-                } catch (Exception e) {
-                    Log.e("MainActivity", "Invalid postId", e);
-                }
-            }
-
-        } else if ("comment".equals(type)) {
-
-            String postIdStr = intent.getStringExtra("activity_id");
-
-            if (postIdStr != null) {
-                try {
-                    int postId = Integer.parseInt(postIdStr);
-
-                    Fragment fragment = CommentFragment.newInstance(postId);
-
-                    bottomNav.setSelectedItemId(R.id.nav_home);
-
-                    getSupportFragmentManager()
-                            .beginTransaction()
-                            .replace(R.id.fragment_container, fragment)
-                            .addToBackStack("post_from_notification")
-                            .commit();
-
-                } catch (Exception e) {
-                    Log.e("MainActivity", "Invalid postId", e);
-                }
-            }
-        } else if ("system".equals(type)) {
-
-            Fragment fragment = new NotificationFragment();
-
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.fragment_container, fragment)
-                    .addToBackStack("system_notification")
-                    .commit();
+    private int safeParse(String value) {
+        try {
+            return (value == null || value.isEmpty())
+                    ? -1
+                    : Integer.parseInt(value);
+        } catch (Exception e) {
+            return -1;
         }
-
-        intent.removeExtra("notification_type");
     }
 
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        setIntent(intent);
-        handleIntent(intent);
+    private void handleIntent(Intent intent) {
+
+        if (intent == null || intent.getExtras() == null) return;
+        if (handledIntent) return;
+        handledIntent = true;
+
+        String type = intent.getStringExtra("type");
+        if (type == null) return;
+
+        int postId = safeParse(intent.getStringExtra("activity_id"));
+        int userId = safeParse(intent.getStringExtra("actor_id"));
+
+        Fragment current = getSupportFragmentManager()
+                .findFragmentById(R.id.fragment_container);
+
+        if (current == null) {
+            current = new PostFragment();
+            loadFragment(current);
+        }
+
+        switch (type) {
+
+            case "follow":
+                if (userId > 0) {
+                    loadFragment(ProfileFragment.newInstance(userId));
+                }
+                break;
+
+            case "comment":
+                if (postId > 0) {
+                    loadFragment(CommentFragment.newInstance(postId));
+                }
+                break;
+
+            case "post":
+                loadFragment(new PostFragment());
+                bottomNav.setSelectedItemId(R.id.nav_home);
+                break;
+
+            case "system":
+                loadFragment(new NotificationFragment());
+                break;
+        }
     }
 
 }
