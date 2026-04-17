@@ -1,5 +1,8 @@
 import postRepo from '../repo/post.repo.js';
 import { getImageUrlS3 } from '../utils/s3/s3.js';
+import followRepo from '../repo/follow.repo.js';
+import userRepo from '../repo/user.repo.js';
+import notificationService from './notification.service.js';
 
 const DEFAULT_LIMIT = 20;
 const FAR_FUTURE = '9999-12-31T23:59:59.999Z';
@@ -14,7 +17,37 @@ const postService = {
       throw error;
     }
 
-    return await postRepo.insertPost(payload);
+    const newPost = await postRepo.insertPost(payload);
+
+    try {
+      const user = await userRepo.getUserById(payload.owner_id);
+      const fullname = user ? user.fullname : 'Someone';
+      const effectiveCursor = FAR_FUTURE;
+      const effectiveLimit = DEFAULT_LIMIT;
+
+      const followers = await followRepo.selectFollowers(
+        payload.owner_id,
+        effectiveCursor,
+        effectiveLimit,
+      );
+      console.log(followers)
+
+      for (const follower of followers) {
+        console.log(follower.fullname)
+        await notificationService.createAndSend({
+          userId: follower.user_id,
+          type: "post",
+          actorId: payload.owner_id,
+          activityId: newPost.post_id,
+          title: "New Post",
+          message: `${fullname} just published a new post`,
+        });
+      }
+    } catch (err) {
+      console.error("[post][notification error]", err);
+    }
+
+    return newPost;
   },
 
   async getFeed(cursor, limit) {
