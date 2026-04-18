@@ -122,7 +122,8 @@ public class NotificationRepositoryImpl implements NotificationRepository {
                 entity.title,
                 entity.message,
                 entity.createdAt,
-                entity.read
+                entity.read,
+                entity.avtUrl
         );
     }
 
@@ -137,6 +138,7 @@ public class NotificationRepositoryImpl implements NotificationRepository {
         entity.message = model.getMessage();
         entity.createdAt = model.getCreatedAt();
         entity.read = model.isRead() != null ? model.isRead() : false;
+        entity.avtUrl = model.getAvtUrl();
         return entity;
     }
     
@@ -151,6 +153,7 @@ public class NotificationRepositoryImpl implements NotificationRepository {
         entity.message = n.getMessage();
         entity.createdAt = n.getCreatedAt();
         entity.read = n.isRead();
+        entity.avtUrl = n.getAvtUrl();
         return entity;
     }
 }

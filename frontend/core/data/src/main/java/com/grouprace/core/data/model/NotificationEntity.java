@@ -16,4 +16,6 @@ public class NotificationEntity {
     public String message;
     public String createdAt;
     public boolean read;
+
+    public String avtUrl;
 }

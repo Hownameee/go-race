@@ -23,7 +23,7 @@ const followService = {
         type: "follow",
         actorId: followerId,          
         title: "New follower",
-        message: `${followerName} started following you`,
+        message: `Nice! ${followerName} is following you on GoRace.`,
       });
     } catch (err) {
       console.error("[follow][notification error]", err);
