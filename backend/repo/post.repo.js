@@ -67,7 +67,7 @@ const postRepo = {
        FROM POST p
        JOIN USERS u ON u.user_id = p.owner_id
        LEFT JOIN RECORD r ON r.record_id = p.record_id
-       WHERE p.created_at < ?
+       WHERE p.created_at < ? AND p.club_id IS NULL
        ORDER BY p.created_at DESC
        LIMIT ?`,
     );
@@ -82,7 +82,7 @@ const postRepo = {
        JOIN FOLLOW f ON f.following_id = p.owner_id
        JOIN USERS u ON u.user_id = p.owner_id
        LEFT JOIN RECORD r ON r.record_id = p.record_id
-       WHERE f.follower_id = ? AND p.created_at < ?
+       WHERE f.follower_id = ? AND p.created_at < ? AND p.club_id IS NULL
        ORDER BY p.created_at DESC
        LIMIT ?`,
     );

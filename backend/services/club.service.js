@@ -1,5 +1,6 @@
+import crypto from 'crypto';
 import clubRepo from '../repo/club.repo.js';
-import { getImageUrlS3 } from '../utils/s3/s3.js';
+import { getImageUrlS3, uploadImageS3 } from '../utils/s3/s3.js';
 
 const clubService = {
     async getClubs(userId, offset, limit) {
@@ -82,6 +83,51 @@ const clubService = {
     async getClubAdmins(clubId) {
         const admins = await clubRepo.findAdmins(clubId);
         return admins;
+    },
+
+    async checkIsLeader(clubId, userId) {
+        return clubRepo.checkIsLeader(clubId, userId);
+    },
+
+    async updateClub(userId, clubId, { name, description, imageBase64, imageContentType }) {
+        const isLeader = clubRepo.checkIsLeader(clubId, userId);
+        if (!isLeader) {
+            const error = new Error('Only the club leader can update club information.');
+            error.status = 403;
+            throw error;
+        }
+
+        // Synchronous update for text fields
+        if (name || description) {
+            await clubRepo.updateClub(clubId, { name, description });
+        }
+
+        // Background task for image upload
+        if (imageBase64) {
+            const validTypes = ['image/png', 'image/jpeg'];
+            if (!validTypes.includes(imageContentType)) {
+                const error = new Error('Invalid image type. Only PNG and JPEG are allowed.');
+                error.status = 400;
+                throw error;
+            }
+
+            // Fire and forget the upload process
+            (async () => {
+                try {
+                    const buffer = Buffer.from(imageBase64, 'base64');
+                    const ext = imageContentType === 'image/png' ? 'png' : 'jpg';
+                    const key = `club-avatars/${clubId}-${Date.now()}-${crypto.randomUUID()}.${ext}`;
+
+                    // console.log(`[Background] Starting S3 upload for club ${clubId}...`);
+                    await uploadImageS3(buffer, key, imageContentType);
+
+                    clubRepo.updateClub(clubId, { avatarS3Key: key });
+                    // console.log(`[Background] S3 upload and DB update complete for club ${clubId}.`);
+                } catch (err) {
+                    console.error(`[Background Error] Failed to upload avatar for club ${clubId}:`, err);
+                }
+            })();
+        }
     },
 };
 

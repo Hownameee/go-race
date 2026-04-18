@@ -22,4 +22,6 @@ public interface ClubRepository {
 
     LiveData<List<com.grouprace.core.model.ClubAdmin>> getAdminsForClub(int clubId);
     LiveData<Result<String>> syncAdmins(int clubId);
+    LiveData<Result<Boolean>> checkIsLeader(int clubId);
+    LiveData<Result<String>> updateClub(int clubId, String name, String description, byte[] imageBytes, String mimeType);
 }

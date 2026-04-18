@@ -2,6 +2,9 @@ package com.grouprace.feature.club.ui.detail.tabs;
 
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -12,6 +15,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.feature.club.R;
@@ -49,7 +53,7 @@ public class OverviewFragment extends Fragment {
         int clubId = getArguments() != null ? getArguments().getInt(ARG_CLUB_ID, -1) : -1;
         if (clubId == -1) return;
 
-        viewModel = new ViewModelProvider(this).get(OverviewViewModel.class);
+        viewModel = new ViewModelProvider(requireActivity()).get(OverviewViewModel.class);
         viewModel.setClubId(clubId);
 
         setupViews(view);
@@ -65,6 +69,21 @@ public class OverviewFragment extends Fragment {
         view.findViewById(R.id.btn_leave_club_action).setOnClickListener(v -> {
             new androidx.appcompat.app.AlertDialog.Builder(requireContext()).setTitle("Leave Club").setMessage("Are you sure you want to leave this club?").setPositiveButton("Leave", (dialog, which) -> leaveClub()).setNegativeButton("Cancel", null).show();
         });
+
+        int clubId = getArguments() != null ? getArguments().getInt(ARG_CLUB_ID, -1) : -1;
+        ImageButton btnEdit = view.findViewById(R.id.btn_edit_club);
+        btnEdit.setOnClickListener(v -> {
+            if (getView() != null && getView().getParent() != null) {
+                int containerId = ((ViewGroup) getView().getParent()).getId();
+                requireActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out,
+                                android.R.anim.fade_in, android.R.anim.fade_out)
+                        .replace(containerId, EditClubFragment.newInstance(clubId))
+                        .addToBackStack(null)
+                        .commit();
+            }
+        });
     }
 
     private void observeViewModel(View view) {
@@ -72,6 +91,8 @@ public class OverviewFragment extends Fragment {
         TextView tvMembers = view.findViewById(R.id.tv_overview_member_count);
         TextView tvPrivacy = view.findViewById(R.id.tv_overview_privacy_badge);
         TextView tvDesc = view.findViewById(R.id.tv_overview_description);
+        ImageView ivAvatar = view.findViewById(R.id.iv_overview_avatar);
+        ImageButton btnEdit = view.findViewById(R.id.btn_edit_club);
 
         viewModel.getClub().observe(getViewLifecycleOwner(), club -> {
             if (club != null) {
@@ -90,9 +111,17 @@ public class OverviewFragment extends Fragment {
 
                 tvDesc.setText(club.getDescription());
 
+                if (club.getAvatarUrl() != null && !club.getAvatarUrl().isEmpty()) {
+                    Glide.with(this).load(club.getAvatarUrl()).circleCrop().into(ivAvatar);
+                }
+
                 boolean isApproved = "approved".equals(club.getStatus());
                 view.findViewById(R.id.btn_leave_club_action).setVisibility(isApproved ? View.VISIBLE : View.GONE);
             }
+        });
+
+        viewModel.getIsLeader().observe(getViewLifecycleOwner(), isLeader -> {
+            btnEdit.setVisibility(Boolean.TRUE.equals(isLeader) ? View.VISIBLE : View.GONE);
         });
 
         viewModel.getAdmins().observe(getViewLifecycleOwner(), admins -> {

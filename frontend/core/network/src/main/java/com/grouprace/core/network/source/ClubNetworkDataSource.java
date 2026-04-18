@@ -9,7 +9,9 @@ import com.grouprace.core.common.result.Result;
 import com.grouprace.core.network.api.ClubApiService;
 import com.grouprace.core.network.model.club.ClubListPayload;
 import com.grouprace.core.network.model.club.ClubPayload;
+import com.grouprace.core.network.model.club.IsLeaderResponse;
 import com.grouprace.core.network.model.club.JoinClubResponse;
+import com.grouprace.core.network.model.club.UpdateClubRequest;
 import com.grouprace.core.network.utils.ApiResponse;
 
 
@@ -209,6 +211,66 @@ public class ClubNetworkDataSource {
             @Override
             public void onFailure(Call<ApiResponse<java.util.List<com.grouprace.core.network.model.club.NetworkClubAdmin>>> call, Throwable t) {
                 Log.e(TAG, "getAdmins: network failure - " + t.getMessage(), t);
+                liveData.postValue(new Result.Error<>(new Exception(t), t.getMessage()));
+            }
+        });
+
+        return liveData;
+    }
+
+    public LiveData<Result<Boolean>> checkIsLeader(int clubId) {
+        MutableLiveData<Result<Boolean>> liveData = new MutableLiveData<>();
+        liveData.setValue(new Result.Loading<>());
+
+        apiService.checkIsLeader(clubId).enqueue(new Callback<ApiResponse<IsLeaderResponse>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<IsLeaderResponse>> call, Response<ApiResponse<IsLeaderResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<IsLeaderResponse> apiResponse = response.body();
+                    if (apiResponse.isSuccess() && apiResponse.getData() != null) {
+                        liveData.postValue(new Result.Success<>(apiResponse.getData().isLeader()));
+                    } else {
+                        liveData.postValue(new Result.Success<>(false));
+                    }
+                } else {
+                    liveData.postValue(new Result.Success<>(false));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<IsLeaderResponse>> call, Throwable t) {
+                Log.e(TAG, "checkIsLeader: network failure - " + t.getMessage(), t);
+                liveData.postValue(new Result.Success<>(false));
+            }
+        });
+
+        return liveData;
+    }
+
+    public LiveData<Result<String>> updateClub(int clubId, UpdateClubRequest request) {
+        MutableLiveData<Result<String>> liveData = new MutableLiveData<>();
+        liveData.setValue(new Result.Loading<>());
+
+        apiService.updateClub(clubId, request).enqueue(new Callback<ApiResponse<Object>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Object>> call, Response<ApiResponse<Object>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<Object> apiResponse = response.body();
+                    if (apiResponse.isSuccess()) {
+                        liveData.postValue(new Result.Success<>("Club updated"));
+                    } else {
+                        Log.e(TAG, "updateClub: API error - " + apiResponse.getMessage());
+                        liveData.postValue(new Result.Error<>(null, apiResponse.getMessage()));
+                    }
+                } else {
+                    Log.e(TAG, "updateClub: HTTP " + response.code());
+                    liveData.postValue(new Result.Error<>(null, "HTTP Error: " + response.code()));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<Object>> call, Throwable t) {
+                Log.e(TAG, "updateClub: network failure - " + t.getMessage(), t);
                 liveData.postValue(new Result.Error<>(new Exception(t), t.getMessage()));
             }
         });

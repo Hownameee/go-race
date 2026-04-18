@@ -85,6 +85,37 @@ const clubController = {
             res.error(null, error.message);
         }
     },
+
+    checkIsLeader: async (req, res) => {
+        try {
+            const userId = req.user.userId;
+            const clubId = parseInt(req.params.clubId);
+            const isLeader = await clubService.checkIsLeader(clubId, userId);
+            res.ok({ is_leader: isLeader });
+        } catch (error) {
+            res.error(null, error.message);
+        }
+    },
+
+    updateClub: async (req, res) => {
+        try {
+            const userId = req.user.userId;
+            const clubId = parseInt(req.params.clubId);
+            const { name, description, image_base64, image_content_type } = req.body;
+            console.log(req.body)
+            await clubService.updateClub(userId, clubId, {
+                name,
+                description,
+                imageBase64: image_base64,
+                imageContentType: image_content_type,
+            });
+            res.ok(null, 'Club updated successfully.');
+        } catch (error) {
+            if (error.status === 403) return res.violate(null, error.message);
+            if (error.status === 400) return res.badRequest(null, error.message);
+            res.error(null, error.message);
+        }
+    },
 };
 
 export default clubController;

@@ -1,5 +1,6 @@
 package com.grouprace.core.data.repository;
 
+import android.util.Base64;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
@@ -18,6 +19,7 @@ import com.grouprace.core.network.model.club.ClubPayload;
 import com.grouprace.core.network.model.club.JoinClubResponse;
 import com.grouprace.core.network.model.club.NetworkClub;
 import com.grouprace.core.network.model.club.NetworkClubAdmin;
+import com.grouprace.core.network.model.club.UpdateClubRequest;
 import com.grouprace.core.network.source.ClubNetworkDataSource;
 
 import java.util.Collections;
@@ -203,6 +205,35 @@ public class ClubRepositoryImpl implements ClubRepository {
                     clubAdminDao.replaceAdminsForClub(clubId, entities);
                 });
                 result.postValue(new Result.Success<>("Admins synced"));
+            } else if (networkResult instanceof Result.Error) {
+                Result.Error<?> error = (Result.Error<?>) networkResult;
+                result.postValue(new Result.Error<>(error.exception, error.message));
+            }
+        });
+
+        return result;
+    }
+
+    @Override
+    public LiveData<Result<Boolean>> checkIsLeader(int clubId) {
+        return networkDataSource.checkIsLeader(clubId);
+    }
+
+    @Override
+    public LiveData<Result<String>> updateClub(int clubId, String name, String description, byte[] imageBytes, String mimeType) {
+        MutableLiveData<Result<String>> result = new MutableLiveData<>();
+        result.setValue(new Result.Loading<>());
+
+        String imageBase64 = null;
+        if (imageBytes != null && imageBytes.length > 0) {
+            imageBase64 = Base64.encodeToString(imageBytes, Base64.NO_WRAP);
+        }
+
+        UpdateClubRequest request = new UpdateClubRequest(name, description, imageBase64, mimeType);
+        networkDataSource.updateClub(clubId, request).observeForever(networkResult -> {
+            if (networkResult instanceof Result.Success) {
+                syncClubById(clubId); // Refresh avatar URL from DB
+                result.postValue(new Result.Success<>("Club updated"));
             } else if (networkResult instanceof Result.Error) {
                 Result.Error<?> error = (Result.Error<?>) networkResult;
                 result.postValue(new Result.Error<>(error.exception, error.message));
