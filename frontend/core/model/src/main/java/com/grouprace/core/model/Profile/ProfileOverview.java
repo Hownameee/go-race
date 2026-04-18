@@ -9,11 +9,12 @@ public class ProfileOverview {
     private String country;
     private int totalFollowings;
     private int totalFollowers;
+    private boolean isFollowing;
 
     public ProfileOverview() {}
 
     public ProfileOverview(int userId, String fullname, String avatarUrl, String bio, String city,
-                           String country, int totalFollowings, int totalFollowers) {
+                           String country, int totalFollowings, int totalFollowers, boolean isFollowing) {
         this.userId = userId;
         this.fullname = fullname;
         this.avatarUrl = avatarUrl;
@@ -22,6 +23,7 @@ public class ProfileOverview {
         this.country = country;
         this.totalFollowings = totalFollowings;
         this.totalFollowers = totalFollowers;
+        this.isFollowing = isFollowing;
     }
 
     public int getUserId() { return userId; }
@@ -47,4 +49,7 @@ public class ProfileOverview {
 
     public int getTotalFollowers() { return totalFollowers; }
     public void setTotalFollowers(int totalFollowers) { this.totalFollowers = totalFollowers; }
+
+    public boolean isFollowing() { return isFollowing; }
+    public void setFollowing(boolean following) { isFollowing = following; }
 }

@@ -32,6 +32,7 @@ router.delete('/me', userController.deleteMyAccount);
 
 // Profile
 router.get('/me/overview', userController.getMeOverview);
+router.get('/:userId/overview', userController.getUserOverview);
 
 // API: GET /api/users/suggest
 router.get('/api/users/suggest', userController.getSuggestedUsers);

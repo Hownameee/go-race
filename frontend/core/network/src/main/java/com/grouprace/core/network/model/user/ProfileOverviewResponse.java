@@ -27,6 +27,9 @@ public class ProfileOverviewResponse {
     @SerializedName("total_followers")
     private int totalFollowers;
 
+    @SerializedName("is_following")
+    private boolean isFollowing;
+
     public ProfileOverviewResponse() {}
 
     public int getUserId() { return userId; }
@@ -52,4 +55,7 @@ public class ProfileOverviewResponse {
 
     public int getTotalFollowers() { return totalFollowers; }
     public void setTotalFollowers(int totalFollowers) { this.totalFollowers = totalFollowers; }
+
+    public boolean isFollowing() { return isFollowing; }
+    public void setFollowing(boolean following) { isFollowing = following; }
 }

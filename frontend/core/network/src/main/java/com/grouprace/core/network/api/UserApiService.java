@@ -20,6 +20,8 @@ import retrofit2.http.POST;
 import retrofit2.http.Part;
 import retrofit2.http.DELETE;
 import okhttp3.MultipartBody;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface UserApiService {
     @GET("/api/users/me")
@@ -61,4 +63,19 @@ public interface UserApiService {
 
     @GET("/api/users/me/overview")
     Call<ApiResponse<ProfileOverviewResponse>> getMyOverview();
+
+    @GET("/api/users/{userId}/overview")
+    Call<ApiResponse<ProfileOverviewResponse>> getUserOverview(@Path("userId") int userId);
+
+    @GET("/api/users/{userId}/followers")
+    Call<ApiResponse<com.grouprace.core.network.model.user.FollowListResponse>> getFollowers(
+            @Path("userId") int userId,
+            @Query("limit") int limit
+    );
+
+    @GET("/api/users/{userId}/following")
+    Call<ApiResponse<com.grouprace.core.network.model.user.FollowListResponse>> getFollowing(
+            @Path("userId") int userId,
+            @Query("limit") int limit
+    );
 }

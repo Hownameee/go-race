@@ -26,6 +26,33 @@ function endOfWeek(date) {
   return end;
 }
 
+function startOfYear(date) {
+  return new Date(date.getFullYear(), 0, 1, 0, 0, 0, 0);
+}
+
+function normalizeAggregate(row) {
+  return {
+    total_activities: Number(row?.total_activities || 0),
+    total_distance_km: Number(row?.total_distance_km || 0),
+    total_duration_seconds: Number(row?.total_duration_seconds || 0),
+    total_elevation_gain_m: Number(row?.total_elevation_gain_m || 0),
+  };
+}
+
+function roundTo(value, digits = 1) {
+  return Number(Number(value || 0).toFixed(digits));
+}
+
+function parseDateOnly(dateStr) {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function diffDays(laterDate, earlierDate) {
+  const oneDayMs = 24 * 60 * 60 * 1000;
+  return Math.round((laterDate - earlierDate) / oneDayMs);
+}
+
 const recordService = {
   getList: async function (userId, offset, limit) {
     const list = await recordRepo.findRecordsByUserId(userId, offset, limit);
@@ -157,6 +184,110 @@ const recordService = {
       activity_type: activityType,
       weeks: totalWeeks,
       points,
+    };
+  },
+
+  getProfileStatistics(userId, activityType = null) {
+    const now = new Date();
+    const currentWeekStart = startOfWeek(now);
+    const weeklyWindowStart = new Date(currentWeekStart);
+    weeklyWindowStart.setDate(weeklyWindowStart.getDate() - 11 * 7);
+
+    const weeklyTotals = normalizeAggregate(
+      recordRepo.getAggregateStats(
+        userId,
+        activityType,
+        formatDate(weeklyWindowStart),
+        formatDate(endOfWeek(currentWeekStart)),
+      ),
+    );
+    const yearToDate = normalizeAggregate(
+      recordRepo.getAggregateStats(
+        userId,
+        activityType,
+        formatDate(startOfYear(now)),
+        formatDate(now),
+      ),
+    );
+    const allTime = normalizeAggregate(recordRepo.getAggregateStats(userId, activityType, null, null));
+
+    return {
+      activity_type: activityType,
+      weekly_average: {
+        total_activities: roundTo(weeklyTotals.total_activities / 12, 1),
+        total_distance_km: roundTo(weeklyTotals.total_distance_km / 12, 2),
+        total_duration_seconds: Math.round(weeklyTotals.total_duration_seconds / 12),
+      },
+      year_to_date: yearToDate,
+      all_time: {
+        total_activities: allTime.total_activities,
+        total_distance_km: allTime.total_distance_km,
+      },
+    };
+  },
+
+  getStreakByUserId(userId) {
+    const rows = recordRepo.getActiveRecordDates(userId);
+
+    if (!rows || rows.length === 0) {
+      return {
+        current_streak_days: 0,
+        longest_streak_days: 0,
+        total_active_days: 0,
+        last_record_date: null,
+        today_has_record: false,
+      };
+    }
+
+    const dates = rows.map((row) => row.activity_date);
+    const totalActiveDays = dates.length;
+    const lastRecordDate = dates[0];
+
+    const today = formatDate(new Date());
+    const yesterdayDate = new Date();
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    const yesterday = formatDate(yesterdayDate);
+
+    const todayHasRecord = lastRecordDate === today;
+
+    let longestStreak = 1;
+    let runningStreak = 1;
+
+    for (let index = 0; index < dates.length - 1; index += 1) {
+      const current = parseDateOnly(dates[index]);
+      const next = parseDateOnly(dates[index + 1]);
+
+      if (diffDays(current, next) === 1) {
+        runningStreak += 1;
+        longestStreak = Math.max(longestStreak, runningStreak);
+      } else {
+        runningStreak = 1;
+      }
+    }
+
+    let currentStreak = 0;
+
+    if (lastRecordDate === today || lastRecordDate === yesterday) {
+      currentStreak = 1;
+
+      for (let index = 0; index < dates.length - 1; index += 1) {
+        const current = parseDateOnly(dates[index]);
+        const next = parseDateOnly(dates[index + 1]);
+
+        if (diffDays(current, next) === 1) {
+          currentStreak += 1;
+        } else {
+          break;
+        }
+      }
+    }
+
+    return {
+      current_streak_days: currentStreak,
+      longest_streak_days: longestStreak,
+      total_active_days: totalActiveDays,
+      last_record_date: lastRecordDate,
+      today_has_record: todayHasRecord,
     };
   },
 };

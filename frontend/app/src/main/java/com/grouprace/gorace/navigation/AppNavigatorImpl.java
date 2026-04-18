@@ -9,16 +9,21 @@ import com.grouprace.gorace.R;
 import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.feature.notification.ui.NotificationFragment;
 import com.grouprace.feature.posts.ui.MyPostsFragment;
-import com.grouprace.feature.profile.ui.ChangeEmailFragment;
-import com.grouprace.feature.profile.ui.ChangeEmailOtpFragment;
-import com.grouprace.feature.profile.ui.ChangePasswordFragment;
-import com.grouprace.feature.profile.ui.EditProfileFragment;
-import com.grouprace.feature.profile.ui.PasswordResetOtpFragment;
+import com.grouprace.feature.profile.ui.edit.EditProfileFragment;
+import com.grouprace.feature.profile.ui.follow.FollowListFragment;
+import com.grouprace.feature.profile.ui.main.achievements.ProfileAchievementsFragment;
+import com.grouprace.feature.profile.ui.main.activities.ProfileRecordsFragment;
+import com.grouprace.feature.profile.ui.main.ProfileComingSoonFragment;
+import com.grouprace.feature.profile.ui.main.UserProfileFragment;
+import com.grouprace.feature.profile.ui.main.statistics.ProfileStatisticsDetailFragment;
 import com.grouprace.feature.login.ui.LoginFragment;
-import com.grouprace.feature.profile.ui.PasswordResetRequestFragment;
-import com.grouprace.feature.profile.ui.ProfileComingSoonFragment;
-import com.grouprace.feature.profile.ui.ProfileSettingsFragment;
-import com.grouprace.feature.profile.ui.SetNewPasswordFragment;
+import com.grouprace.feature.profile.ui.settings.ProfileSettingsFragment;
+import com.grouprace.feature.profile.ui.settings.email.ChangeEmailFragment;
+import com.grouprace.feature.profile.ui.settings.email.ChangeEmailOtpFragment;
+import com.grouprace.feature.profile.ui.settings.password.ChangePasswordFragment;
+import com.grouprace.feature.profile.ui.settings.password.PasswordResetOtpFragment;
+import com.grouprace.feature.profile.ui.settings.password.PasswordResetRequestFragment;
+import com.grouprace.feature.profile.ui.settings.password.SetNewPasswordFragment;
 import com.grouprace.feature.register.ui.RegisterFragment;
 import com.grouprace.feature.search.ui.SearchFragment;
 import com.grouprace.feature.posts.ui.AddPostFragment;
@@ -102,6 +107,31 @@ public class AppNavigatorImpl implements AppNavigator {
     @Override
     public void openMyPosts(Fragment currentFragment) {
         navigateTo(currentFragment, MyPostsFragment.newInstance());
+    }
+
+    @Override
+    public void openProfileActivities(Fragment currentFragment, int userId, String profileName, boolean isSelf) {
+        navigateTo(currentFragment, ProfileRecordsFragment.newInstance(userId, profileName, isSelf));
+    }
+
+    @Override
+    public void openProfileFollowList(Fragment currentFragment, int userId, String profileName, boolean isSelf, String initialTab) {
+        navigateTo(currentFragment, FollowListFragment.newInstance(userId, profileName, isSelf, initialTab));
+    }
+
+    @Override
+    public void openProfileStatistics(Fragment currentFragment, int userId, boolean isSelf) {
+        navigateTo(currentFragment, ProfileStatisticsDetailFragment.newInstance(isSelf, userId));
+    }
+
+    @Override
+    public void openProfileAchievements(Fragment currentFragment, int userId, boolean isSelf) {
+        navigateTo(currentFragment, ProfileAchievementsFragment.newInstance(isSelf, userId));
+    }
+
+    @Override
+    public void openUserProfile(Fragment currentFragment, int userId) {
+        navigateTo(currentFragment, UserProfileFragment.newInstance(userId));
     }
 
     @Override

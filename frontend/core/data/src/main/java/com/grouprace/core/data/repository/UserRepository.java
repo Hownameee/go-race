@@ -3,11 +3,17 @@ package com.grouprace.core.data.repository;
 import androidx.lifecycle.LiveData;
 
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.model.Profile.FollowUser;
 import com.grouprace.core.model.Profile.MyProfileInfo;
 import com.grouprace.core.model.Profile.ProfileOverview;
 
+import java.util.List;
+
 public interface UserRepository {
     LiveData<Result<ProfileOverview>> getMyOverview();
+    LiveData<Result<ProfileOverview>> getUserOverview(int userId);
+    LiveData<Result<List<FollowUser>>> getFollowers(int userId);
+    LiveData<Result<List<FollowUser>>> getFollowing(int userId);
     LiveData<Result<MyProfileInfo>> getMyInfo();
     LiveData<Result<Void>> requestEmailChangeOtp();
     LiveData<Result<Void>> verifyEmailChangeOtp(String otpCode);

@@ -173,9 +173,12 @@
                     android:orientation="horizontal">
 
                     <LinearLayout
+                        android:id="@+id/profile_following_link"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:clickable="true"
+                        android:focusable="true"
                         android:orientation="vertical">
 
                         <TextView
@@ -195,9 +198,12 @@
                     </LinearLayout>
 
                     <LinearLayout
+                        android:id="@+id/profile_followers_link"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:clickable="true"
+                        android:focusable="true"
                         android:orientation="vertical">
 
                         <TextView
@@ -255,6 +261,115 @@
                 android:background="@color/black" />
 
             <LinearLayout
+                android:id="@+id/profile_streak_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_stat_card"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+              <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="Streak"
+                  android:textColor="@color/text_primary"
+                  android:textSize="20sp"
+                  android:textStyle="bold"
+                  android:layout_marginEnd="10dp"/>
+
+                            <ImageView
+                                android:id="@+id/profile_streak_fire_icon"
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:layout_marginTop="6dp"
+                                android:contentDescription="Streak status"
+                                android:src="@drawable/ic_streak_fire_inactive" />
+
+                            <TextView
+                                android:id="@+id/profile_current_streak"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_marginStart="1dp"
+                  android:text="0"
+                  android:textColor="@color/text_primary"
+                  android:textSize="22sp"
+                  android:textStyle="bold" />
+              </LinearLayout>
+
+                <TextView
+                    android:id="@+id/profile_streak_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Keep your activity streak alive."
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Longest streak"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/profile_longest_streak"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="@color/text_primary"
+                            android:textSize="22sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Active Days"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/profile_total_active_days"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="@color/text_primary"
+                            android:textSize="22sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="8dp"
+                android:background="@color/black" />
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -264,7 +379,7 @@
                     <ImageView android:id="@+id/icon_activities" android:layout_width="24dp" android:layout_height="24dp" android:layout_centerVertical="true" android:src="@drawable/ic_profile_activities" app:tint="@color/text_secondary" />
                     <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_activities" android:layout_marginStart="16dp" android:orientation="vertical">
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Activities" android:textColor="@color/text_primary" android:textSize="16sp" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Feb 2, 2026" android:textColor="@color/text_secondary" android:textSize="14sp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="See all activities" android:textColor="@color/text_secondary" android:textSize="14sp" />
                     </LinearLayout>
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text=">" android:textColor="@color/text_secondary" android:textSize="20sp" />
                 </RelativeLayout>
@@ -274,7 +389,7 @@
                     <ImageView android:id="@+id/icon_stats" android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_profile_statistics" android:layout_centerVertical="true" app:tint="@color/text_secondary" />
                     <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_stats" android:layout_marginStart="16dp" android:orientation="vertical">
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Statistics" android:textColor="@color/text_primary" android:textSize="16sp" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="This year: 3.5 km" android:textColor="@color/text_secondary" android:textSize="14sp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="View detailed statistics" android:textColor="@color/text_secondary" android:textSize="14sp" />
                     </LinearLayout>
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text=">" android:textColor="@color/text_secondary" android:textSize="20sp" />
                 </RelativeLayout>
@@ -309,13 +424,6 @@
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_posts" android:layout_marginStart="16dp" android:layout_centerVertical="true" android:text="Posts" android:textColor="@color/text_primary" android:textSize="16sp" />
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text=">" android:textColor="@color/text_secondary" android:textSize="20sp" />
                 </RelativeLayout>
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="56dp" android:background="@color/surface_medium" />
-
-                <RelativeLayout android:id="@+id/profile_gear_link" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:clickable="true" android:focusable="true">
-                    <ImageView android:id="@+id/icon_gear" android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_profile_gear" android:layout_centerVertical="true" app:tint="@color/text_secondary" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_gear" android:layout_marginStart="16dp" android:layout_centerVertical="true" android:text="Gear" android:textColor="@color/text_primary" android:textSize="16sp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text=">" android:textColor="@color/text_secondary" android:textSize="20sp" />
-                </RelativeLayout>
             </LinearLayout>
 
             <View
@@ -324,42 +432,33 @@
                 android:background="@color/black" />
 
             <LinearLayout
+                android:id="@+id/profile_achievements_link"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
                 android:orientation="vertical"
                 android:padding="16dp"
                 android:background="@drawable/bg_stat_card">
 
                 <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Trophy Cabinet" android:textColor="@color/text_primary" android:textSize="20sp" android:textStyle="bold" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="2" android:textColor="@color/text_secondary" android:textSize="16sp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Achievements" android:textColor="@color/text_primary" android:textSize="20sp" android:textStyle="bold" />
+                    <TextView android:id="@+id/profile_achievements_count" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="0 / 21" android:textColor="@color/text_secondary" android:textSize="16sp" />
                 </RelativeLayout>
 
                 <LinearLayout
+                    android:id="@+id/profile_achievements_preview_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:orientation="horizontal">
-
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
-                        <View android:layout_width="50dp" android:layout_height="50dp" android:background="@color/surface_medium" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Activity&#10;Badge" android:gravity="center" android:textColor="@color/text_primary" android:textSize="12sp" />
-                    </LinearLayout>
-
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
-                        <View android:layout_width="50dp" android:layout_height="50dp" android:background="@color/surface_medium" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Activity&#10;Badge" android:gravity="center" android:textColor="@color/text_primary" android:textSize="12sp" />
-                    </LinearLayout>
-
-                    <View android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
-                </LinearLayout>
+                    android:orientation="horizontal" />
 
                 <TextView
+                    android:id="@+id/profile_achievements_footer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:paddingTop="16dp"
-                    android:text="All trophies >"
+                    android:text="View all achievements >"
                     android:textColor="@color/text_secondary"
                     android:textSize="16sp" />
             </LinearLayout>

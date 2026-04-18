@@ -46,6 +46,11 @@ const followService = {
     return await followRepo.deleteFollow(followerId, followingId);
   },
 
+  async isFollowing(followerId, followingId) {
+    const row = await followRepo.existsFollow(followerId, followingId);
+    return Boolean(row);
+  },
+
   async getFollowers(userId, cursor, limit) {
     const effectiveCursor = cursor || FAR_FUTURE;
     const effectiveLimit = Math.min(parseInt(limit) || DEFAULT_LIMIT, 100);

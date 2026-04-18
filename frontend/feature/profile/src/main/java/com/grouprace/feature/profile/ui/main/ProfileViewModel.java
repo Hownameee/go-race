@@ -1,4 +1,4 @@
-package com.grouprace.feature.profile.ui;
+package com.grouprace.feature.profile.ui.main;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -10,6 +10,9 @@ import com.grouprace.core.data.repository.RecordRepository;
 import com.grouprace.core.data.repository.UserRepository;
 import com.grouprace.core.model.Profile.ProfileOverview;
 import com.grouprace.core.model.Profile.WeeklyRecordSummary;
+import com.grouprace.core.network.model.record.RecordProfileStatisticsResponse;
+import com.grouprace.core.network.model.record.RecordStreakResponse;
+import com.grouprace.core.network.source.RecordDataSource;
 
 import javax.inject.Inject;
 
@@ -23,18 +26,26 @@ public class ProfileViewModel extends ViewModel {
 
     private final UserRepository userRepository;
     private final RecordRepository recordRepository;
+    private final RecordDataSource recordDataSource;
     private final MutableLiveData<Result<ProfileOverview>> profileOverview = new MutableLiveData<>();
     private final MutableLiveData<Result<WeeklyRecordSummary>> weeklySummary = new MutableLiveData<>();
+    private final MutableLiveData<Result<RecordProfileStatisticsResponse>> achievementSummary = new MutableLiveData<>();
+    private final MutableLiveData<Result<RecordStreakResponse>> streakSummary = new MutableLiveData<>();
     private final MutableLiveData<String> selectedActivityType = new MutableLiveData<>(ACTIVITY_RUNNING);
     private LiveData<Result<ProfileOverview>> currentOverviewSource;
     private Observer<Result<ProfileOverview>> currentOverviewObserver;
     private LiveData<Result<WeeklyRecordSummary>> currentWeeklySummarySource;
     private Observer<Result<WeeklyRecordSummary>> currentWeeklySummaryObserver;
+    private LiveData<Result<RecordProfileStatisticsResponse>> currentAchievementSource;
+    private Observer<Result<RecordProfileStatisticsResponse>> currentAchievementObserver;
+    private LiveData<Result<RecordStreakResponse>> currentStreakSource;
+    private Observer<Result<RecordStreakResponse>> currentStreakObserver;
 
     @Inject
-    public ProfileViewModel(UserRepository userRepository, RecordRepository recordRepository) {
+    public ProfileViewModel(UserRepository userRepository, RecordRepository recordRepository, RecordDataSource recordDataSource) {
         this.userRepository = userRepository;
         this.recordRepository = recordRepository;
+        this.recordDataSource = recordDataSource;
     }
 
     public LiveData<Result<ProfileOverview>> getProfileOverview() {
@@ -43,6 +54,14 @@ public class ProfileViewModel extends ViewModel {
 
     public LiveData<Result<WeeklyRecordSummary>> getWeeklySummary() {
         return weeklySummary;
+    }
+
+    public LiveData<Result<RecordProfileStatisticsResponse>> getAchievementSummary() {
+        return achievementSummary;
+    }
+
+    public LiveData<Result<RecordStreakResponse>> getStreakSummary() {
+        return streakSummary;
     }
 
     public LiveData<String> getSelectedActivityType() {
@@ -78,6 +97,26 @@ public class ProfileViewModel extends ViewModel {
         currentWeeklySummarySource.observeForever(currentWeeklySummaryObserver);
     }
 
+    public void loadAchievementSummary() {
+        if (currentAchievementSource != null && currentAchievementObserver != null) {
+            currentAchievementSource.removeObserver(currentAchievementObserver);
+        }
+
+        currentAchievementSource = recordDataSource.getMyProfileStatistics(null);
+        currentAchievementObserver = result -> achievementSummary.setValue(result);
+        currentAchievementSource.observeForever(currentAchievementObserver);
+    }
+
+    public void loadStreakSummary() {
+        if (currentStreakSource != null && currentStreakObserver != null) {
+            currentStreakSource.removeObserver(currentStreakObserver);
+        }
+
+        currentStreakSource = recordDataSource.getMyStreak();
+        currentStreakObserver = result -> streakSummary.setValue(result);
+        currentStreakSource.observeForever(currentStreakObserver);
+    }
+
     @Override
     protected void onCleared() {
         super.onCleared();
@@ -86,6 +125,12 @@ public class ProfileViewModel extends ViewModel {
         }
         if (currentWeeklySummarySource != null && currentWeeklySummaryObserver != null) {
             currentWeeklySummarySource.removeObserver(currentWeeklySummaryObserver);
+        }
+        if (currentAchievementSource != null && currentAchievementObserver != null) {
+            currentAchievementSource.removeObserver(currentAchievementObserver);
+        }
+        if (currentStreakSource != null && currentStreakObserver != null) {
+            currentStreakSource.removeObserver(currentStreakObserver);
         }
     }
 }

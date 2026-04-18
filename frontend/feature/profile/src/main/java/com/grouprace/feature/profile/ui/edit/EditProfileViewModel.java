@@ -1,4 +1,4 @@
-package com.grouprace.feature.profile.ui;
+package com.grouprace.feature.profile.ui.edit;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;

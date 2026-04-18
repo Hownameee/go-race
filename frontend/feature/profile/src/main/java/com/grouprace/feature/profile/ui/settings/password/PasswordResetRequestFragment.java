@@ -1,4 +1,4 @@
-package com.grouprace.feature.profile.ui;
+package com.grouprace.feature.profile.ui.settings.password;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;

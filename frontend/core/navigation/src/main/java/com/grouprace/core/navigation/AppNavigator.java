@@ -17,6 +17,11 @@ public interface AppNavigator {
     void openComingSoon(Fragment currentFragment, String title);
     void openProfileComingSoon(Fragment currentFragment, String title);
     void openMyPosts(Fragment currentFragment);
+    void openProfileActivities(Fragment currentFragment, int userId, String profileName, boolean isSelf);
+    void openProfileFollowList(Fragment currentFragment, int userId, String profileName, boolean isSelf, String initialTab);
+    void openProfileStatistics(Fragment currentFragment, int userId, boolean isSelf);
+    void openProfileAchievements(Fragment currentFragment, int userId, boolean isSelf);
+    void openUserProfile(Fragment currentFragment, int userId);
     void openLogin(Fragment currentFragment);
     void openRegister(Fragment currentFragment);
     void openRegister(Fragment currentFragment, String fullname, String email);

@@ -1,4 +1,4 @@
-package com.grouprace.feature.profile.ui;
+package com.grouprace.feature.profile.ui.settings.password;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;

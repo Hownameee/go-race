@@ -1,4 +1,4 @@
-package com.grouprace.feature.profile.ui;
+package com.grouprace.feature.profile.ui.edit;
 
 import android.database.Cursor;
 import android.graphics.Bitmap;

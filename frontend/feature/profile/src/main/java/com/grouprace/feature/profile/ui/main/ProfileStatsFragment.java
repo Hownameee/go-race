@@ -1,4 +1,4 @@
-package com.grouprace.feature.profile.ui;
+package com.grouprace.feature.profile.ui.main;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,12 +10,13 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 
+import com.grouprace.core.common.TimeUtils;
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.Profile.WeeklyRecordPoint;
 import com.grouprace.core.model.Profile.WeeklyRecordSummary;
 import com.grouprace.feature.profile.R;
+import com.grouprace.feature.profile.util.ProfileFormatUtils;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.Entry;
@@ -26,15 +27,11 @@ import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 
-import java.text.DecimalFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class ProfileStatsFragment extends Fragment {
-    private ProfileViewModel viewModel;
+    private ProfileStatsOwner statsOwner;
     private Button runStatsButton;
     private Button walkStatsButton;
     private TextView recordPeriod;
@@ -58,7 +55,11 @@ public class ProfileStatsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        viewModel = new ViewModelProvider(requireParentFragment()).get(ProfileViewModel.class);
+        Fragment parentFragment = requireParentFragment();
+        if (!(parentFragment instanceof ProfileStatsOwner)) {
+            throw new IllegalStateException("Parent fragment must implement ProfileStatsOwner");
+        }
+        statsOwner = (ProfileStatsOwner) parentFragment;
 
         runStatsButton = view.findViewById(R.id.profile_run_stats_button);
         walkStatsButton = view.findViewById(R.id.profile_walk_stats_button);
@@ -68,8 +69,8 @@ public class ProfileStatsFragment extends Fragment {
         recordElevation = view.findViewById(R.id.profile_record_elevation);
         recordChart = view.findViewById(R.id.profile_record_chart);
 
-        runStatsButton.setOnClickListener(v -> viewModel.selectActivityType(ProfileViewModel.ACTIVITY_RUNNING));
-        walkStatsButton.setOnClickListener(v -> viewModel.selectActivityType(ProfileViewModel.ACTIVITY_WALKING));
+        runStatsButton.setOnClickListener(v -> statsOwner.onSelectActivityType(ProfileViewModel.ACTIVITY_RUNNING));
+        walkStatsButton.setOnClickListener(v -> statsOwner.onSelectActivityType(ProfileViewModel.ACTIVITY_WALKING));
 
         setupRecordChart();
         observeWeeklySummary();
@@ -77,7 +78,7 @@ public class ProfileStatsFragment extends Fragment {
     }
 
     private void observeWeeklySummary() {
-        viewModel.getWeeklySummary().observe(getViewLifecycleOwner(), result -> {
+        statsOwner.getWeeklySummaryLiveData().observe(getViewLifecycleOwner(), result -> {
             if (result instanceof Result.Success) {
                 currentWeeklySummary = ((Result.Success<WeeklyRecordSummary>) result).data;
                 bindWeeklySummary(currentWeeklySummary);
@@ -88,7 +89,7 @@ public class ProfileStatsFragment extends Fragment {
     }
 
     private void observeActivitySelection() {
-        viewModel.getSelectedActivityType().observe(getViewLifecycleOwner(), activityType -> {
+        statsOwner.getSelectedActivityTypeLiveData().observe(getViewLifecycleOwner(), activityType -> {
             boolean isRunning = ProfileViewModel.ACTIVITY_RUNNING.equals(activityType);
             updateActivityButtonState(runStatsButton, isRunning);
             updateActivityButtonState(walkStatsButton, !isRunning);
@@ -159,7 +160,7 @@ public class ProfileStatsFragment extends Fragment {
             public String getFormattedValue(float value) {
                 int index = Math.round(value);
                 if (index < 0 || index >= points.size()) return "";
-                return formatShortDate(points.get(index).getWeekStart());
+                return ProfileFormatUtils.formatShortDate(points.get(index).getWeekStart());
             }
         });
         recordChart.invalidate();
@@ -170,10 +171,10 @@ public class ProfileStatsFragment extends Fragment {
     }
 
     private void bindSelectedRecordPoint(@NonNull WeeklyRecordPoint point) {
-        recordPeriod.setText(formatDateRange(point.getWeekStart(), point.getWeekEnd()));
-        recordDistance.setText(formatDistance(point.getTotalDistanceKm()));
-        recordDuration.setText(formatDuration(point.getTotalDurationSeconds()));
-        recordElevation.setText(new DecimalFormat("0").format(point.getTotalElevationGainM()) + " m");
+        recordPeriod.setText(ProfileFormatUtils.formatDateRange(point.getWeekStart(), point.getWeekEnd()));
+        recordDistance.setText(ProfileFormatUtils.formatDistance(point.getTotalDistanceKm()));
+        recordDuration.setText(TimeUtils.formatDuration(point.getTotalDurationSeconds()));
+        recordElevation.setText(ProfileFormatUtils.formatElevation(point.getTotalElevationGainM()));
     }
 
     private void clearWeeklySummary() {
@@ -195,51 +196,6 @@ public class ProfileStatsFragment extends Fragment {
             }
         }
         return points.size() - 1;
-    }
-
-    private String formatShortDate(String isoDate) {
-        try {
-            LocalDate date = LocalDate.parse(isoDate);
-            return date.format(DateTimeFormatter.ofPattern("MM/dd", Locale.US));
-        } catch (Exception ignored) {
-            return isoDate;
-        }
-    }
-
-    private String formatDateRange(String startIsoDate, String endIsoDate) {
-        try {
-            LocalDate start = LocalDate.parse(startIsoDate);
-            LocalDate end = LocalDate.parse(endIsoDate);
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd", Locale.US);
-            return start.format(formatter) + " - " + end.format(formatter);
-        } catch (Exception ignored) {
-            return startIsoDate + " - " + endIsoDate;
-        }
-    }
-
-    private String formatDuration(int totalSeconds) {
-        int days = totalSeconds / 86400;
-        int hours = (totalSeconds % 86400) / 3600;
-        int minutes = (totalSeconds % 3600) / 60;
-        int seconds = totalSeconds % 60;
-
-        if (days > 0) {
-            return days + "d " + hours + "h " + minutes + "m " + seconds + "s";
-        }
-        if (hours > 0) {
-            return hours + "h " + minutes + "m " + seconds + "s";
-        }
-        if (minutes > 0) {
-            return minutes + "m " + seconds + "s";
-        }
-        return seconds + "s";
-    }
-
-    private String formatDistance(double distanceKm) {
-        DecimalFormat decimalFormat = distanceKm < 1
-                ? new DecimalFormat("0.00")
-                : new DecimalFormat("0.0");
-        return decimalFormat.format(distanceKm) + " km";
     }
 
     private void updateActivityButtonState(@NonNull Button button, boolean isSelected) {

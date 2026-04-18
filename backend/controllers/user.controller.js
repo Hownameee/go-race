@@ -108,6 +108,38 @@ const userController = {
     }
   },
 
+  getUserOverview: async function (req, res, next) {
+    try {
+      const currentUserId = req.user.userId;
+      const targetUserId = Number(req.params.userId);
+      const user = await userService.getUserById(targetUserId);
+      if (!user) return res.notFound();
+
+      const followersCount = await followService.countFollowers(targetUserId);
+      const followingCount = await followService.countFollowings(targetUserId);
+      const isFollowing = await followService.isFollowing(currentUserId, targetUserId);
+
+      const returnUser = {
+        user_id: user.user_id,
+        fullname: user.fullname,
+        avatar_url: user.avatar_url,
+        bio: user.bio ?? null,
+        city: user.province_city ?? null,
+        country: user.country ?? null,
+        total_followers: followersCount,
+        total_followings: followingCount,
+        is_following: isFollowing,
+      };
+
+      return res.ok(returnUser, 'User overview fetched successfully');
+    } catch (error) {
+      if (error.message === "User not found") {
+        return res.notFound();
+      }
+      return next(error);
+    }
+  },
+
   // Profile edit page
   getMyInfo: async function (req, res, next) {
     try {
