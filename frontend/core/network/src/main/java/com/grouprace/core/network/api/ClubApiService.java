@@ -2,7 +2,9 @@ package com.grouprace.core.network.api;
 
 import com.grouprace.core.network.model.club.ClubListPayload;
 import com.grouprace.core.network.model.club.ClubPayload;
+import com.grouprace.core.network.model.club.IsLeaderResponse;
 import com.grouprace.core.network.model.club.JoinClubResponse;
+import com.grouprace.core.network.model.club.UpdateClubRequest;
 import com.grouprace.core.network.utils.ApiResponse;
 
 import com.grouprace.core.network.model.club.CreateClubRequest;
@@ -11,6 +13,7 @@ import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
@@ -36,4 +39,10 @@ public interface ClubApiService {
 
     @GET("api/clubs/{clubId}/admins")
     Call<ApiResponse<java.util.List<com.grouprace.core.network.model.club.NetworkClubAdmin>>> getAdmins(@Path("clubId") int clubId);
+
+    @GET("api/clubs/{clubId}/is-leader")
+    Call<ApiResponse<IsLeaderResponse>> checkIsLeader(@Path("clubId") int clubId);
+
+    @PUT("api/clubs/{clubId}")
+    Call<ApiResponse<Object>> updateClub(@Path("clubId") int clubId, @Body UpdateClubRequest request);
 }

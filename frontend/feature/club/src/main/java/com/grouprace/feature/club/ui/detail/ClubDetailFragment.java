@@ -276,8 +276,7 @@ public class ClubDetailFragment extends Fragment {
                         items.add(new ClubNavAdapter.NavItem("ACTION_CREATE_ACTIVITY", "Create Activity", android.R.drawable.ic_menu_add, null));
                     }
                     items.add(new ClubNavAdapter.NavItem("NAV_EVENTS", "Events", android.R.drawable.ic_menu_my_calendar, new PlaceholderFragment()));
-                    items.add(new ClubNavAdapter.NavItem("NAV_ACTIVITIES", "Activities", android.R.drawable.ic_menu_sort_by_size, null));
-                    items.add(new ClubNavAdapter.NavItem("NAV_STATS", "Statistics", android.R.drawable.ic_menu_gallery, null));
+                    items.add(new ClubNavAdapter.NavItem("NAV_STATS", "Statistics", android.R.drawable.ic_menu_gallery, new PlaceholderFragment()));
 
                     if (isApproved) {
                         items.add(new ClubNavAdapter.NavItem("ACTION_LEAVE", "Leave Club", android.R.drawable.ic_delete, new ClubsFragment()));

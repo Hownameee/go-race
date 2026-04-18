@@ -25,9 +25,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 initDatabase();
 
-app.use(bodyParser.json());
 app.use(cors());
 app.use(restResponse);
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use('/uploads', express.static(path.resolve(__dirname, 'uploads')));
 
 app.use('/api/auth', authRoute);

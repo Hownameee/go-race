@@ -125,6 +125,37 @@ const clubRepo = {
         `;
         return db.prepare(sql).all(clubId);
     },
+
+    checkIsLeader(clubId, userId) {
+        const sql = `SELECT 1 FROM CLUBS WHERE club_id = ? AND leader_id = ?`;
+        return !!db.prepare(sql).get(clubId, userId);
+    },
+
+    updateClub(clubId, { name, description, avatarS3Key }) {
+        const fields = [];
+        const values = [];
+
+        if (name !== undefined && name !== null) {
+            fields.push('name = ?');
+            values.push(name);
+        }
+        if (description !== undefined && description !== null) {
+            fields.push('description = ?');
+            values.push(description);
+        }
+        if (avatarS3Key !== undefined && avatarS3Key !== null) {
+            fields.push('avatar_s3_key = ?');
+            values.push(avatarS3Key);
+        }
+
+        if (fields.length === 0) return;
+
+        fields.push('updated_at = CURRENT_TIMESTAMP');
+        values.push(clubId);
+
+        const sql = `UPDATE CLUBS SET ${fields.join(', ')} WHERE club_id = ?`;
+        return db.prepare(sql).run(...values);
+    },
 };
 
 export default clubRepo;
