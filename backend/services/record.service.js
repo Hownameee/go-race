@@ -35,7 +35,6 @@ function normalizeAggregate(row) {
     total_activities: Number(row?.total_activities || 0),
     total_distance_km: Number(row?.total_distance_km || 0),
     total_duration_seconds: Number(row?.total_duration_seconds || 0),
-    total_elevation_gain_m: Number(row?.total_elevation_gain_m || 0),
   };
 }
 
@@ -176,7 +175,6 @@ const recordService = {
         week_end: formatDate(weekEnd),
         total_distance_km: row ? Number(row.total_distance_km) : 0,
         total_duration_seconds: row ? Number(row.total_duration_seconds) : 0,
-        total_elevation_gain_m: row ? Number(row.total_elevation_gain_m) : 0,
       });
     }
 

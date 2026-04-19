@@ -43,7 +43,6 @@ public class ProfileStatisticsDetailFragment extends Fragment {
     private TextView ytdActivityValue;
     private TextView ytdTimeValue;
     private TextView ytdDistanceValue;
-    private TextView ytdElevationValue;
     private TextView allTimeActivityLabel;
     private TextView allTimeActivityValue;
     private TextView allTimeDistanceValue;
@@ -86,7 +85,6 @@ public class ProfileStatisticsDetailFragment extends Fragment {
         ytdActivityValue = view.findViewById(R.id.profile_statistics_ytd_activity_value);
         ytdTimeValue = view.findViewById(R.id.profile_statistics_ytd_time_value);
         ytdDistanceValue = view.findViewById(R.id.profile_statistics_ytd_distance_value);
-        ytdElevationValue = view.findViewById(R.id.profile_statistics_ytd_elevation_value);
         allTimeActivityLabel = view.findViewById(R.id.profile_statistics_all_time_activity_label);
         allTimeActivityValue = view.findViewById(R.id.profile_statistics_all_time_activity_value);
         allTimeDistanceValue = view.findViewById(R.id.profile_statistics_all_time_distance_value);
@@ -153,7 +151,6 @@ public class ProfileStatisticsDetailFragment extends Fragment {
         ytdActivityValue.setText(ProfileFormatUtils.formatActivityCount(bucket != null ? bucket.getTotalActivities() : 0));
         ytdTimeValue.setText(TimeUtils.formatDuration(bucket != null ? bucket.getTotalDurationSeconds() : 0));
         ytdDistanceValue.setText(ProfileFormatUtils.formatDistance(bucket != null ? bucket.getTotalDistanceKm() : 0));
-        ytdElevationValue.setText(ProfileFormatUtils.formatElevation(bucket != null ? bucket.getTotalElevationGainM() : 0));
     }
 
     private void bindAllTime(@Nullable RecordStatisticsBucketResponse bucket) {

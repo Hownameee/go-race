@@ -402,23 +402,6 @@
                 </RelativeLayout>
                 <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="56dp" android:background="@color/surface_medium" />
 
-                <RelativeLayout android:id="@+id/profile_segments_link" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:clickable="true" android:focusable="true">
-                    <ImageView android:id="@+id/icon_segments" android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_profile_segments" android:layout_centerVertical="true" app:tint="@color/text_secondary" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_segments" android:layout_marginStart="16dp" android:layout_centerVertical="true" android:text="Segments" android:textColor="@color/text_primary" android:textSize="16sp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text=">" android:textColor="@color/text_secondary" android:textSize="20sp" />
-                </RelativeLayout>
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="56dp" android:background="@color/surface_medium" />
-
-                <RelativeLayout android:id="@+id/profile_best_efforts_link" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:clickable="true" android:focusable="true">
-                    <ImageView android:id="@+id/icon_best_efforts" android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_profile_best_efforts" android:layout_centerVertical="true" app:tint="@color/text_secondary" />
-                    <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_best_efforts" android:layout_marginStart="16dp" android:orientation="vertical">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Best Efforts" android:textColor="@color/text_primary" android:textSize="16sp" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="View all" android:textColor="@color/text_secondary" android:textSize="14sp" />
-                    </LinearLayout>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text=">" android:textColor="@color/text_secondary" android:textSize="20sp" />
-                </RelativeLayout>
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="56dp" android:background="@color/surface_medium" />
-
                 <RelativeLayout android:id="@+id/profile_posts_link" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:clickable="true" android:focusable="true">
                     <ImageView android:id="@+id/icon_posts" android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_profile_posts" android:layout_centerVertical="true" app:tint="@color/text_secondary" />
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toEndOf="@id/icon_posts" android:layout_marginStart="16dp" android:layout_centerVertical="true" android:text="Posts" android:textColor="@color/text_primary" android:textSize="16sp" />

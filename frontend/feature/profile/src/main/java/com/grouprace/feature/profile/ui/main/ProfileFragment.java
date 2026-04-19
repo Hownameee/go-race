@@ -66,8 +66,6 @@ public class ProfileFragment extends Fragment implements ProfileStatsOwner {
     private View statisticsLink;
     private View achievementsLink;
     private View routesLink;
-    private View segmentsLink;
-    private View bestEffortsLink;
     private View postsLink;
     private FragmentContainerView statsContainer;
     private TextView achievementsCount;
@@ -111,8 +109,6 @@ public class ProfileFragment extends Fragment implements ProfileStatsOwner {
         statisticsLink = view.findViewById(R.id.profile_statistics_link);
         achievementsLink = view.findViewById(R.id.profile_achievements_link);
         routesLink = view.findViewById(R.id.profile_routes_link);
-        segmentsLink = view.findViewById(R.id.profile_segments_link);
-        bestEffortsLink = view.findViewById(R.id.profile_best_efforts_link);
         postsLink = view.findViewById(R.id.profile_posts_link);
         statsContainer = view.findViewById(R.id.profile_stats_fragment_container);
         achievementsCount = view.findViewById(R.id.profile_achievements_count);
@@ -133,8 +129,6 @@ public class ProfileFragment extends Fragment implements ProfileStatsOwner {
         statisticsLink.setOnClickListener(v -> openStatistics());
         achievementsLink.setOnClickListener(v -> openAchievements());
         routesLink.setOnClickListener(v -> openComingSoon("Routes"));
-        segmentsLink.setOnClickListener(v -> openComingSoon("Segments"));
-        bestEffortsLink.setOnClickListener(v -> openComingSoon("Best Efforts"));
         postsLink.setOnClickListener(v -> navigator.openMyPosts(this));
 
         observeOverview();

@@ -214,8 +214,7 @@ public class UserProfileViewModel extends ViewModel {
                         point.getWeekStart(),
                         point.getWeekEnd(),
                         point.getTotalDistanceKm(),
-                        point.getTotalDurationSeconds(),
-                        point.getTotalElevationGainM()
+                        point.getTotalDurationSeconds()
                 ));
             }
         }

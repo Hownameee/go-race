@@ -221,21 +221,6 @@
                     android:textSize="24sp"
                     android:textStyle="bold" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Elevation gain"
-                    android:textColor="@color/text_secondary" />
-
-                <TextView
-                    android:id="@+id/profile_statistics_ytd_elevation_value"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0 m"
-                    android:textColor="@color/text_primary"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
             </LinearLayout>
 
             <LinearLayout

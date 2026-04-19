@@ -123,8 +123,6 @@ public class UserProfileFragment extends Fragment implements ProfileStatsOwner {
         statisticsLink = view.findViewById(R.id.profile_statistics_link);
         achievementsLink = view.findViewById(R.id.profile_achievements_link);
         routesLink = view.findViewById(R.id.profile_routes_link);
-        segmentsLink = view.findViewById(R.id.profile_segments_link);
-        bestEffortsLink = view.findViewById(R.id.profile_best_efforts_link);
         postsLink = view.findViewById(R.id.profile_posts_link);
         statsContainer = view.findViewById(R.id.profile_stats_fragment_container);
         achievementsCount = view.findViewById(R.id.profile_achievements_count);

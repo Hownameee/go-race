@@ -37,7 +37,6 @@ public class ProfileStatsFragment extends Fragment {
     private TextView recordPeriod;
     private TextView recordDistance;
     private TextView recordDuration;
-    private TextView recordElevation;
     private LineChart recordChart;
     private WeeklyRecordSummary currentWeeklySummary;
 
@@ -66,7 +65,6 @@ public class ProfileStatsFragment extends Fragment {
         recordPeriod = view.findViewById(R.id.profile_record_period);
         recordDistance = view.findViewById(R.id.profile_record_distance);
         recordDuration = view.findViewById(R.id.profile_record_duration);
-        recordElevation = view.findViewById(R.id.profile_record_elevation);
         recordChart = view.findViewById(R.id.profile_record_chart);
 
         runStatsButton.setOnClickListener(v -> statsOwner.onSelectActivityType(ProfileViewModel.ACTIVITY_RUNNING));
@@ -174,7 +172,6 @@ public class ProfileStatsFragment extends Fragment {
         recordPeriod.setText(ProfileFormatUtils.formatDateRange(point.getWeekStart(), point.getWeekEnd()));
         recordDistance.setText(ProfileFormatUtils.formatDistance(point.getTotalDistanceKm()));
         recordDuration.setText(TimeUtils.formatDuration(point.getTotalDurationSeconds()));
-        recordElevation.setText(ProfileFormatUtils.formatElevation(point.getTotalElevationGainM()));
     }
 
     private void clearWeeklySummary() {
@@ -183,15 +180,13 @@ public class ProfileStatsFragment extends Fragment {
         recordPeriod.setText("No period selected");
         recordDistance.setText("0.0 km");
         recordDuration.setText("0m");
-        recordElevation.setText("0 m");
     }
 
     private int findLatestNonZeroPointIndex(@NonNull List<WeeklyRecordPoint> points) {
         for (int index = points.size() - 1; index >= 0; index--) {
             WeeklyRecordPoint point = points.get(index);
             if (point.getTotalDistanceKm() > 0
-                    || point.getTotalDurationSeconds() > 0
-                    || point.getTotalElevationGainM() > 0) {
+                    || point.getTotalDurationSeconds() > 0) {
                 return index;
             }
         }

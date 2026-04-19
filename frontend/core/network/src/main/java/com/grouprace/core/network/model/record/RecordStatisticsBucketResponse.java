@@ -12,9 +12,6 @@ public class RecordStatisticsBucketResponse {
     @SerializedName("total_duration_seconds")
     private int totalDurationSeconds;
 
-    @SerializedName("total_elevation_gain_m")
-    private double totalElevationGainM;
-
     public double getTotalActivities() {
         return totalActivities;
     }
@@ -25,9 +22,5 @@ public class RecordStatisticsBucketResponse {
 
     public int getTotalDurationSeconds() {
         return totalDurationSeconds;
-    }
-
-    public double getTotalElevationGainM() {
-        return totalElevationGainM;
     }
 }
