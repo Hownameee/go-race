@@ -16,6 +16,8 @@ import com.grouprace.core.data.repository.TrackingRepository;
 import com.grouprace.core.data.repository.TrackingRepositoryImpl;
 import com.grouprace.core.data.repository.UserRepository;
 import com.grouprace.core.data.repository.UserRepositoryImpl;
+import com.grouprace.core.data.repository.UserRouteRepository;
+import com.grouprace.core.data.repository.UserRouteRepositoryImpl;
 
 import dagger.Binds;
 import dagger.Module;
@@ -49,4 +51,7 @@ public abstract class RepositoryModule {
 
     @Binds
     public abstract NearbyRouteRepository bindNearbyRouteRepository(NearbyRouteRepositoryImpl impl);
+
+    @Binds
+    public abstract UserRouteRepository bindUserRouteRepository(UserRouteRepositoryImpl impl);
 }

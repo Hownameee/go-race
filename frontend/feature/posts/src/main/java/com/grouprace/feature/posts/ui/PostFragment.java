@@ -5,6 +5,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -73,7 +74,7 @@ public class PostFragment extends Fragment {
                         if (result instanceof Result.Success) {
                             post.setLiked(false);
                             post.setLikeCount(post.getLikeCount() - 1);
-                            postAdapter.notifyItemChanged(position);
+                            postAdapter.notifyItemChanged(position, PostAdapter.PAYLOAD_LIKE);
                         }
                     });
                 } else {
@@ -81,7 +82,7 @@ public class PostFragment extends Fragment {
                         if (result instanceof Result.Success) {
                             post.setLiked(true);
                             post.setLikeCount(post.getLikeCount() + 1);
-                            postAdapter.notifyItemChanged(position);
+                            postAdapter.notifyItemChanged(position, PostAdapter.PAYLOAD_LIKE);
                         }
                     });
                 }
@@ -119,6 +120,11 @@ public class PostFragment extends Fragment {
                         post.getRecordImageUrl(),
                         speedStr
                 ).show(getChildFragmentManager(), "ShareBottomSheet");
+            }
+
+            @Override
+            public void onReportClicked(Post post) {
+                Toast.makeText(requireContext(), "Post reported", Toast.LENGTH_SHORT).show();
             }
         });
         rvPosts.setAdapter(postAdapter);

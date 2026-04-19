@@ -17,6 +17,10 @@ public class PlannedRoute implements Serializable {
         this.durationSeconds = durationSeconds;
     }
 
+    public List<double[]> getCoordinates() { return coordinates; }
+    public double getDistanceKm() { return distanceKm; }
+    public int getDurationSeconds() { return durationSeconds; }
+
     public String getFormattedDistance() {
         return String.format("%.1f km", distanceKm);
     }

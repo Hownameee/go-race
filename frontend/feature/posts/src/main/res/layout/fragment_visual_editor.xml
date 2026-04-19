@@ -32,6 +32,15 @@
             android:layout_height="match_parent"
             android:scaleType="centerCrop" />
 
+        <!-- Selective Dim Scrim -->
+        <View
+            android:id="@+id/editor_dim_scrim"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#AA000000"
+            android:visibility="gone"
+            android:alpha="0" />
+
         <!-- Overlay Card (Draggable/Scalable) -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/stats_overlay"
