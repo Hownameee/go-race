@@ -1,7 +1,74 @@
 import userService from '../services/user.service.js';
 import authService from '../services/auth.service.js';
+import { auth } from 'google-auth-library';
 
 const authController = {
+  googleAuth: async function (req, res, next) {
+    try {
+      const { id_token, username, birthdate } = req.body;
+
+      const googlePayload = await authService.verifyGoogleIdToken(id_token);
+
+      if (!googlePayload.sub || !googlePayload.email || !googlePayload.email_verified)
+        return res.unauthorized();
+
+      let user = await userService.getUserByGoogleSub(googlePayload.sub);
+
+      if (user) {
+        const token = authService.generateToken({
+          userId: user.user_id,
+          role: user.role,
+          username: user.username,
+          fullname: user.fullname,
+        })
+        return res.ok({ token }, 'Google login successful');
+      }
+
+      const existingUser = await userService.getUserByEmail(googlePayload.email);
+      if (existingUser && !existingUser.google_sub) {
+        return res.violate(null, 'Email already exists with password login. Please login normally first.');
+      }
+
+      if (!existingUser && (!username || !birthdate)) {
+        return res.ok({
+          requires_profile_completion: true,
+          profile: {
+            email: googlePayload.email,
+            fullname: googlePayload.name,
+            avatar_url: googlePayload.picture,
+          },
+        }, 'Google verified. Additional profile information required.');
+      }
+
+      if (!existingUser) {
+        const hashedPassword = await authService.createOAuthPlaceholderPassword();
+        const newUserId = await userService.createGoogleUser({
+          username,
+          fullname: googlePayload.name || username,
+          email: googlePayload.email,
+          hashedPassword,
+          birthdate,
+          googleSub: googlePayload.sub,
+          avatarUrl: googlePayload.picture || null,
+        });
+
+        user = await userService.getUserById(newUserId);
+      } else {
+        user = existingUser;
+      }
+
+      const token = authService.generateToken({
+        userId: user.user_id,
+        role: user.role,
+        username: user.username,
+        fullname: user.fullname,
+      });
+
+      return res.ok({ token }, 'Google authentication successful')
+    } catch (e) {
+      next(e)
+    }
+  },
   register: async function (req, res, next) {
     try {
       const userData = req.body;
@@ -53,6 +120,7 @@ const authController = {
       return res.ok(null, 'OTP sent to email successfully');
     } catch (error) {
       if (error.message === 'User not found') {
+        console.log('User not found');
         return res.notFound();
       }
       next(error);
@@ -65,6 +133,7 @@ const authController = {
       return res.ok(null, 'OTP verified successfully');
     } catch (error) {
       if (error.message === 'User not found') {
+        console.log('User not found');
         return res.notFound();
       }
       if (error.message === 'Invalid or expired OTP') {

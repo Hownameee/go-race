@@ -1,5 +1,7 @@
 package com.grouprace.core.network.api;
 
+import com.grouprace.core.network.model.auth.GoogleAuthPayload;
+import com.grouprace.core.network.model.auth.GoogleAuthResponse;
 import com.grouprace.core.network.model.auth.LoginPayload;
 import com.grouprace.core.network.model.auth.LoginResponse;
 import com.grouprace.core.network.model.auth.RequestPasswordResetOtpPayload;
@@ -34,4 +36,7 @@ public interface AuthApiService {
 
     @POST("api/device-tokens")
     Call<ApiResponse<Object>> registerDeviceToken(@Body RegisterDeviceTokenRequest body);
+
+    @POST("/api/auth/google")
+    Call<ApiResponse<GoogleAuthResponse>> googleAuth(@Body GoogleAuthPayload payload);
 }

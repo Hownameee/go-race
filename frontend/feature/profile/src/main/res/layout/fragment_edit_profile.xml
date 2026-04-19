@@ -156,45 +156,89 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Address"
+            android:text="Bio"
             android:textColor="@color/text_primary"
             android:textStyle="bold"
             android:layout_marginBottom="5dp" />
 
         <EditText
-            android:id="@+id/edit_profile_address"
+            android:id="@+id/edit_profile_bio"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="48dp"
-            android:paddingVertical="14dp"
-            android:paddingHorizontal="12dp"
-            android:hint="Street, Ward, Province / City, Country"
-            android:textColor="@android:color/black"
-            android:textColorHint="@color/text_tertiary"
+            android:minHeight="96dp"
+            android:layout_marginBottom="16dp"
             android:background="@drawable/bg_input_rounded"
-            android:inputType="textPostalAddress"
-            android:layout_marginBottom="16dp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Nationality"
-            android:textColor="@color/text_primary"
-            android:textStyle="bold"
-            android:layout_marginBottom="5dp" />
-
-        <EditText
-            android:id="@+id/edit_profile_nationality"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingVertical="14dp"
+            android:gravity="top|start"
+            android:hint="Tell people a bit about yourself"
+            android:inputType="textCapSentences|textMultiLine"
             android:paddingHorizontal="12dp"
-            android:hint="e.g. Vietnamese"
+            android:paddingVertical="14dp"
             android:textColor="@android:color/black"
-            android:textColorHint="@color/text_tertiary"
-            android:background="@drawable/bg_input_rounded"
-            android:inputType="text"
-            android:layout_marginBottom="16dp" />
+            android:textColorHint="@color/text_tertiary" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:text="Province / City"
+                    android:textColor="@color/text_primary"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/edit_profile_province_city"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="14dp"
+                    android:hint="e.g. Ho Chi Minh City"
+                    android:textColor="@android:color/black"
+                    android:textColorHint="@color/text_tertiary"
+                    android:background="@drawable/bg_input_rounded"
+                    android:inputType="textCapWords" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:text="Nation"
+                    android:textColor="@color/text_primary"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/edit_profile_country"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="14dp"
+                    android:hint="e.g. Vietnam"
+                    android:textColor="@android:color/black"
+                    android:textColorHint="@color/text_tertiary"
+                    android:background="@drawable/bg_input_rounded"
+                    android:inputType="textCapWords" />
+            </LinearLayout>
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"

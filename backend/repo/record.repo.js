@@ -1,28 +1,51 @@
 import db from '../utils/db/db.js';
 
 const recordRepo = {
+  getAggregateStats(userId, activityType = null, fromDate = null, toDate = null) {
+    const sql = `
+      SELECT
+        COUNT(*) AS total_activities,
+        ROUND(COALESCE(SUM(r.distance_km), 0), 2) AS total_distance_km,
+        COALESCE(SUM(r.duration_seconds), 0) AS total_duration_seconds
+      FROM RECORD r
+      WHERE
+        (? IS NULL OR r.activity_type = ?)
+        AND (? IS NULL OR datetime(r.start_time) >= datetime(?))
+        AND (? IS NULL OR datetime(r.start_time) <= datetime(?))
+        AND r.owner_id = ?
+    `;
+
+    return db
+      .prepare(sql)
+      .get(
+        activityType,
+        activityType,
+        fromDate,
+        fromDate,
+        toDate,
+        toDate,
+        userId,
+      );
+  },
+
   getWeeklySummaryRows(userId, activityType, fromDate, toDate) {
     const sql = `
       SELECT
         date(r.start_time, 'weekday 1', '-7 days') AS week_start,
         date(date(r.start_time, 'weekday 1', '-7 days'), '+6 days') AS week_end,
         ROUND(COALESCE(SUM(r.distance_km), 0), 2) AS total_distance_km,
-        COALESCE(SUM(r.duration_seconds), 0) AS total_duration_seconds,
-        ROUND(COALESCE(SUM(r.elevation_gain_m), 0), 2) AS total_elevation_gain_m
+        COALESCE(SUM(r.duration_seconds), 0) AS total_duration_seconds
       FROM RECORD r
       WHERE
         r.activity_type = ?
         AND datetime(r.start_time) >= datetime(?)
         AND datetime(r.start_time) <= datetime(?)
-        AND (
-          r.owner_id = ?
-          OR r.user_id = ?
-        )
+        AND r.owner_id = ?
       GROUP BY week_start, week_end
       ORDER BY week_start ASC
     `;
 
-    return db.prepare(sql).all(activityType, fromDate, toDate, userId, userId);
+    return db.prepare(sql).all(activityType, fromDate, toDate, userId);
   },
 
   findRecordsByUserId: async function (userId, offset, quantity) {
@@ -71,6 +94,16 @@ const recordRepo = {
 
     await db.prepare(sql).run(...params);
   },
+
+  getActiveRecordDates(userId) {
+    const sql = `
+      SELECT DISTINCT date(start_time) AS activity_date
+      FROM RECORD
+      WHERE owner_id = ?
+      ORDER BY activity_date DESC
+    `;
+    return db.prepare(sql).all(userId);
+  }
 };
 
 export default recordRepo;

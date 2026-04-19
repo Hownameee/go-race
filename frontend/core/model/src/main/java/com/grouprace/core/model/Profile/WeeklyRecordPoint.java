@@ -5,15 +5,13 @@ public class WeeklyRecordPoint {
     private final String weekEnd;
     private final double totalDistanceKm;
     private final int totalDurationSeconds;
-    private final double totalElevationGainM;
 
     public WeeklyRecordPoint(String weekStart, String weekEnd, double totalDistanceKm,
-                             int totalDurationSeconds, double totalElevationGainM) {
+                             int totalDurationSeconds) {
         this.weekStart = weekStart;
         this.weekEnd = weekEnd;
         this.totalDistanceKm = totalDistanceKm;
         this.totalDurationSeconds = totalDurationSeconds;
-        this.totalElevationGainM = totalElevationGainM;
     }
 
     public String getWeekStart() {
@@ -30,9 +28,5 @@ public class WeeklyRecordPoint {
 
     public int getTotalDurationSeconds() {
         return totalDurationSeconds;
-    }
-
-    public double getTotalElevationGainM() {
-        return totalElevationGainM;
     }
 }

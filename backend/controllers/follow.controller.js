@@ -61,6 +61,36 @@ const followController = {
       return next(error);
     }
   },
+
+  async getUserFollowers(req, res, next) {
+    try {
+      const userId = Number(req.params.userId);
+      const { cursor, limit } = req.query;
+      const result = await followService.getFollowers(userId, cursor, limit);
+      return res.ok(result, 'Get user followers successfully.');
+    } catch (error) {
+      if (error.status === 409) {
+        console.error(error);
+        return res.violate(null, error.message);
+      }
+      return next(error);
+    }
+  },
+
+  async getUserFollowing(req, res, next) {
+    try {
+      const userId = Number(req.params.userId);
+      const { cursor, limit } = req.query;
+      const result = await followService.getFollowing(userId, cursor, limit);
+      return res.ok(result, 'Get user following successfully.');
+    } catch (error) {
+      if (error.status === 409) {
+        console.error(error);
+        return res.violate(null, error.message);
+      }
+      return next(error);
+    }
+  },
 };
 
 export default followController;
