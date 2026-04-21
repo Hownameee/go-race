@@ -156,6 +156,54 @@ const clubRepo = {
         const sql = `UPDATE CLUBS SET ${fields.join(', ')} WHERE club_id = ?`;
         return db.prepare(sql).run(...values);
     },
+
+    getClubStats(clubId) {
+        // 1. Get totals for the entire club
+        const clubTotalsSql = `
+            SELECT 
+                COALESCE(SUM(r.distance_km), 0) as total_distance,
+                COUNT(r.record_id) as total_activities
+            FROM CLUB_MEMBERS cm
+            JOIN RECORD r ON cm.user_id = r.owner_id
+            WHERE cm.club_id = ? AND cm.status = 'approved'
+        `;
+        const clubTotals = db.prepare(clubTotalsSql).get(clubId);
+
+        // 2. Get aggregated stats per member to find records and leaderboard
+        const memberStatsSql = `
+            SELECT 
+                u.user_id as member_id, 
+                u.fullname as member_name, 
+                u.avatar_url, 
+                COALESCE(SUM(r.distance_km), 0) as total_distance,
+                COALESCE(SUM(r.duration_seconds), 0) as total_duration
+            FROM CLUB_MEMBERS cm
+            JOIN USERS u ON cm.user_id = u.user_id
+            LEFT JOIN RECORD r ON cm.user_id = r.owner_id
+            WHERE cm.club_id = ? AND cm.status = 'approved'
+            GROUP BY u.user_id
+            ORDER BY total_distance DESC
+        `;
+        const leaderboard = db.prepare(memberStatsSql).all(clubId);
+
+        // Calculate club record (the max among member sums)
+        let clubRecordDistance = 0;
+        let clubRecordDuration = 0;
+        if (leaderboard.length > 0) {
+            // Since it's sorted by total_distance DESC, the first one has the record distance
+            clubRecordDistance = leaderboard[0].total_distance;
+            // Record duration might be different member, but usually 'Leading duration' refers to the leader's duration or the max duration
+            clubRecordDuration = Math.max(...leaderboard.map(l => l.total_duration));
+        }
+
+        return {
+            totalDistance: clubTotals.total_distance,
+            totalActivities: clubTotals.total_activities,
+            clubRecordDistance: clubRecordDistance,
+            clubRecordDuration: clubRecordDuration,
+            leaderboard: leaderboard
+        };
+    },
 };
 
 export default clubRepo;

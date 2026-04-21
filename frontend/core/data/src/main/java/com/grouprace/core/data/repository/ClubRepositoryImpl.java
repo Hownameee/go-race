@@ -243,6 +243,39 @@ public class ClubRepositoryImpl implements ClubRepository {
         return result;
     }
 
+    @Override
+    public LiveData<Result<com.grouprace.core.model.ClubStats>> fetchClubStats(int clubId) {
+        MutableLiveData<Result<com.grouprace.core.model.ClubStats>> result = new MutableLiveData<>();
+        result.setValue(new Result.Loading<>());
+
+        networkDataSource.getClubStats(clubId).observeForever(networkResult -> {
+            if (networkResult instanceof Result.Success) {
+                com.grouprace.core.network.model.club.NetworkClubStats data = ((Result.Success<com.grouprace.core.network.model.club.NetworkClubStats>) networkResult).data;
+                List<com.grouprace.core.model.ClubStats.LeaderboardEntry> leaderboard = data.getLeaderboard() != null 
+                    ? data.getLeaderboard().stream().map(n -> new com.grouprace.core.model.ClubStats.LeaderboardEntry(
+                        n.getMemberId(), n.getMemberName(), n.getAvatarUrl(), n.getDistance()
+                    )).collect(Collectors.toList())
+                    : Collections.emptyList();
+
+                com.grouprace.core.model.ClubStats stats = new com.grouprace.core.model.ClubStats(
+                    data.getTotalDistance(),
+                    data.getTotalActivities(),
+                    data.getClubRecordDistanceStr(),
+                    data.getClubRecordDurationStr(),
+                    data.getPersonalBestDistanceStr(),
+                    data.getPersonalBestDurationStr(),
+                    leaderboard
+                );
+                result.postValue(new Result.Success<>(stats));
+            } else if (networkResult instanceof Result.Error) {
+                Result.Error<?> error = (Result.Error<?>) networkResult;
+                result.postValue(new Result.Error<>(error.exception, error.message));
+            }
+        });
+
+        return result;
+    }
+
     private ClubEntity toEntity(NetworkClub n) {
         return new ClubEntity(n.getClubId(), n.getName(), n.getDescription(), n.getPrivacyType(), n.getLeaderId(), n.getLeaderName(), n.getMemberCount(), n.getPostCount(), n.getAvatarUrl(), n.getStatus());
     }

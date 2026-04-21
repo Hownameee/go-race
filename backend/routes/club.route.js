@@ -15,5 +15,6 @@ clubRouter.get('/:clubId/posts', auth, validation(clubIdSchema, 'params'), clubC
 clubRouter.get('/:clubId/admins', auth, validation(clubIdSchema, 'params'), clubController.getAdmins);
 clubRouter.get('/:clubId/is-leader', auth, validation(clubIdSchema, 'params'), clubController.checkIsLeader);
 clubRouter.put('/:clubId', auth, validation(clubIdSchema, 'params'), validation(updateClubSchema), clubController.updateClub);
+clubRouter.get('/:clubId/stats', auth, validation(clubIdSchema, 'params'), clubController.getClubStats);
 
 export default clubRouter;

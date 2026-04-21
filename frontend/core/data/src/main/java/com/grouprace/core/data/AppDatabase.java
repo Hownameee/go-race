@@ -14,7 +14,7 @@ import com.grouprace.core.data.model.PostEntity;
 import com.grouprace.core.data.model.RecordEntity;
 import com.grouprace.core.data.model.RoutePoint;
 
-@Database(entities = {RoutePoint.class, PostEntity.class, RecordEntity.class, ClubEntity.class, ClubAdminEntity.class}, version = 11, exportSchema = false)
+@Database(entities = {RoutePoint.class, PostEntity.class, RecordEntity.class, ClubEntity.class, ClubAdminEntity.class}, version = 12, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     public abstract RoutePointDao routePointDao();

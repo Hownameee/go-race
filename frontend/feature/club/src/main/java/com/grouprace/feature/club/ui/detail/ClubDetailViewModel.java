@@ -93,4 +93,8 @@ public class ClubDetailViewModel extends ViewModel {
     public LiveData<List<Post>> getClubPosts() {
         return clubPosts;
     }
+
+    public LiveData<Result<com.grouprace.core.model.ClubStats>> fetchClubStats(int clubId) {
+        return clubRepository.fetchClubStats(clubId);
+    }
 }

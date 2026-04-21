@@ -45,4 +45,7 @@ public interface ClubApiService {
 
     @PUT("api/clubs/{clubId}")
     Call<ApiResponse<Object>> updateClub(@Path("clubId") int clubId, @Body UpdateClubRequest request);
+
+    @GET("api/clubs/{clubId}/stats")
+    Call<ApiResponse<com.grouprace.core.network.model.club.NetworkClubStats>> getClubStats(@Path("clubId") int clubId);
 }
