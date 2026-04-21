@@ -29,7 +29,8 @@ public class DatabaseModule {
                 context,
                 AppDatabase.class,
                 "gorace.db"
-        ).fallbackToDestructiveMigration().build();
+        ).addMigrations(AppDatabase.MIGRATION_11_12)
+         .fallbackToDestructiveMigration().build();
     }
 
     @Provides

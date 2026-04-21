@@ -2,7 +2,6 @@ package com.grouprace.core.data.repository;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Observer;
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.data.dao.RecordDao;
 import com.grouprace.core.data.dao.RoutePointDao;
@@ -54,11 +53,6 @@ public class TrackingRepositoryImpl implements TrackingRepository {
         });
     }
 
-    /**
-     * Phase 5 & 7: Synchronization.
-     * Collects all local points (ID 0), sends them to backend, and then updates 
-     * the local records with the real ID returned by the server.
-     */
     @Override
     public LiveData<Result<Long>> createRecord(Record record) {
         MutableLiveData<Result<Long>> resultLiveData = new MutableLiveData<>();
@@ -66,58 +60,22 @@ public class TrackingRepositoryImpl implements TrackingRepository {
 
         executor.execute(() -> {
             try {
-                // Get points captured during session (they all have activityId = 0 initially)
-                List<com.grouprace.core.data.model.RoutePoint> localPoints = routePointDao.getByActivityId(0);
-                List<NetworkRoutePoint> networkPoints = localPoints.stream()
-                        .map(p -> new NetworkRoutePoint(p.latitude, p.longitude, p.altitude, p.timestamp, p.accuracy))
-                        .collect(Collectors.toList());
+                // Save locally first with a negative temp ID — user gets instant feedback
+                int tempId = -(int)(System.currentTimeMillis() % 100_000) - 1;
+                RecordEntity localEntity = new RecordEntity(
+                        tempId, record.getActivityType(), record.getTitle(),
+                        record.getStartTime(), record.getEndTime(), record.getOwnerId(),
+                        record.getDuration(), record.getDistance(), record.getCalories(),
+                        record.getHeartRate(), record.getSpeed(), record.getImageUrl(), true);
+                recordDao.insert(localEntity);
+                routePointDao.assignUnassignedPointsToActivity(tempId);
 
-                CreateRecordRequest request = new CreateRecordRequest(
-                        record.getActivityType(),
-                        record.getTitle(),
-                        record.getStartTime(),
-                        record.getEndTime(),
-                        record.getDuration(),
-                        record.getDistance(),
-                        record.getCalories(),
-                        record.getHeartRate(),
-                        record.getSpeed(),
-                        record.getImageUrl(),
-                        networkPoints
-                );
+                resultLiveData.postValue(new Result.Success<>((long) tempId));
 
-                mainHandler.post(() -> {
-                    LiveData<Result<NetworkRecord>> networkCall = networkDataSource.createRecord(request);
-                    networkCall.observeForever(networkResult -> {
-                        if (networkResult instanceof Result.Success) {
-                            NetworkRecord nr = ((Result.Success<NetworkRecord>) networkResult).data;
-                            executor.execute(() -> {
-                                RecordEntity entity = new RecordEntity(
-                                        nr.getRecordId(),
-                                        nr.getActivityType(),
-                                        nr.getTitle(),
-                                        nr.getStartTime(),
-                                        nr.getEndTime(),
-                                        nr.getOwnerId(),
-                                        nr.getDuration(),
-                                        nr.getDistance(),
-                                        nr.getCalories(),
-                                        nr.getHeartRate(),
-                                        nr.getSpeed(),
-                                        nr.getImageUrl()
-                                );
-                                recordDao.insert(entity);
-                                routePointDao.assignUnassignedPointsToActivity(nr.getRecordId());
-                                resultLiveData.postValue(new Result.Success<>((long) nr.getRecordId()));
-                            });
-                        } else if (networkResult instanceof Result.Error) {
-                            Result.Error<NetworkRecord> error = (Result.Error<NetworkRecord>) networkResult;
-                            resultLiveData.postValue(new Result.Error<>(error.exception, error.message));
-                        }
-                    });
-                });
+                // Background sync — swap temp ID with real server ID on success
+                syncNewRecord(tempId);
             } catch (Exception e) {
-                Log.e(TAG, "Exception during remote record creation prep", e);
+                Log.e(TAG, "Failed to save record locally", e);
                 resultLiveData.postValue(new Result.Error<>(e, e.getMessage()));
             }
         });
@@ -125,52 +83,97 @@ public class TrackingRepositoryImpl implements TrackingRepository {
         return resultLiveData;
     }
 
+    private void syncNewRecord(int tempId) {
+        executor.execute(() -> {
+            try {
+                RecordEntity local = recordDao.getById(tempId);
+                if (local == null) return;
+
+                List<com.grouprace.core.data.model.RoutePoint> localPoints = routePointDao.getByActivityId(tempId);
+                List<NetworkRoutePoint> networkPoints = localPoints.stream()
+                        .map(p -> new NetworkRoutePoint(p.latitude, p.longitude, p.altitude, p.timestamp, p.accuracy))
+                        .collect(Collectors.toList());
+
+                CreateRecordRequest request = new CreateRecordRequest(
+                        local.activityType, local.title, local.startTime, local.endTime,
+                        local.duration, local.distance, local.calories,
+                        local.heartRate, local.speed, local.imageUrl, networkPoints);
+
+                mainHandler.post(() -> {
+                    LiveData<Result<NetworkRecord>> call = networkDataSource.createRecord(request);
+                    call.observeForever(new androidx.lifecycle.Observer<Result<NetworkRecord>>() {
+                        @Override
+                        public void onChanged(Result<NetworkRecord> result) {
+                            if (result instanceof Result.Loading) return;
+                            call.removeObserver(this);
+                            if (result instanceof Result.Success) {
+                                NetworkRecord nr = ((Result.Success<NetworkRecord>) result).data;
+                                executor.execute(() -> {
+                                    // Read latest local state — user may have edited title during sync
+                                    RecordEntity latest = recordDao.getById(tempId);
+                                    String title = latest != null ? latest.title : nr.getTitle();
+                                    recordDao.deleteById(tempId);
+                                    RecordEntity real = new RecordEntity(
+                                            nr.getRecordId(), nr.getActivityType(), title,
+                                            nr.getStartTime(), nr.getEndTime(), nr.getOwnerId(),
+                                            nr.getDuration(), nr.getDistance(), nr.getCalories(),
+                                            nr.getHeartRate(), nr.getSpeed(), nr.getImageUrl(), false);
+                                    recordDao.insert(real);
+                                    routePointDao.reassignPoints(tempId, nr.getRecordId());
+                                });
+                            } else if (result instanceof Result.Error) {
+                                Log.w(TAG, "Background sync failed — record stays local: tempId=" + tempId);
+                            }
+                        }
+                    });
+                });
+            } catch (Exception e) {
+                Log.e(TAG, "Background sync exception: tempId=" + tempId, e);
+            }
+        });
+    }
+
     @Override
     public LiveData<Result<Void>> updateRecord(Record record) {
         MutableLiveData<Result<Void>> resultLiveData = new MutableLiveData<>();
-        resultLiveData.setValue(new Result.Loading<>());
- 
+
+        // Persist locally first — user never waits for network
+        updateRecordLocal(record);
+        resultLiveData.setValue(new Result.Success<>(null));
+
+        // Temp-ID records haven't reached the server yet; syncNewRecord will pick up the latest title
+        if (record.getRecordId() < 0) return resultLiveData;
+
         java.util.Map<String, Object> updateData = new java.util.HashMap<>();
         updateData.put("title", record.getTitle());
-        // Add other fields if needed
- 
+
         mainHandler.post(() -> {
-            LiveData<Result<Void>> updateCall = networkDataSource.updateRecord(record.getRecordId(), updateData);
-            updateCall.observeForever(new Observer<Result<Void>>() {
+            LiveData<Result<Void>> call = networkDataSource.updateRecord(record.getRecordId(), updateData);
+            call.observeForever(new androidx.lifecycle.Observer<Result<Void>>() {
                 @Override
                 public void onChanged(Result<Void> result) {
-                    if (result instanceof Result.Success) {
-                        updateRecordLocal(record);
-                        resultLiveData.postValue(new Result.Success<>(null));
-                        updateCall.removeObserver(this);
-                    } else if (result instanceof Result.Error) {
-                        resultLiveData.postValue(result);
-                        updateCall.removeObserver(this);
+                    if (result instanceof Result.Loading) return;
+                    call.removeObserver(this);
+                    if (result instanceof Result.Error) {
+                        executor.execute(() -> recordDao.setPendingSync(record.getRecordId(), true));
                     }
                 }
             });
         });
- 
+
         return resultLiveData;
     }
- 
+
     @Override
     public void updateRecordLocal(Record record) {
         executor.execute(() -> {
+            RecordEntity existing = recordDao.getById(record.getRecordId());
+            boolean pendingSync = existing != null && existing.pendingSync;
             RecordEntity entity = new RecordEntity(
-                    record.getRecordId(),
-                    record.getActivityType(),
-                    record.getTitle(),
-                    record.getStartTime(),
-                    record.getEndTime(),
-                    record.getOwnerId(),
-                    record.getDuration(),
-                    record.getDistance(),
-                    record.getCalories(),
-                    record.getHeartRate(),
-                    record.getSpeed(),
-                    record.getImageUrl()
-            );
+                    record.getRecordId(), record.getActivityType(), record.getTitle(),
+                    record.getStartTime(), record.getEndTime(), record.getOwnerId(),
+                    record.getDuration(), record.getDistance(), record.getCalories(),
+                    record.getHeartRate(), record.getSpeed(), record.getImageUrl(), pendingSync);
             recordDao.update(entity);
         });
     }

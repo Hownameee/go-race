@@ -27,6 +27,12 @@ public interface RecordDao {
     @Query("SELECT * FROM record WHERE recordId = :id")
     RecordEntity getById(int id);
 
+    @Query("DELETE FROM record WHERE recordId = :id")
+    void deleteById(int id);
+
+    @Query("UPDATE record SET pendingSync = :pending WHERE recordId = :id")
+    void setPendingSync(int id, boolean pending);
+
     @Query("SELECT * FROM record ORDER BY recordId DESC LIMIT :limit")
     LiveData<List<RecordEntity>> getRecords(int limit);
 
