@@ -26,7 +26,7 @@ import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.feature.club.R;
 import com.grouprace.feature.club.ui.ClubsFragment;
 import com.grouprace.feature.club.ui.detail.tabs.OverviewFragment;
-import com.grouprace.feature.club.ui.detail.tabs.StatisticsFragment;
+import com.grouprace.feature.club.ui.detail.tabs.ClubStatisticsFragment;
 import com.grouprace.feature.club.ui.ShareClubFragment;
 import com.grouprace.feature.club.ui.adapter.ClubNavAdapter;
 import com.grouprace.feature.posts.ui.CommentFragment;
@@ -279,9 +279,9 @@ public class ClubDetailFragment extends Fragment {
                     items.add(new ClubNavAdapter.NavItem("NAV_EVENTS", "Events", android.R.drawable.ic_menu_my_calendar, new PlaceholderFragment()));
                     
                     if (club != null) {
-                        items.add(new ClubNavAdapter.NavItem("NAV_STATS", "Leader Board", android.R.drawable.ic_menu_gallery, StatisticsFragment.newInstance(club.getClubId())));
+                        items.add(new ClubNavAdapter.NavItem("NAV_STATS", "Statistics", android.R.drawable.ic_menu_gallery, ClubStatisticsFragment.newInstance(club.getClubId())));
                     } else {
-                        items.add(new ClubNavAdapter.NavItem("NAV_STATS", "Leader Board", android.R.drawable.ic_menu_gallery, new PlaceholderFragment()));
+                        items.add(new ClubNavAdapter.NavItem("NAV_STATS", "Statistics", android.R.drawable.ic_menu_gallery, new PlaceholderFragment()));
                     }
 
                     if (isApproved) {

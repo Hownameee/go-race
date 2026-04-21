@@ -81,7 +81,7 @@ public class ClubRepositoryImpl implements ClubRepository {
                             clubDao.deleteAllDiscoverClubs();
                         }
                     }
-                    clubDao.insertClubs(entities);
+                    clubDao.upsertClubs(entities);
                 });
 
                 result.postValue(new Result.Success<>(type));
@@ -104,7 +104,7 @@ public class ClubRepositoryImpl implements ClubRepository {
                 List<ClubEntity> entities = networkClubs != null ? networkClubs.stream().map(this::toEntity).collect(Collectors.toList()) : Collections.emptyList();
 
                 Executors.newSingleThreadExecutor().execute(() -> {
-                    clubDao.insertClubs(entities);
+                    clubDao.upsertClubs(entities);
                 });
 
             } else if (networkResult instanceof Result.Error) {
@@ -244,29 +244,43 @@ public class ClubRepositoryImpl implements ClubRepository {
     }
 
     @Override
-    public LiveData<Result<com.grouprace.core.model.ClubStats>> fetchClubStats(int clubId) {
-        MutableLiveData<Result<com.grouprace.core.model.ClubStats>> result = new MutableLiveData<>();
+    public LiveData<List<com.grouprace.core.model.ClubStats.LeaderboardEntry>> getLocalLeaderboard(int clubId) {
+        return Transformations.map(clubDao.getLeaderboard(clubId), entities -> 
+            entities.stream().map(e -> new com.grouprace.core.model.ClubStats.LeaderboardEntry(
+                e.memberId, e.memberName, e.avatarUrl, e.distance
+            )).collect(Collectors.toList())
+        );
+    }
+
+    @Override
+    public LiveData<Result<String>> syncClubStats(int clubId) {
+        MutableLiveData<Result<String>> result = new MutableLiveData<>();
         result.setValue(new Result.Loading<>());
 
         networkDataSource.getClubStats(clubId).observeForever(networkResult -> {
             if (networkResult instanceof Result.Success) {
                 com.grouprace.core.network.model.club.NetworkClubStats data = ((Result.Success<com.grouprace.core.network.model.club.NetworkClubStats>) networkResult).data;
-                List<com.grouprace.core.model.ClubStats.LeaderboardEntry> leaderboard = data.getLeaderboard() != null 
-                    ? data.getLeaderboard().stream().map(n -> new com.grouprace.core.model.ClubStats.LeaderboardEntry(
-                        n.getMemberId(), n.getMemberName(), n.getAvatarUrl(), n.getDistance()
+                
+                List<com.grouprace.core.data.model.ClubLeaderboardEntity> leaderboardEntities = data.getLeaderboard() != null 
+                    ? data.getLeaderboard().stream().map(n -> new com.grouprace.core.data.model.ClubLeaderboardEntity(
+                        clubId, n.getMemberId(), n.getMemberName(), n.getAvatarUrl(), n.getDistance()
                     )).collect(Collectors.toList())
                     : Collections.emptyList();
 
-                com.grouprace.core.model.ClubStats stats = new com.grouprace.core.model.ClubStats(
-                    data.getTotalDistance(),
-                    data.getTotalActivities(),
-                    data.getClubRecordDistanceStr(),
-                    data.getClubRecordDurationStr(),
-                    data.getPersonalBestDistanceStr(),
-                    data.getPersonalBestDurationStr(),
-                    leaderboard
-                );
-                result.postValue(new Result.Success<>(stats));
+                Executors.newSingleThreadExecutor().execute(() -> {
+                    clubDao.replaceLeaderboardAndStats(
+                        clubId,
+                        data.getTotalDistance(),
+                        data.getTotalActivities(),
+                        data.getClubRecordDistanceStr(),
+                        data.getClubRecordDurationStr(),
+                        data.getPersonalBestDistanceStr(),
+                        data.getPersonalBestDurationStr(),
+                        leaderboardEntities
+                    );
+                });
+                
+                result.postValue(new Result.Success<>("Stats synced"));
             } else if (networkResult instanceof Result.Error) {
                 Result.Error<?> error = (Result.Error<?>) networkResult;
                 result.postValue(new Result.Error<>(error.exception, error.message));
@@ -277,7 +291,7 @@ public class ClubRepositoryImpl implements ClubRepository {
     }
 
     private ClubEntity toEntity(NetworkClub n) {
-        return new ClubEntity(n.getClubId(), n.getName(), n.getDescription(), n.getPrivacyType(), n.getLeaderId(), n.getLeaderName(), n.getMemberCount(), n.getPostCount(), n.getAvatarUrl(), n.getStatus());
+        return new ClubEntity(n.getClubId(), n.getName(), n.getDescription(), n.getPrivacyType(), n.getLeaderId(), n.getLeaderName(), n.getMemberCount(), n.getPostCount(), n.getAvatarUrl(), n.getStatus(), 0.0, 0, null, null, null, null);
     }
 
     private <T> List<T> safeList(List<T> list) {

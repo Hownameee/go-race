@@ -13,10 +13,17 @@ public class Club {
     private int memberCount;
     private int postCount;
     private String status;
+    
+    private double totalDistance;
+    private int totalActivities;
+    private String clubRecordDistanceStr;
+    private String clubRecordDurationStr;
+    private String personalBestDistanceStr;
+    private String personalBestDurationStr;
 
     public Club() {}
 
-    public Club(int clubId, String name, String description, String avatarUrl, String privacyType, int leaderId, String leaderName, int memberCount, int postCount, String status) {
+    public Club(int clubId, String name, String description, String avatarUrl, String privacyType, int leaderId, String leaderName, int memberCount, int postCount, String status, double totalDistance, int totalActivities, String clubRecordDistanceStr, String clubRecordDurationStr, String personalBestDistanceStr, String personalBestDurationStr) {
         this.clubId = clubId;
         this.name = name;
         this.description = description;
@@ -27,6 +34,12 @@ public class Club {
         this.memberCount = memberCount;
         this.postCount = postCount;
         this.status = status;
+        this.totalDistance = totalDistance;
+        this.totalActivities = totalActivities;
+        this.clubRecordDistanceStr = clubRecordDistanceStr;
+        this.clubRecordDurationStr = clubRecordDurationStr;
+        this.personalBestDistanceStr = personalBestDistanceStr;
+        this.personalBestDurationStr = personalBestDurationStr;
     }
 
     public int getClubId() { return clubId; }
@@ -58,4 +71,22 @@ public class Club {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public double getTotalDistance() { return totalDistance; }
+    public void setTotalDistance(double totalDistance) { this.totalDistance = totalDistance; }
+
+    public int getTotalActivities() { return totalActivities; }
+    public void setTotalActivities(int totalActivities) { this.totalActivities = totalActivities; }
+
+    public String getClubRecordDistanceStr() { return clubRecordDistanceStr; }
+    public void setClubRecordDistanceStr(String clubRecordDistanceStr) { this.clubRecordDistanceStr = clubRecordDistanceStr; }
+
+    public String getClubRecordDurationStr() { return clubRecordDurationStr; }
+    public void setClubRecordDurationStr(String clubRecordDurationStr) { this.clubRecordDurationStr = clubRecordDurationStr; }
+
+    public String getPersonalBestDistanceStr() { return personalBestDistanceStr; }
+    public void setPersonalBestDistanceStr(String personalBestDistanceStr) { this.personalBestDistanceStr = personalBestDistanceStr; }
+
+    public String getPersonalBestDurationStr() { return personalBestDurationStr; }
+    public void setPersonalBestDurationStr(String personalBestDurationStr) { this.personalBestDurationStr = personalBestDurationStr; }
 }
