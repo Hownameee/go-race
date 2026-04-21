@@ -20,8 +20,12 @@ public class RecordEntity {
     public float heartRate;
     public float speed;       // km/h
     public String imageUrl;
+    public boolean pendingSync;
 
-    public RecordEntity(int recordId, String activityType, String title, String startTime, String endTime, int ownerId, int duration, float distance, float calories, float heartRate, float speed, String imageUrl) {
+    public RecordEntity(int recordId, String activityType, String title, String startTime,
+                        String endTime, int ownerId, int duration, float distance,
+                        float calories, float heartRate, float speed, String imageUrl,
+                        boolean pendingSync) {
         this.recordId = recordId;
         this.ownerId = ownerId;
         this.activityType = activityType;
@@ -34,6 +38,7 @@ public class RecordEntity {
         this.heartRate = heartRate;
         this.speed = speed;
         this.imageUrl = imageUrl;
+        this.pendingSync = pendingSync;
     }
 
     public Record asExternalModel() {

@@ -84,7 +84,8 @@ public class RecordRepositoryImpl implements RecordRepository {
                                     n.getCalories(),
                                     n.getHeartRate(),
                                     n.getSpeed(),
-                                    n.getImageUrl()
+                                    n.getImageUrl(),
+                                    false
                             ))
                             .collect(Collectors.toList());
 
@@ -129,7 +130,8 @@ public class RecordRepositoryImpl implements RecordRepository {
                                     n.getCalories(),
                                     n.getHeartRate(),
                                     n.getSpeed(),
-                                    n.getImageUrl()
+                                    n.getImageUrl(),
+                                    false
                             ))
                             .collect(Collectors.toList());
 

@@ -23,6 +23,9 @@ public interface RoutePointDao {
     @Query("UPDATE route_points SET activityId = :activityId WHERE activityId = 0")
     void assignUnassignedPointsToActivity(long activityId);
 
+    @Query("UPDATE route_points SET activityId = :newId WHERE activityId = :oldId")
+    void reassignPoints(long oldId, long newId);
+
     @Query("DELETE FROM route_points WHERE activityId = 0")
     void deleteUnassignedPoints();
 }
