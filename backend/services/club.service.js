@@ -129,6 +129,39 @@ const clubService = {
             })();
         }
     },
+
+    async getClubStats(clubId, userId) {
+        const stats = await clubRepo.getClubStats(clubId);
+
+        // Find the current user's stats in the leaderboard
+        const myStats = stats.leaderboard.find(item => item.member_id === userId);
+
+        const formatDuration = (seconds) => {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            if (h > 0) return `${h}h ${m}m ${s}s`;
+            return `${m}m ${s}s`;
+        };
+
+        const personalBestDistanceStr = myStats ? `${myStats.total_distance.toFixed(2)} km` : "0.00 km";
+        const personalBestDurationStr = myStats ? formatDuration(myStats.total_duration) : "0m 0s";
+
+        return {
+            totalDistance: stats.totalDistance,
+            totalActivities: stats.totalActivities,
+            clubRecordDistanceStr: `${stats.clubRecordDistance.toFixed(2)} km`,
+            clubRecordDurationStr: formatDuration(stats.clubRecordDuration),
+            personalBestDistanceStr: personalBestDistanceStr,
+            personalBestDurationStr: personalBestDurationStr,
+            leaderboard: stats.leaderboard.map(item => ({
+                memberId: item.member_id.toString(),
+                memberName: item.member_name,
+                avatarUrl: item.avatar_url,
+                distance: item.total_distance
+            }))
+        };
+    },
 };
 
 export default clubService;

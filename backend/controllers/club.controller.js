@@ -116,6 +116,17 @@ const clubController = {
             res.error(null, error.message);
         }
     },
+
+    getClubStats: async (req, res) => {
+        try {
+            const userId = req.user.userId;
+            const clubId = parseInt(req.params.clubId);
+            const stats = await clubService.getClubStats(clubId, userId);
+            res.ok(stats, 'Club stats retrieved successfully.');
+        } catch (error) {
+            res.error(null, error.message);
+        }
+    },
 };
 
 export default clubController;
