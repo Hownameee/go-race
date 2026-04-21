@@ -191,6 +191,10 @@ CREATE TABLE IF NOT EXISTS CLUBS (
     leader_id INTEGER NOT NULL, -- Club Leader
     member_count INTEGER DEFAULT 0,
     post_count INTEGER DEFAULT 0,
+    total_distance REAL DEFAULT 0,
+    total_activities INTEGER DEFAULT 0,
+    club_record_distance REAL DEFAULT 0,
+    club_record_duration INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     
@@ -203,6 +207,8 @@ CREATE TABLE IF NOT EXISTS CLUB_MEMBERS (
     user_id INTEGER NOT NULL,
     role TEXT DEFAULT 'member' CHECK (role IN ('admin', 'member')),
     status TEXT DEFAULT 'approved' CHECK (status IN ('pending', 'approved', 'rejected')), -- pending dành cho private club
+    total_distance REAL DEFAULT 0,
+    total_duration INTEGER DEFAULT 0,
     joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     
     PRIMARY KEY (club_id, user_id),
@@ -301,4 +307,28 @@ BEGIN
     UPDATE CLUBS 
     SET post_count = post_count - 1 
     WHERE club_id = OLD.club_id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trigger_record_insert_update_club_stats
+AFTER INSERT ON RECORD
+BEGIN
+    UPDATE CLUB_MEMBERS
+    SET total_distance = total_distance + COALESCE(NEW.distance_km, 0),
+        total_duration = total_duration + COALESCE(NEW.duration_seconds, 0)
+    WHERE user_id = NEW.owner_id AND status = 'approved';
+
+    UPDATE CLUBS
+    SET total_distance = total_distance + COALESCE(NEW.distance_km, 0),
+        total_activities = total_activities + 1,
+        club_record_distance = MAX(
+            club_record_distance, 
+            (SELECT total_distance FROM CLUB_MEMBERS WHERE club_id = CLUBS.club_id AND user_id = NEW.owner_id)
+        ),
+        club_record_duration = MAX(
+            club_record_duration, 
+            (SELECT total_duration FROM CLUB_MEMBERS WHERE club_id = CLUBS.club_id AND user_id = NEW.owner_id)
+        )
+    WHERE club_id IN (
+        SELECT club_id FROM CLUB_MEMBERS WHERE user_id = NEW.owner_id AND status = 'approved'
+    );
 END;
