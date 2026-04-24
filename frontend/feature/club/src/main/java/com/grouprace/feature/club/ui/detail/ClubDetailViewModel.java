@@ -94,11 +94,11 @@ public class ClubDetailViewModel extends ViewModel {
         return clubPosts;
     }
 
-    public LiveData<List<com.grouprace.core.model.ClubStats.LeaderboardEntry>> getLocalLeaderboard(int clubId) {
-        return clubRepository.getLocalLeaderboard(clubId);
+    public LiveData<Result<com.grouprace.core.model.ClubStats>> syncClubStats(int clubId) {
+        return clubRepository.syncClubStats(clubId);
     }
 
-    public LiveData<Result<String>> syncClubStats(int clubId) {
-        return clubRepository.syncClubStats(clubId);
+    public LiveData<Result<Boolean>> checkIsLeader(int clubId) {
+        return clubRepository.checkIsLeader(clubId);
     }
 }

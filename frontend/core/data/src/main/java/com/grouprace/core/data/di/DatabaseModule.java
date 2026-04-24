@@ -11,6 +11,7 @@ import com.grouprace.core.data.dao.RoutePointDao;
 import com.grouprace.core.data.dao.UserRouteDao;
 import com.grouprace.core.data.dao.PostDao;
 import com.grouprace.core.data.dao.ClubAdminDao;
+import com.grouprace.core.data.dao.EventDao;
 
 import dagger.Module;
 import dagger.Provides;
@@ -61,5 +62,10 @@ public class DatabaseModule {
     @Provides
     public ClubAdminDao provideClubAdminDao(AppDatabase appDatabase) {
         return appDatabase.clubAdminDao();
+    }
+
+    @Provides
+    public EventDao provideEventDao(AppDatabase appDatabase) {
+        return appDatabase.eventDao();
     }
 }

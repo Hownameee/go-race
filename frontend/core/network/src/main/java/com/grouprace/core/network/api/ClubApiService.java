@@ -48,4 +48,16 @@ public interface ClubApiService {
 
     @GET("api/clubs/{clubId}/stats")
     Call<ApiResponse<com.grouprace.core.network.model.club.NetworkClubStats>> getClubStats(@Path("clubId") int clubId);
+
+    @POST("api/clubs/{clubId}/events")
+    Call<ApiResponse<Object>> createEvent(@Path("clubId") int clubId, @Body com.grouprace.core.network.model.club.CreateClubEventRequest request);
+
+    @GET("api/clubs/{clubId}/events")
+    Call<ApiResponse<java.util.List<com.grouprace.core.network.model.club.NetworkClubEvent>>> getEvents(@Path("clubId") int clubId);
+
+    @POST("api/clubs/{clubId}/events/{eventId}/join")
+    Call<ApiResponse<Object>> joinEvent(@Path("clubId") int clubId, @Path("eventId") int eventId);
+
+    @GET("api/clubs/{clubId}/events/{eventId}/stats")
+    Call<ApiResponse<com.grouprace.core.network.model.club.NetworkEventStats>> getEventStats(@Path("clubId") int clubId, @Path("eventId") int eventId);
 }

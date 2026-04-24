@@ -20,7 +20,12 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.bumptech.glide.Glide;
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.navigation.AppNavigator;
+import com.grouprace.core.system.ui.TopAppBarConfig;
+import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.feature.club.R;
+
+import javax.inject.Inject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -33,7 +38,11 @@ public class EditClubFragment extends Fragment {
 
     private static final String ARG_CLUB_ID = "CLUB_ID";
 
-    private OverviewViewModel viewModel;
+    @Inject
+    AppNavigator appNavigator;
+
+    private EditClubViewModel viewModel;
+    private int clubId;
     private Uri selectedImageUri = null;
     private ImageView ivEditAvatar;
 
@@ -63,9 +72,16 @@ public class EditClubFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        clubId = getArguments() != null ? getArguments().getInt(ARG_CLUB_ID, -1) : -1;
+        if (clubId == -1) return;
 
-        // Share the same ViewModel as the parent OverviewFragment, scoped to Activity
-        viewModel = new ViewModelProvider(requireActivity()).get(OverviewViewModel.class);
+        viewModel = new ViewModelProvider(this).get(EditClubViewModel.class);
+
+        TopAppBarHelper.setupTopAppBar(view, new TopAppBarConfig.Builder()
+                .setTitle("Edit Club")
+                .setLeftIcon(com.grouprace.core.system.R.drawable.ic_back)
+                .setOnLeftIconClick(v -> requireActivity().getSupportFragmentManager().popBackStack())
+                .build());
 
         ivEditAvatar = view.findViewById(R.id.iv_edit_avatar);
         EditText etName = view.findViewById(R.id.et_edit_name);
@@ -74,7 +90,7 @@ public class EditClubFragment extends Fragment {
         Button btnSave = view.findViewById(R.id.btn_save_club);
 
         // Pre-fill current club info
-        viewModel.getClub().observe(getViewLifecycleOwner(), club -> {
+        viewModel.getClub(clubId).observe(getViewLifecycleOwner(), club -> {
             if (club != null) {
                 if (etName.getText().toString().isEmpty()) {
                     etName.setText(club.getName());
@@ -93,10 +109,7 @@ public class EditClubFragment extends Fragment {
                         .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
                         .build())
         );
-
         btnSave.setOnClickListener(v -> saveClub(etName, etDescription, btnSave));
-        
-        view.findViewById(R.id.btn_back).setOnClickListener(v -> requireActivity().getSupportFragmentManager().popBackStack());
     }
 
     private void saveClub(EditText etName, EditText etDescription, Button btnSave) {
@@ -127,6 +140,7 @@ public class EditClubFragment extends Fragment {
         final String finalMimeType = mimeType;
 
         viewModel.updateClub(
+                clubId,
                 name.isEmpty() ? null : name,
                 description.isEmpty() ? null : description,
                 finalImageBytes,

@@ -118,11 +118,9 @@ const clubService = {
                     const ext = imageContentType === 'image/png' ? 'png' : 'jpg';
                     const key = `club-avatars/${clubId}-${Date.now()}-${crypto.randomUUID()}.${ext}`;
 
-                    // console.log(`[Background] Starting S3 upload for club ${clubId}...`);
                     await uploadImageS3(buffer, key, imageContentType);
 
                     clubRepo.updateClub(clubId, { avatarS3Key: key });
-                    // console.log(`[Background] S3 upload and DB update complete for club ${clubId}.`);
                 } catch (err) {
                     console.error(`[Background Error] Failed to upload avatar for club ${clubId}:`, err);
                 }

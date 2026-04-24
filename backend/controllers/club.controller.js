@@ -102,7 +102,6 @@ const clubController = {
             const userId = req.user.userId;
             const clubId = parseInt(req.params.clubId);
             const { name, description, image_base64, image_content_type } = req.body;
-            console.log(req.body)
             await clubService.updateClub(userId, clubId, {
                 name,
                 description,

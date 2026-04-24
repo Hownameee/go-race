@@ -63,7 +63,7 @@ public class ClubNavAdapter extends RecyclerView.Adapter<ClubNavAdapter.NavViewH
 
         public NavViewHolder(@NonNull View itemView) {
             super(itemView);
-            // Ánh xạ View từ file XML mới
+            // Mapping Views from the new XML file
             ivIcon = itemView.findViewById(R.id.iv_nav_icon);
             tvTitle = itemView.findViewById(R.id.tv_nav_title);
         }
@@ -77,14 +77,12 @@ public class ClubNavAdapter extends RecyclerView.Adapter<ClubNavAdapter.NavViewH
     public static class NavItem {
         private final String id;
         private final String title;
-        private final int iconResId; // THÊM TRƯỜNG NÀY ĐỂ LƯU ICON
-        private final Fragment targetFragment;
+        private final int iconResId;
 
-        public NavItem(String id, String title, int iconResId, Fragment targetFragment) {
+        public NavItem(String id, String title, int iconResId) {
             this.id = id;
             this.title = title;
             this.iconResId = iconResId;
-            this.targetFragment = targetFragment;
         }
 
         public String getId() {
@@ -97,10 +95,6 @@ public class ClubNavAdapter extends RecyclerView.Adapter<ClubNavAdapter.NavViewH
 
         public int getIconResId() {
             return iconResId;
-        }
-
-        public Fragment getTargetFragment() {
-            return targetFragment;
         }
     }
 }

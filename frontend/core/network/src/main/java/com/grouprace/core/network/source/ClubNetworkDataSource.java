@@ -306,4 +306,124 @@ public class ClubNetworkDataSource {
 
         return liveData;
     }
+
+    public LiveData<Result<String>> createEvent(int clubId, com.grouprace.core.network.model.club.CreateClubEventRequest request) {
+        MutableLiveData<Result<String>> liveData = new MutableLiveData<>();
+        liveData.setValue(new Result.Loading<>());
+
+        apiService.createEvent(clubId, request).enqueue(new Callback<ApiResponse<Object>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Object>> call, Response<ApiResponse<Object>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<Object> apiResponse = response.body();
+                    if (apiResponse.isSuccess()) {
+                        liveData.postValue(new Result.Success<>("Event created"));
+                    } else {
+                        Log.e(TAG, "createEvent: API error - " + apiResponse.getMessage());
+                        liveData.postValue(new Result.Error<>(null, apiResponse.getMessage()));
+                    }
+                } else {
+                    Log.e(TAG, "createEvent: HTTP " + response.code());
+                    liveData.postValue(new Result.Error<>(null, "HTTP Error: " + response.code()));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<Object>> call, Throwable t) {
+                Log.e(TAG, "createEvent: network failure - " + t.getMessage(), t);
+                liveData.postValue(new Result.Error<>(new Exception(t), t.getMessage()));
+            }
+        });
+        return liveData;
+    }
+
+    public LiveData<Result<java.util.List<com.grouprace.core.network.model.club.NetworkClubEvent>>> getEvents(int clubId) {
+        MutableLiveData<Result<java.util.List<com.grouprace.core.network.model.club.NetworkClubEvent>>> liveData = new MutableLiveData<>();
+        liveData.setValue(new Result.Loading<>());
+
+        apiService.getEvents(clubId).enqueue(new Callback<ApiResponse<java.util.List<com.grouprace.core.network.model.club.NetworkClubEvent>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<java.util.List<com.grouprace.core.network.model.club.NetworkClubEvent>>> call, Response<ApiResponse<java.util.List<com.grouprace.core.network.model.club.NetworkClubEvent>>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<java.util.List<com.grouprace.core.network.model.club.NetworkClubEvent>> apiResponse = response.body();
+                    if (apiResponse.isSuccess() && apiResponse.getData() != null) {
+                        liveData.postValue(new Result.Success<>(apiResponse.getData()));
+                    } else {
+                        Log.e(TAG, "getEvents: API error - " + apiResponse.getMessage());
+                        liveData.postValue(new Result.Error<>(null, apiResponse.getMessage()));
+                    }
+                } else {
+                    Log.e(TAG, "getEvents: HTTP " + response.code());
+                    liveData.postValue(new Result.Error<>(null, "HTTP Error: " + response.code()));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<java.util.List<com.grouprace.core.network.model.club.NetworkClubEvent>>> call, Throwable t) {
+                Log.e(TAG, "getEvents: network failure - " + t.getMessage(), t);
+                liveData.postValue(new Result.Error<>(new Exception(t), t.getMessage()));
+            }
+        });
+        return liveData;
+    }
+
+    public LiveData<Result<String>> joinEvent(int clubId, int eventId) {
+        MutableLiveData<Result<String>> liveData = new MutableLiveData<>();
+        liveData.setValue(new Result.Loading<>());
+
+        apiService.joinEvent(clubId, eventId).enqueue(new Callback<ApiResponse<Object>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Object>> call, Response<ApiResponse<Object>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<Object> apiResponse = response.body();
+                    if (apiResponse.isSuccess()) {
+                        liveData.postValue(new Result.Success<>("Joined event"));
+                    } else {
+                        Log.e(TAG, "joinEvent: API error - " + apiResponse.getMessage());
+                        liveData.postValue(new Result.Error<>(null, apiResponse.getMessage()));
+                    }
+                } else {
+                    Log.e(TAG, "joinEvent: HTTP " + response.code());
+                    liveData.postValue(new Result.Error<>(null, "HTTP Error: " + response.code()));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<Object>> call, Throwable t) {
+                Log.e(TAG, "joinEvent: network failure - " + t.getMessage(), t);
+                liveData.postValue(new Result.Error<>(new Exception(t), t.getMessage()));
+            }
+        });
+        return liveData;
+    }
+
+    public LiveData<Result<com.grouprace.core.network.model.club.NetworkEventStats>> getEventStats(int clubId, int eventId) {
+        MutableLiveData<Result<com.grouprace.core.network.model.club.NetworkEventStats>> liveData = new MutableLiveData<>();
+        liveData.setValue(new Result.Loading<>());
+
+        apiService.getEventStats(clubId, eventId).enqueue(new Callback<ApiResponse<com.grouprace.core.network.model.club.NetworkEventStats>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<com.grouprace.core.network.model.club.NetworkEventStats>> call, Response<ApiResponse<com.grouprace.core.network.model.club.NetworkEventStats>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<com.grouprace.core.network.model.club.NetworkEventStats> apiResponse = response.body();
+                    if (apiResponse.isSuccess() && apiResponse.getData() != null) {
+                        liveData.postValue(new Result.Success<>(apiResponse.getData()));
+                    } else {
+                        Log.e(TAG, "getEventStats: API error - " + apiResponse.getMessage());
+                        liveData.postValue(new Result.Error<>(null, apiResponse.getMessage()));
+                    }
+                } else {
+                    Log.e(TAG, "getEventStats: HTTP " + response.code());
+                    liveData.postValue(new Result.Error<>(null, "HTTP Error: " + response.code()));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<com.grouprace.core.network.model.club.NetworkEventStats>> call, Throwable t) {
+                Log.e(TAG, "getEventStats: network failure - " + t.getMessage(), t);
+                liveData.postValue(new Result.Error<>(new Exception(t), t.getMessage()));
+            }
+        });
+        return liveData;
+    }
 }

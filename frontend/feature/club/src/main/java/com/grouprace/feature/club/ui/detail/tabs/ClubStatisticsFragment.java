@@ -67,11 +67,18 @@ public class ClubStatisticsFragment extends Fragment {
 
         pbLoading.setVisibility(View.VISIBLE);
         
-        // 1. Trigger background sync
+        // 1. Trigger background sync and observe results directly (No caching for leaderboard)
         viewModel.syncClubStats(clubId).observe(getViewLifecycleOwner(), result -> {
-            if (result instanceof Result.Success || result instanceof Result.Error) {
+            if (result instanceof Result.Loading) {
+                pbLoading.setVisibility(View.VISIBLE);
+            } else {
                 pbLoading.setVisibility(View.GONE);
-                if (result instanceof Result.Error) {
+                if (result instanceof Result.Success) {
+                    com.grouprace.core.model.ClubStats stats = ((Result.Success<com.grouprace.core.model.ClubStats>) result).data;
+                    if (stats.getLeaderboard() != null) {
+                        adapter.submitList(stats.getLeaderboard());
+                    }
+                } else if (result instanceof Result.Error) {
                     String errorMsg = ((Result.Error<?>) result).message;
                     Toast.makeText(getContext(), "Failed to sync stats: " + errorMsg, Toast.LENGTH_SHORT).show();
                 }
@@ -87,13 +94,6 @@ public class ClubStatisticsFragment extends Fragment {
                 tvClubRecordDuration.setText(club.getClubRecordDurationStr() != null ? club.getClubRecordDurationStr() : "0h");
                 tvPbDistance.setText(club.getPersonalBestDistanceStr() != null ? club.getPersonalBestDistanceStr() : "0 km");
                 tvPbDuration.setText(club.getPersonalBestDurationStr() != null ? club.getPersonalBestDurationStr() : "0h");
-            }
-        });
-
-        // 3. Observe local Leaderboard
-        viewModel.getLocalLeaderboard(clubId).observe(getViewLifecycleOwner(), leaderboard -> {
-            if (leaderboard != null) {
-                adapter.submitList(leaderboard);
             }
         });
     }

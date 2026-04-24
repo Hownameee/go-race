@@ -68,8 +68,4 @@ public class OverviewViewModel extends ViewModel {
     public LiveData<Result<String>> leaveClub() {
         return repository.leaveClub(String.valueOf(clubId));
     }
-
-    public LiveData<Result<String>> updateClub(String name, String description, byte[] imageBytes, String mimeType) {
-        return repository.updateClub(clubId, name, description, imageBytes, mimeType);
-    }
 }

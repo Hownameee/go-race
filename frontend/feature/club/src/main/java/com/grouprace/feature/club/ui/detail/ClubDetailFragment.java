@@ -20,13 +20,9 @@ import com.grouprace.core.common.TimeUtils;
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.Post;
 import com.grouprace.core.navigation.AppNavigator;
-import com.grouprace.core.system.ui.PlaceholderFragment;
 import com.grouprace.core.system.ui.TopAppBarConfig;
 import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.feature.club.R;
-import com.grouprace.feature.club.ui.ClubsFragment;
-import com.grouprace.feature.club.ui.detail.tabs.OverviewFragment;
-import com.grouprace.feature.club.ui.detail.tabs.ClubStatisticsFragment;
 import com.grouprace.feature.club.ui.ShareClubFragment;
 import com.grouprace.feature.club.ui.adapter.ClubNavAdapter;
 import com.grouprace.feature.posts.ui.CommentFragment;
@@ -62,6 +58,14 @@ public class ClubDetailFragment extends Fragment {
         super(R.layout.fragment_club_detail);
     }
 
+    public static ClubDetailFragment newInstance(int clubId) {
+        ClubDetailFragment fragment = new ClubDetailFragment();
+        Bundle args = new Bundle();
+        args.putInt("CLUB_ID", clubId);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -69,9 +73,9 @@ public class ClubDetailFragment extends Fragment {
         viewModel = new ViewModelProvider(this).get(ClubDetailViewModel.class);
         TopAppBarHelper.setupTopAppBar(view, getTopAppBarConfig());
 
-        String clubIdStr = getArguments() != null ? getArguments().getString("CLUB_ID", "") : "";
-        if (!clubIdStr.isEmpty()) {
-            viewModel.loadClub(Integer.parseInt(clubIdStr));
+        int clubId = getArguments() != null ? getArguments().getInt("CLUB_ID", -1) : -1;
+        if (clubId != -1) {
+            viewModel.loadClub(clubId);
         }
 
         setupViews(view);
@@ -118,7 +122,7 @@ public class ClubDetailFragment extends Fragment {
                             .setMessage("Are you sure you want to leave this club?")
                             .setPositiveButton("Leave", (dialog, which) -> {
                                 viewModel.leaveClub();
-                                navigateTo(this, item.getTargetFragment());
+                                appNavigator.navigateToClubs(this);
                             })
                             .setNegativeButton("Cancel", null)
                             .show();
@@ -134,8 +138,22 @@ public class ClubDetailFragment extends Fragment {
                         appNavigator.openAddPost(this, true, viewModel.getClub().getValue().getClubId());
                     }
                     break;
+                case "NAV_OVERVIEW":
+                    if (viewModel.getClub().getValue() != null) {
+                        appNavigator.openClubOverview(this, viewModel.getClub().getValue().getClubId());
+                    }
+                    break;
+                case "NAV_EVENTS":
+                    if (viewModel.getClub().getValue() != null) {
+                        appNavigator.openClubEvents(this, viewModel.getClub().getValue().getClubId());
+                    }
+                    break;
+                case "NAV_STATS":
+                    if (viewModel.getClub().getValue() != null) {
+                        appNavigator.openClubStats(this, viewModel.getClub().getValue().getClubId());
+                    }
+                    break;
                 default:
-                    navigateTo(this, item.getTargetFragment());
                     break;
             }
         });
@@ -266,27 +284,20 @@ public class ClubDetailFragment extends Fragment {
                 if (rvNav.getAdapter() instanceof ClubNavAdapter) {
                     ClubNavAdapter adapter = (ClubNavAdapter) rvNav.getAdapter();
                     List<ClubNavAdapter.NavItem> items = new ArrayList<>();
-                    if (club != null) {
-                        items.add(new ClubNavAdapter.NavItem("NAV_OVERVIEW", "Overview", android.R.drawable.ic_dialog_info, OverviewFragment.newInstance(club.getClubId())));
-                    } else {
-                        items.add(new ClubNavAdapter.NavItem("NAV_OVERVIEW", "Overview", android.R.drawable.ic_dialog_info, new OverviewFragment()));
-                    }
+                    items.add(new ClubNavAdapter.NavItem("NAV_OVERVIEW", "Overview", android.R.drawable.ic_dialog_info));
 
                     if (isApproved) {
-                        items.add(new ClubNavAdapter.NavItem("ACTION_CREATE_POST", "Create Post", android.R.drawable.ic_menu_edit, null));
-                        items.add(new ClubNavAdapter.NavItem("ACTION_CREATE_ACTIVITY", "Create Activity", android.R.drawable.ic_menu_add, null));
+                        items.add(new ClubNavAdapter.NavItem("ACTION_CREATE_POST", "Create Post", android.R.drawable.ic_menu_edit));
+                        items.add(new ClubNavAdapter.NavItem("ACTION_CREATE_ACTIVITY", "Create Activity", android.R.drawable.ic_menu_add));
                     }
-                    items.add(new ClubNavAdapter.NavItem("NAV_EVENTS", "Events", android.R.drawable.ic_menu_my_calendar, new PlaceholderFragment()));
+
+                    items.add(new ClubNavAdapter.NavItem("NAV_EVENTS", "Events", android.R.drawable.ic_menu_my_calendar));
+                    items.add(new ClubNavAdapter.NavItem("NAV_STATS", "Statistics", android.R.drawable.ic_menu_gallery));
                     
-                    if (club != null) {
-                        items.add(new ClubNavAdapter.NavItem("NAV_STATS", "Statistics", android.R.drawable.ic_menu_gallery, ClubStatisticsFragment.newInstance(club.getClubId())));
-                    } else {
-                        items.add(new ClubNavAdapter.NavItem("NAV_STATS", "Statistics", android.R.drawable.ic_menu_gallery, new PlaceholderFragment()));
+                    if (isApproved) {
+                        items.add(new ClubNavAdapter.NavItem("ACTION_LEAVE", "Leave Club", android.R.drawable.ic_delete));
                     }
 
-                    if (isApproved) {
-                        items.add(new ClubNavAdapter.NavItem("ACTION_LEAVE", "Leave Club", android.R.drawable.ic_delete, new ClubsFragment()));
-                    }
                     adapter.updateItems(items);
                 }
 
@@ -346,14 +357,6 @@ public class ClubDetailFragment extends Fragment {
                 }
             }
         });
-    }
-
-    private void navigateTo(Fragment currentFragment, Fragment targetFragment) {
-        if (targetFragment == null) return;
-        if (currentFragment != null && currentFragment.getView() != null && currentFragment.getView().getParent() != null) {
-            int containerId = ((ViewGroup) currentFragment.getView().getParent()).getId();
-            currentFragment.requireActivity().getSupportFragmentManager().beginTransaction().setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out, android.R.anim.fade_in, android.R.anim.fade_out).replace(containerId, targetFragment).addToBackStack(null).commit();
-        }
     }
 
     private TopAppBarConfig getTopAppBarConfig() {

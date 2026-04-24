@@ -32,6 +32,6 @@
         android:maxLines="2"
         android:textColor="@color/text_primary"
         android:textSize="13sp"
-        tools:text="Số liệu\nthống kê" />
+        tools:text="Stats" />
 
 </LinearLayout>
