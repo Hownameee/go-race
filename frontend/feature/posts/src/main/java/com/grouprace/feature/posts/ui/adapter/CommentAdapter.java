@@ -6,18 +6,24 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.grouprace.core.model.Comment;
 import com.grouprace.feature.posts.R;
+import com.grouprace.core.system.animation.InteractionAnimator;
 
 public class CommentAdapter extends ListAdapter<Comment, CommentAdapter.CommentViewHolder> {
 
+    public static final String PAYLOAD_LIKE = "PAYLOAD_LIKE";
+
     public interface OnCommentActionListener {
         void onLikeClicked(Comment comment, int position);
+
         void onReplyClicked(Comment comment);
+
         void onViewRepliesClicked(Comment comment);
     }
 
@@ -32,9 +38,18 @@ public class CommentAdapter extends ListAdapter<Comment, CommentAdapter.CommentV
         @Override
         public boolean areContentsTheSame(@NonNull Comment oldItem, @NonNull Comment newItem) {
             return oldItem.getContent().equals(newItem.getContent()) &&
-                   oldItem.getCreatedAt().equals(newItem.getCreatedAt()) &&
-                   oldItem.isLiked() == newItem.isLiked() &&
-                   oldItem.getLikeCount() == newItem.getLikeCount();
+                    oldItem.getCreatedAt().equals(newItem.getCreatedAt()) &&
+                    oldItem.isLiked() == newItem.isLiked() &&
+                    oldItem.getLikeCount() == newItem.getLikeCount();
+        }
+
+        @Nullable
+        @Override
+        public Object getChangePayload(@NonNull Comment oldItem, @NonNull Comment newItem) {
+            if (oldItem.isLiked() != newItem.isLiked() || oldItem.getLikeCount() != newItem.getLikeCount()) {
+                return PAYLOAD_LIKE;
+            }
+            return super.getChangePayload(oldItem, newItem);
         }
     };
 
@@ -52,10 +67,25 @@ public class CommentAdapter extends ListAdapter<Comment, CommentAdapter.CommentV
     }
 
     @Override
+    public void onBindViewHolder(@NonNull CommentViewHolder holder, int position,
+            @NonNull java.util.List<Object> payloads) {
+        if (!payloads.isEmpty()) {
+            for (Object payload : payloads) {
+                if (PAYLOAD_LIKE.equals(payload)) {
+                    holder.bindLikes(getItem(position));
+                }
+            }
+        } else {
+            super.onBindViewHolder(holder, position, payloads);
+        }
+    }
+
+    @Override
     public void onBindViewHolder(@NonNull CommentViewHolder holder, int position) {
         Comment comment = getItem(position);
         holder.bind(comment);
 
+        InteractionAnimator.setupSquishAnimation(holder.ivLike);
         holder.ivLike.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onLikeClicked(comment, position);
@@ -102,8 +132,8 @@ public class CommentAdapter extends ListAdapter<Comment, CommentAdapter.CommentV
         public void bind(Comment comment) {
             tvUsername.setText(comment.getFullName() != null ? comment.getFullName() : comment.getUsername());
             tvContent.setText(comment.getContent());
-            tvTime.setText(comment.getCreatedAt()); 
-            
+            tvTime.setText(comment.getCreatedAt());
+
             tvLikeCount.setText(String.valueOf(comment.getLikeCount()));
             if (comment.isLiked()) {
                 ivLike.setImageResource(com.grouprace.core.system.R.drawable.ic_like_selected);
@@ -113,15 +143,28 @@ public class CommentAdapter extends ListAdapter<Comment, CommentAdapter.CommentV
 
             if (comment.getReplyCount() > 0) {
                 tvViewReplies.setVisibility(View.VISIBLE);
-                tvViewReplies.setText("View " + comment.getReplyCount() + " " + (comment.getReplyCount() == 1 ? "reply" : "replies"));
+                tvViewReplies.setText(
+                        "View " + comment.getReplyCount() + " " + (comment.getReplyCount() == 1 ? "reply" : "replies"));
             } else {
                 tvViewReplies.setVisibility(View.GONE);
             }
 
             // Indentation for replies
-            int marginStart = comment.getParentId() != null ? 
-                (int) (48 * itemView.getContext().getResources().getDisplayMetrics().density) : 0;
-            itemView.setPadding(marginStart, itemView.getPaddingTop(), itemView.getPaddingRight(), itemView.getPaddingBottom());
+            int marginStart = comment.getParentId() != null
+                    ? (int) (48 * itemView.getContext().getResources().getDisplayMetrics().density)
+                    : 0;
+            itemView.setPadding(marginStart, itemView.getPaddingTop(), itemView.getPaddingRight(),
+                    itemView.getPaddingBottom());
+        }
+
+        public void bindLikes(Comment comment) {
+            tvLikeCount.setText(String.valueOf(comment.getLikeCount()));
+            if (comment.isLiked()) {
+                ivLike.setImageResource(com.grouprace.core.system.R.drawable.ic_like_selected);
+                InteractionAnimator.playPopAnimation(ivLike);
+            } else {
+                ivLike.setImageResource(com.grouprace.core.system.R.drawable.ic_like);
+            }
         }
     }
 }

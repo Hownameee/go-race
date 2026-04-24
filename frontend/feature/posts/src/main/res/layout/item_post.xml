@@ -53,8 +53,11 @@
 
         <!-- More Options -->
         <ImageView
+            android:id="@+id/iv_more"
             android:layout_width="15dp"
             android:layout_height="24dp"
+            android:clickable="true"
+            android:focusable="true"
             android:src="@drawable/ic_more"
             app:tint="@color/white" />
     </LinearLayout>

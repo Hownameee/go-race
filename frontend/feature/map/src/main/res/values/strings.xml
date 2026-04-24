@@ -1,0 +1,29 @@
+<resources>
+    <!-- Browse mode strings -->
+    <string name="title_my_routes">My Routes</string>
+    <string name="btn_create_route">Create Route</string>
+    <string name="empty_no_routes">No saved routes yet.\nCreate your first route!</string>
+    <string name="msg_no_internet">Internet connection required to create routes</string>
+    <string name="action_share_gpx">Share GPX</string>
+    <string name="msg_export_failed">Failed to export route</string>
+    <string name="share_route_title">Share Route via...</string>
+    <string name="confirm_delete_title">Delete route?</string>
+    <string name="confirm_delete_message">This cannot be undone.</string>
+    <string name="msg_route_deleted">Route deleted</string>
+
+    <!-- Drawing mode strings -->
+    <string name="mode_normal">Normal</string>
+    <string name="mode_fast">Fast</string>
+    <string name="label_roundtrip">Roundtrip</string>
+    <string name="btn_generate_route">Generate Route</string>
+    <string name="btn_save_route">Save Route</string>
+    <string name="btn_undo">Undo</string>
+    <string name="btn_clear">Clear</string>
+    <string name="waypoint_count">%d / 25 waypoints</string>
+    <string name="msg_max_waypoints">Maximum 25 waypoints reached</string>
+    <string name="msg_need_waypoints">Add at least 2 waypoints</string>
+    <string name="msg_generate_first">Generate route before saving</string>
+    <string name="dialog_route_name_title">Name your route</string>
+    <string name="dialog_route_name_hint">Enter route name</string>
+    <string name="msg_route_saved">Route saved!</string>
+</resources>

@@ -111,6 +111,10 @@ public class MyPostsFragment extends Fragment {
             speedStr
         ).show(getChildFragmentManager(), "ShareBottomSheet");
       }
+
+            @Override
+            public void onReportClicked(Post post) {
+            }
     });
     recyclerView.setAdapter(postAdapter);
 

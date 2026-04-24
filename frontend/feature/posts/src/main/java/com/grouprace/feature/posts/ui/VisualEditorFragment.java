@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -14,11 +15,13 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.content.Intent;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.bumptech.glide.Glide;
 import com.grouprace.core.navigation.AppNavigator;
@@ -46,12 +49,12 @@ public class VisualEditorFragment extends Fragment {
     private static final String ARG_SPEED = "arg_speed";
 
     private View statsOverlay;
+    private View editorDimScrim;
     private ImageView imgBackground;
     private ScaleGestureDetector scaleGestureDetector;
+    private VisualEditorViewModel viewModel;
 
-    private float scaleFactor = 1.0f;
     private float dX, dY;
-    private int selectedColor = Color.WHITE;
 
     private List<TextView> textViewsToColor = new ArrayList<>();
     private List<ImageView> imageViewsToColor = new ArrayList<>();
@@ -80,6 +83,7 @@ public class VisualEditorFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         statsOverlay = view.findViewById(R.id.stats_overlay);
+        editorDimScrim = view.findViewById(R.id.editor_dim_scrim);
         imgBackground = view.findViewById(R.id.img_background);
 
         // Populate views for coloring
@@ -97,11 +101,23 @@ public class VisualEditorFragment extends Fragment {
         imageViewsToColor.add(view.findViewById(R.id.ic_activity_type));
         imageViewsToColor.add(view.findViewById(R.id.ic_logo));
 
+        viewModel = new ViewModelProvider(this).get(VisualEditorViewModel.class);
+
         appNavigator.setBottomNavigationVisibility(this, false);
 
         initData(view);
         setupGestures();
         setupButtons(view);
+        setupObservers();
+    }
+
+    private void setupObservers() {
+        viewModel.getTextColor().observe(getViewLifecycleOwner(), this::applyTextColor);
+        viewModel.getBgColor().observe(getViewLifecycleOwner(), this::applyOverlayBackground);
+        viewModel.getScaleFactor().observe(getViewLifecycleOwner(), scale -> {
+            statsOverlay.setScaleX(scale);
+            statsOverlay.setScaleY(scale);
+        });
     }
 
     @Override
@@ -130,10 +146,10 @@ public class VisualEditorFragment extends Fragment {
         scaleGestureDetector = new ScaleGestureDetector(requireContext(), new ScaleGestureDetector.SimpleOnScaleGestureListener() {
             @Override
             public boolean onScale(ScaleGestureDetector detector) {
-                scaleFactor *= detector.getScaleFactor();
-                scaleFactor = Math.max(0.5f, Math.min(scaleFactor, 3.0f));
-                statsOverlay.setScaleX(scaleFactor);
-                statsOverlay.setScaleY(scaleFactor);
+                Float currentScale = viewModel.getScaleFactor().getValue();
+                float newScale = (currentScale != null ? currentScale : 1.0f) * detector.getScaleFactor();
+                newScale = Math.max(0.5f, Math.min(newScale, 3.0f));
+                viewModel.setScaleFactor(newScale);
                 return true;
             }
         });
@@ -172,36 +188,103 @@ public class VisualEditorFragment extends Fragment {
         view.findViewById(R.id.btn_color_picker).setOnClickListener(v -> showColorPicker());
         
         view.findViewById(R.id.btn_reset).setOnClickListener(v -> {
-            scaleFactor = 1.0f;
-            statsOverlay.setScaleX(1.0f);
-            statsOverlay.setScaleY(1.0f);
-            statsOverlay.setTranslationX(0);
-            statsOverlay.setTranslationY(0);
+            viewModel.reset();
+
+            statsOverlay.animate()
+                    .translationX(0)
+                    .translationY(0)
+                    .scaleX(1.0f)
+                    .scaleY(1.0f)
+                    .setDuration(500)
+                    .start();
         });
 
         view.findViewById(R.id.btn_share_visual).setOnClickListener(v -> shareCapturedBitmap(view));
     }
 
     private void showColorPicker() {
-        final int[] colors = {Color.WHITE, Color.BLACK, Color.YELLOW, Color.CYAN, Color.RED, Color.GREEN, Color.MAGENTA, Color.BLUE};
-        final String[] colorNames = {"White", "Black", "Yellow", "Cyan", "Red", "Green", "Magenta", "Blue"};
+        Integer textColor = viewModel.getTextColor().getValue();
+        Integer bgColor = viewModel.getBgColor().getValue();
+        
+        ColorPickerBottomSheet bottomSheet = ColorPickerBottomSheet.newInstance(
+            textColor != null ? textColor : Color.WHITE,
+            bgColor != null ? bgColor : 0x80000000
+        );
+        
+        bottomSheet.setOnColorChangeListener(viewModel::setTextColor);
+        bottomSheet.setOnBackgroundChangeListener(viewModel::setBgColor);
+        
+        bottomSheet.show(getChildFragmentManager(), "ColorPickerBottomSheet");
+        
+        statsOverlay.post(() -> {
+            View sheetView = bottomSheet.getView();
+            View rootView = getView();
+            if (sheetView != null && rootView != null) {
+                float density = getResources().getDisplayMetrics().density;
+                int sheetHeight = sheetView.getHeight();
+                if (sheetHeight == 0) {
+                    sheetHeight = (int) (360 * density);
+                }
+                
+                Float currentScale = viewModel.getScaleFactor().getValue();
+                viewModel.savePreviewPosition(
+                    statsOverlay.getX(),
+                    statsOverlay.getY(),
+                    currentScale != null ? currentScale : 1.0f
+                );
 
-        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                .setTitle("Pick Text Color")
-                .setItems(colorNames, (dialog, which) -> {
-                    updateTextColor(colors[which]);
-                })
-                .show();
+                float targetX = (rootView.getWidth() - statsOverlay.getWidth()) / 2f;
+                float targetY = rootView.getHeight() - sheetHeight - (120 * density) - statsOverlay.getHeight();
+
+                statsOverlay.animate()
+                        .x(targetX)
+                        .y(targetY)
+                        .scaleX(1.0f)
+                        .scaleY(1.0f)
+                        .setDuration(500)
+                        .start();
+                
+                viewModel.setScaleFactor(1.0f);
+                
+                editorDimScrim.setVisibility(View.VISIBLE);
+                editorDimScrim.animate().alpha(1f).setDuration(500).start();
+            }
+        });
+
+        bottomSheet.setOnDismissListener(() -> {
+            statsOverlay.animate()
+                    .x(viewModel.getSavedX())
+                    .y(viewModel.getSavedY())
+                    .scaleX(viewModel.getSavedScale())
+                    .scaleY(viewModel.getSavedScale())
+                    .setDuration(300)
+                    .start();
+            
+            viewModel.setScaleFactor(viewModel.getSavedScale());
+            
+            editorDimScrim.animate()
+                    .alpha(0f)
+                    .setDuration(300)
+                    .withEndAction(() -> editorDimScrim.setVisibility(View.GONE))
+                    .start();
+        });
     }
 
-    private void updateTextColor(int color) {
-        selectedColor = color;
+    private void applyTextColor(int color) {
         for (TextView tv : textViewsToColor) {
             tv.setTextColor(color);
         }
         for (ImageView iv : imageViewsToColor) {
             iv.setColorFilter(color);
         }
+    }
+
+    private void applyOverlayBackground(int color) {
+        float density = getResources().getDisplayMetrics().density;
+        GradientDrawable gd = new GradientDrawable();
+        gd.setColor(color);
+        gd.setCornerRadius(16 * density);
+        statsOverlay.setBackground(gd);
     }
 
     private void shareCapturedBitmap(View view) {
@@ -225,11 +308,11 @@ public class VisualEditorFragment extends Fragment {
                     file
             );
 
-            android.content.Intent sendIntent = new android.content.Intent(android.content.Intent.ACTION_SEND);
-            sendIntent.putExtra(android.content.Intent.EXTRA_STREAM, contentUri);
+            Intent sendIntent = new Intent(Intent.ACTION_SEND);
+            sendIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
             sendIntent.setType("image/png");
-            sendIntent.addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            startActivity(android.content.Intent.createChooser(sendIntent, "Share your dynamic card"));
+            sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(Intent.createChooser(sendIntent, "Share your dynamic card"));
 
         } catch (Exception e) {
             Toast.makeText(requireContext(), "Failed to share", Toast.LENGTH_SHORT).show();

@@ -59,6 +59,7 @@ dependencies {
     implementation(libs.navigation.ui)
     annotationProcessor(libs.hilt.compiler)
     implementation(project(":feature:records"))
+    implementation(project(":feature:map"))
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
