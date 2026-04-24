@@ -56,14 +56,9 @@ public class ClubsFragment extends Fragment {
         clubAdapter.setListener(new ClubAdapter.OnClubClickListener() {
             @Override
             public void onClubClick(Club club) {
-                // Navigate to detail
-                Bundle bundle = new Bundle();
-                bundle.putString("CLUB_ID", ((Integer) (club.getClubId())).toString());
-                ClubDetailFragment detailFragment = new ClubDetailFragment();
-                detailFragment.setArguments(bundle);
-
-                getParentFragmentManager().beginTransaction().replace(getId(), detailFragment) // fallback, usually handled nicely via navigation component
-                        .addToBackStack(null).commit();
+                if (appNavigator != null) {
+                    appNavigator.openClubDetail(ClubsFragment.this, club.getClubId());
+                }
             }
 
             @Override

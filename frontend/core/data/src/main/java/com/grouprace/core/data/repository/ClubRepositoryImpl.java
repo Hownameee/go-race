@@ -34,12 +34,14 @@ public class ClubRepositoryImpl implements ClubRepository {
     private final ClubNetworkDataSource networkDataSource;
     private final ClubDao clubDao;
     private final ClubAdminDao clubAdminDao;
+    private final com.grouprace.core.data.dao.EventDao eventDao;
 
     @Inject
-    public ClubRepositoryImpl(ClubNetworkDataSource networkDataSource, ClubDao clubDao, ClubAdminDao clubAdminDao) {
+    public ClubRepositoryImpl(ClubNetworkDataSource networkDataSource, ClubDao clubDao, ClubAdminDao clubAdminDao, com.grouprace.core.data.dao.EventDao eventDao) {
         this.networkDataSource = networkDataSource;
         this.clubDao = clubDao;
         this.clubAdminDao = clubAdminDao;
+        this.eventDao = eventDao;
     }
 
     @Override
@@ -244,30 +246,16 @@ public class ClubRepositoryImpl implements ClubRepository {
     }
 
     @Override
-    public LiveData<List<com.grouprace.core.model.ClubStats.LeaderboardEntry>> getLocalLeaderboard(int clubId) {
-        return Transformations.map(clubDao.getLeaderboard(clubId), entities -> 
-            entities.stream().map(e -> new com.grouprace.core.model.ClubStats.LeaderboardEntry(
-                e.memberId, e.memberName, e.avatarUrl, e.distance
-            )).collect(Collectors.toList())
-        );
-    }
-
-    @Override
-    public LiveData<Result<String>> syncClubStats(int clubId) {
-        MutableLiveData<Result<String>> result = new MutableLiveData<>();
+    public LiveData<Result<com.grouprace.core.model.ClubStats>> syncClubStats(int clubId) {
+        MutableLiveData<Result<com.grouprace.core.model.ClubStats>> result = new MutableLiveData<>();
         result.setValue(new Result.Loading<>());
 
         networkDataSource.getClubStats(clubId).observeForever(networkResult -> {
             if (networkResult instanceof Result.Success) {
                 com.grouprace.core.network.model.club.NetworkClubStats data = ((Result.Success<com.grouprace.core.network.model.club.NetworkClubStats>) networkResult).data;
                 
-                List<com.grouprace.core.data.model.ClubLeaderboardEntity> leaderboardEntities = data.getLeaderboard() != null 
-                    ? data.getLeaderboard().stream().map(n -> new com.grouprace.core.data.model.ClubLeaderboardEntity(
-                        clubId, n.getMemberId(), n.getMemberName(), n.getAvatarUrl(), n.getDistance()
-                    )).collect(Collectors.toList())
-                    : Collections.emptyList();
-
                 Executors.newSingleThreadExecutor().execute(() -> {
+                    // Update only the basic stats in ClubEntity, NOT the leaderboard table
                     clubDao.replaceLeaderboardAndStats(
                         clubId,
                         data.getTotalDistance(),
@@ -275,12 +263,134 @@ public class ClubRepositoryImpl implements ClubRepository {
                         data.getClubRecordDistanceStr(),
                         data.getClubRecordDurationStr(),
                         data.getPersonalBestDistanceStr(),
-                        data.getPersonalBestDurationStr(),
-                        leaderboardEntities
+                        data.getPersonalBestDurationStr()
                     );
                 });
                 
-                result.postValue(new Result.Success<>("Stats synced"));
+                // Map to Domain Model
+                List<com.grouprace.core.model.ClubStats.LeaderboardEntry> leaderboard = data.getLeaderboard() != null
+                    ? data.getLeaderboard().stream().map(n -> new com.grouprace.core.model.ClubStats.LeaderboardEntry(
+                        n.getMemberId(), n.getMemberName(), n.getAvatarUrl(), n.getDistance()
+                    )).collect(Collectors.toList())
+                    : Collections.emptyList();
+
+                com.grouprace.core.model.ClubStats domainStats = new com.grouprace.core.model.ClubStats(
+                    data.getTotalDistance(),
+                    data.getTotalActivities(),
+                    data.getClubRecordDistanceStr(),
+                    data.getClubRecordDurationStr(),
+                    data.getPersonalBestDistanceStr(),
+                    data.getPersonalBestDurationStr(),
+                    leaderboard
+                );
+
+                result.postValue(new Result.Success<>(domainStats));
+            } else if (networkResult instanceof Result.Error) {
+                Result.Error<?> error = (Result.Error<?>) networkResult;
+                result.postValue(new Result.Error<>(error.exception, error.message));
+            }
+        });
+
+        return result;
+    }
+
+    @Override
+    public LiveData<List<com.grouprace.core.model.ClubEvent>> getLocalEvents(int clubId) {
+        return Transformations.map(eventDao.getEventsByClubId(clubId), entities -> 
+            entities.stream().map(e -> new com.grouprace.core.model.ClubEvent(
+                e.eventId, e.clubId, e.title, e.description, e.targetDistance, e.targetDurationSeconds, e.startTime, e.endTime, e.isJoined, e.currentDistance, e.currentDurationSeconds, e.participantsCount, e.globalDistance, e.globalDurationSeconds
+            )).collect(Collectors.toList())
+        );
+    }
+
+    @Override
+    public LiveData<Result<String>> syncEvents(int clubId) {
+        MutableLiveData<Result<String>> result = new MutableLiveData<>();
+        result.setValue(new Result.Loading<>());
+
+        networkDataSource.getEvents(clubId).observeForever(networkResult -> {
+            if (networkResult instanceof Result.Success) {
+                List<com.grouprace.core.network.model.club.NetworkClubEvent> data = ((Result.Success<List<com.grouprace.core.network.model.club.NetworkClubEvent>>) networkResult).data;
+                
+                List<com.grouprace.core.data.model.EventEntity> entities = data.stream().map(n -> 
+                    new com.grouprace.core.data.model.EventEntity(
+                        n.eventId, n.clubId, n.title, n.description, n.targetDistance, n.targetDurationSeconds, n.startTime, n.endTime, n.isJoined == 1, n.currentDistance, n.currentDurationSeconds, n.participantsCount, n.globalDistance, n.globalDurationSeconds
+                    )
+                ).collect(Collectors.toList());
+
+                Executors.newSingleThreadExecutor().execute(() -> {
+                    eventDao.replaceEventsForClub(clubId, entities);
+                });
+                
+                result.postValue(new Result.Success<>("Events synced"));
+            } else if (networkResult instanceof Result.Error) {
+                Result.Error<?> error = (Result.Error<?>) networkResult;
+                result.postValue(new Result.Error<>(error.exception, error.message));
+            }
+        });
+
+        return result;
+    }
+
+    @Override
+    public LiveData<Result<String>> createEvent(int clubId, String title, String description, double targetDistance, int targetDurationSeconds, String startTime, String endTime) {
+        com.grouprace.core.network.model.club.CreateClubEventRequest request = new com.grouprace.core.network.model.club.CreateClubEventRequest(title, description, targetDistance, targetDurationSeconds, startTime, endTime);
+        return networkDataSource.createEvent(clubId, request);
+    }
+
+    @Override
+    public LiveData<Result<String>> joinEvent(int clubId, int eventId) {
+        return networkDataSource.joinEvent(clubId, eventId);
+    }
+
+    @Override
+    public LiveData<Result<com.grouprace.core.model.EventStats>> syncEventStats(int clubId, int eventId) {
+        MutableLiveData<Result<com.grouprace.core.model.EventStats>> result = new MutableLiveData<>();
+        result.setValue(new Result.Loading<>());
+
+        networkDataSource.getEventStats(clubId, eventId).observeForever(networkResult -> {
+            if (networkResult instanceof Result.Success) {
+                com.grouprace.core.network.model.club.NetworkEventStats data = ((Result.Success<com.grouprace.core.network.model.club.NetworkEventStats>) networkResult).data;
+                
+                // Update local database (Room) for offline-first summary
+                new Thread(() -> {
+                    com.grouprace.core.data.model.EventEntity existing = eventDao.getEventByIdSync(data.eventId);
+                    boolean isJoined = existing != null && existing.isJoined;
+                    double currentDistance = existing != null ? existing.currentDistance : 0.0;
+                    int currentDuration = existing != null ? existing.currentDurationSeconds : 0;
+
+                    com.grouprace.core.data.model.EventEntity entity = new com.grouprace.core.data.model.EventEntity(
+                        data.eventId, data.clubId, data.title, data.description, 
+                        data.targetDistance, data.targetDurationSeconds, 
+                        data.startTime, data.endTime, 
+                        isJoined, currentDistance, currentDuration, 
+                        data.participantsCount, data.totalDistance, data.totalDurationSeconds
+                    );
+                    eventDao.insertEvent(entity);
+                }).start();
+
+                List<com.grouprace.core.model.ClubStats.LeaderboardEntry> leaderboard = data.leaderboard != null
+                    ? data.leaderboard.stream().map(n -> new com.grouprace.core.model.ClubStats.LeaderboardEntry(
+                        n.memberId, n.memberName, n.avatarUrl, n.distance
+                    )).collect(Collectors.toList())
+                    : Collections.emptyList();
+
+                com.grouprace.core.model.EventStats domainStats = new com.grouprace.core.model.EventStats(
+                    data.eventId,
+                    data.clubId,
+                    data.title,
+                    data.description,
+                    data.targetDistance,
+                    data.targetDurationSeconds,
+                    data.startTime,
+                    data.endTime,
+                    data.participantsCount,
+                    data.totalDistance,
+                    data.totalDurationSeconds,
+                    leaderboard
+                );
+
+                result.postValue(new Result.Success<>(domainStats));
             } else if (networkResult instanceof Result.Error) {
                 Result.Error<?> error = (Result.Error<?>) networkResult;
                 result.postValue(new Result.Error<>(error.exception, error.message));

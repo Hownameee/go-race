@@ -1,135 +1,139 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/create_club_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
     android:background="@color/black"
     tools:context=".CreateClubFragment">
 
-    <LinearLayout
+    <include
+        android:id="@+id/top_bar"
+        layout="@layout/layout_top_app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="32dp">
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Create Club"
-            android:textAlignment="center"
-            android:gravity="center_horizontal"
-            android:textColor="@color/text_primary"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="5dp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Start a new community"
-            android:textAlignment="center"
-            android:gravity="center_horizontal"
-            android:textColor="@color/text_secondary"
-            android:textSize="14sp"
-            android:layout_marginBottom="32dp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Club Name"
-            android:textStyle="bold"
-            android:textColor="@color/text_primary"
-            android:layout_marginBottom="5dp"/>
-
-        <EditText
-            android:id="@+id/create_club_name_input"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingVertical="14dp"
-            android:paddingHorizontal="12dp"
-            android:inputType="text"
-            android:hint="e.g. Morning Runners"
-            android:background="@drawable/bg_input_rounded"
-            android:textColor="@android:color/black"
-            android:textColorHint="@color/text_tertiary"
-            android:layout_marginBottom="16dp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Description"
-            android:textStyle="bold"
-            android:textColor="@color/text_primary"
-            android:layout_marginBottom="5dp"/>
-
-        <EditText
-            android:id="@+id/create_club_desc_input"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minLines="4"
-            android:gravity="top|start"
-            android:paddingVertical="14dp"
-            android:paddingHorizontal="12dp"
-            android:inputType="textMultiLine"
-            android:hint="Tell us about the club..."
-            android:background="@drawable/bg_input_rounded"
-            android:textColor="@android:color/black"
-            android:textColorHint="@color/text_tertiary"
-            android:layout_marginBottom="16dp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Privacy"
-            android:textStyle="bold"
-            android:textColor="@color/text_primary"
-            android:layout_marginBottom="5dp"/>
-
-        <RadioGroup
-            android:id="@+id/create_club_privacy_group"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="32dp">
-
-            <RadioButton
-                android:id="@+id/radio_public"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:text="Public"
-                android:textColor="@color/text_primary"
-                android:buttonTint="@color/text_primary"
-                android:checked="true" />
-
-            <RadioButton
-                android:id="@+id/radio_private"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:text="Private"
-                android:textColor="@color/text_primary"
-                android:buttonTint="@color/text_primary" />
-        </RadioGroup>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/top_bar">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp">
+            android:orientation="vertical"
+            android:padding="32dp">
 
-            <Button
-                android:id="@+id/create_club_submit_button"
+            <TextView
                 android:layout_width="match_parent"
-                android:layout_height="55dp"
-                android:text="Create Club"
-                android:background="@drawable/bg_button_rounded"
-                android:backgroundTint="@null"
-                app:backgroundTint="@null"
-                android:textColor="@color/black" />
-        </LinearLayout>
+                android:layout_height="wrap_content"
+                android:text="Start a new community"
+                android:textAlignment="center"
+                android:gravity="center_horizontal"
+                android:textColor="@color/text_secondary"
+                android:textSize="24sp"
+                android:layout_marginBottom="32dp" />
 
-    </LinearLayout>
-</ScrollView>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Club Name"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="5dp"/>
+
+            <EditText
+                android:id="@+id/create_club_name_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingVertical="14dp"
+                android:paddingHorizontal="12dp"
+                android:inputType="text"
+                android:hint="e.g. Morning Runners"
+                android:background="@drawable/bg_input_rounded"
+                android:textColor="@android:color/black"
+                android:textColorHint="@color/text_tertiary"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Description"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="5dp"/>
+
+            <EditText
+                android:id="@+id/create_club_desc_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minLines="4"
+                android:gravity="top|start"
+                android:paddingVertical="14dp"
+                android:paddingHorizontal="12dp"
+                android:inputType="textMultiLine"
+                android:hint="Tell us about the club..."
+                android:background="@drawable/bg_input_rounded"
+                android:textColor="@android:color/black"
+                android:textColorHint="@color/text_tertiary"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Privacy"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="5dp"/>
+
+            <RadioGroup
+                android:id="@+id/create_club_privacy_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="32dp">
+
+                <RadioButton
+                    android:id="@+id/radio_public"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="Public"
+                    android:textColor="@color/text_primary"
+                    android:buttonTint="@color/text_primary"
+                    android:checked="true" />
+
+                <RadioButton
+                    android:id="@+id/radio_private"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="Private"
+                    android:textColor="@color/text_primary"
+                    android:buttonTint="@color/text_primary" />
+            </RadioGroup>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp">
+
+                <Button
+                    android:id="@+id/create_club_submit_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="55dp"
+                    android:text="Create Club"
+                    android:background="@drawable/bg_button_rounded"
+                    android:backgroundTint="@null"
+                    app:backgroundTint="@null"
+                    android:textColor="@color/black" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

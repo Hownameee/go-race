@@ -223,8 +223,13 @@ CREATE TABLE IF NOT EXISTS CLUB_EVENTS (
     created_by INTEGER NOT NULL,
     title TEXT NOT NULL,
     description TEXT,
+    target_distance REAL DEFAULT 0,
+    target_duration_seconds INTEGER DEFAULT 0,
     start_time DATETIME NOT NULL,
     end_time DATETIME,
+    participants_count INTEGER DEFAULT 0,
+    total_distance REAL DEFAULT 0,
+    total_duration_seconds INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     
     FOREIGN KEY (club_id) REFERENCES CLUBS(club_id) ON DELETE CASCADE,
@@ -234,6 +239,8 @@ CREATE TABLE IF NOT EXISTS CLUB_EVENTS (
 CREATE TABLE IF NOT EXISTS CLUB_EVENT_PARTICIPANTS (
     event_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
+    current_distance REAL DEFAULT 0,
+    current_duration_seconds INTEGER DEFAULT 0,
     joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     
     PRIMARY KEY (event_id, user_id),
@@ -331,4 +338,74 @@ BEGIN
     WHERE club_id IN (
         SELECT club_id FROM CLUB_MEMBERS WHERE user_id = NEW.owner_id AND status = 'approved'
     );
+END;
+
+CREATE TRIGGER IF NOT EXISTS trigger_record_insert_update_event_progress
+AFTER INSERT ON RECORD
+BEGIN
+    -- Cập nhật tiến độ cho từng người tham gia
+    UPDATE CLUB_EVENT_PARTICIPANTS
+    SET current_distance = current_distance + COALESCE(NEW.distance_km, 0),
+        current_duration_seconds = current_duration_seconds + COALESCE(NEW.duration_seconds, 0)
+    WHERE user_id = NEW.owner_id
+      AND event_id IN (
+          SELECT e.event_id 
+          FROM CLUB_EVENTS e
+          WHERE datetime(NEW.start_time) >= datetime(e.start_time) 
+            AND (e.end_time IS NULL OR datetime(NEW.start_time) <= datetime(e.end_time))
+      );
+
+    -- Cập nhật tổng tích lũy cho bản thân sự kiện (Global Progress)
+    UPDATE CLUB_EVENTS
+    SET total_distance = total_distance + COALESCE(NEW.distance_km, 0),
+        total_duration_seconds = total_duration_seconds + COALESCE(NEW.duration_seconds, 0)
+    WHERE event_id IN (
+          SELECT e.event_id 
+          FROM CLUB_EVENTS e
+          WHERE datetime(NEW.start_time) >= datetime(e.start_time) 
+            AND (e.end_time IS NULL OR datetime(NEW.start_time) <= datetime(e.end_time))
+      );
+END;
+
+CREATE TRIGGER IF NOT EXISTS trigger_record_delete_update_event_progress
+AFTER DELETE ON RECORD
+BEGIN
+    -- Trừ tiến độ cho từng người tham gia
+    UPDATE CLUB_EVENT_PARTICIPANTS
+    SET current_distance = MAX(0, current_distance - COALESCE(OLD.distance_km, 0)),
+        current_duration_seconds = MAX(0, current_duration_seconds - COALESCE(OLD.duration_seconds, 0))
+    WHERE user_id = OLD.owner_id
+      AND event_id IN (
+          SELECT e.event_id 
+          FROM CLUB_EVENTS e
+          WHERE datetime(OLD.start_time) >= datetime(e.start_time) 
+            AND (e.end_time IS NULL OR datetime(OLD.start_time) <= datetime(e.end_time))
+      );
+
+    -- Trừ tổng tích lũy cho sự kiện
+    UPDATE CLUB_EVENTS
+    SET total_distance = MAX(0, total_distance - COALESCE(OLD.distance_km, 0)),
+        total_duration_seconds = MAX(0, total_duration_seconds - COALESCE(OLD.duration_seconds, 0))
+    WHERE event_id IN (
+          SELECT e.event_id 
+          FROM CLUB_EVENTS e
+          WHERE datetime(OLD.start_time) >= datetime(e.start_time) 
+            AND (e.end_time IS NULL OR datetime(OLD.start_time) <= datetime(e.end_time))
+      );
+END;
+
+CREATE TRIGGER IF NOT EXISTS trigger_club_event_participant_insert
+AFTER INSERT ON CLUB_EVENT_PARTICIPANTS
+BEGIN
+    UPDATE CLUB_EVENTS 
+    SET participants_count = participants_count + 1 
+    WHERE event_id = NEW.event_id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trigger_club_event_participant_delete
+AFTER DELETE ON CLUB_EVENT_PARTICIPANTS
+BEGIN
+    UPDATE CLUB_EVENTS 
+    SET participants_count = participants_count - 1 
+    WHERE event_id = OLD.event_id;
 END;

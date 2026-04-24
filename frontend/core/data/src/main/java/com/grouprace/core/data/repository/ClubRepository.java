@@ -25,6 +25,11 @@ public interface ClubRepository {
     LiveData<Result<Boolean>> checkIsLeader(int clubId);
     LiveData<Result<String>> updateClub(int clubId, String name, String description, byte[] imageBytes, String mimeType);
     
-    LiveData<List<ClubStats.LeaderboardEntry>> getLocalLeaderboard(int clubId);
-    LiveData<Result<String>> syncClubStats(int clubId);
+    LiveData<Result<com.grouprace.core.model.ClubStats>> syncClubStats(int clubId);
+
+    LiveData<List<ClubEvent>> getLocalEvents(int clubId);
+    LiveData<Result<String>> syncEvents(int clubId);
+    LiveData<Result<String>> createEvent(int clubId, String title, String description, double targetDistance, int targetDurationSeconds, String startTime, String endTime);
+    LiveData<Result<String>> joinEvent(int clubId, int eventId);
+    LiveData<Result<com.grouprace.core.model.EventStats>> syncEventStats(int clubId, int eventId);
 }

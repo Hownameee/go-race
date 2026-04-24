@@ -24,4 +24,11 @@ public interface AppNavigator {
     void setBottomNavigationVisibility(Fragment fragment, boolean visible);
     void navigateToCreateClub(Fragment currentFragment);
     void navigateToClubs(Fragment currentFragment);
+    void openCreateEvent(Fragment currentFragment, int clubId);
+    void openEventDetail(Fragment currentFragment, int clubId, int eventId);
+    void openClubOverview(Fragment currentFragment, int clubId);
+    void openClubEvents(Fragment currentFragment, int clubId);
+    void openClubStats(Fragment currentFragment, int clubId);
+    void openEditClub(Fragment currentFragment, int clubId);
+    void openClubDetail(Fragment currentFragment, int clubId);
 }

@@ -55,22 +55,11 @@ public interface ClubDao {
     @Query("UPDATE clubs SET status = NULL WHERE clubId = :clubId")
     void removeStatus(int clubId);
 
-    @Query("SELECT * FROM club_leaderboard WHERE clubId = :clubId ORDER BY distance DESC")
-    LiveData<List<com.grouprace.core.data.model.ClubLeaderboardEntity>> getLeaderboard(int clubId);
-
-    @Query("DELETE FROM club_leaderboard WHERE clubId = :clubId")
-    void deleteLeaderboardByClubId(int clubId);
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertLeaderboard(List<com.grouprace.core.data.model.ClubLeaderboardEntity> leaderboard);
-
     @Query("UPDATE clubs SET totalDistance = :totalDistance, totalActivities = :totalActivities, clubRecordDistanceStr = :clubRecordDistanceStr, clubRecordDurationStr = :clubRecordDurationStr, personalBestDistanceStr = :personalBestDistanceStr, personalBestDurationStr = :personalBestDurationStr WHERE clubId = :clubId")
     void updateClubStats(int clubId, double totalDistance, int totalActivities, String clubRecordDistanceStr, String clubRecordDurationStr, String personalBestDistanceStr, String personalBestDurationStr);
 
     @androidx.room.Transaction
-    default void replaceLeaderboardAndStats(int clubId, double totalDistance, int totalActivities, String clubRecordDistanceStr, String clubRecordDurationStr, String personalBestDistanceStr, String personalBestDurationStr, List<com.grouprace.core.data.model.ClubLeaderboardEntity> leaderboard) {
+    default void replaceLeaderboardAndStats(int clubId, double totalDistance, int totalActivities, String clubRecordDistanceStr, String clubRecordDurationStr, String personalBestDistanceStr, String personalBestDurationStr) {
         updateClubStats(clubId, totalDistance, totalActivities, clubRecordDistanceStr, clubRecordDurationStr, personalBestDistanceStr, personalBestDurationStr);
-        deleteLeaderboardByClubId(clubId);
-        insertLeaderboard(leaderboard);
     }
 }

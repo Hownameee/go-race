@@ -6,28 +6,25 @@ import androidx.lifecycle.ViewModel;
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.data.repository.ClubRepository;
 import com.grouprace.core.model.Club;
-import com.grouprace.core.model.ClubStats;
-
-import java.util.List;
 
 import javax.inject.Inject;
 
 import dagger.hilt.android.lifecycle.HiltViewModel;
 
 @HiltViewModel
-public class ClubStatisticsViewModel extends ViewModel {
+public class EditClubViewModel extends ViewModel {
     private final ClubRepository clubRepository;
 
     @Inject
-    public ClubStatisticsViewModel(ClubRepository clubRepository) {
+    public EditClubViewModel(ClubRepository clubRepository) {
         this.clubRepository = clubRepository;
     }
 
-    public LiveData<Club> getLocalClubById(int clubId) {
+    public LiveData<Club> getClub(int clubId) {
         return clubRepository.getLocalClubById(clubId);
     }
 
-    public LiveData<Result<ClubStats>> syncClubStats(int clubId) {
-        return clubRepository.syncClubStats(clubId);
+    public LiveData<Result<String>> updateClub(int clubId, String name, String description, byte[] imageBytes, String mimeType) {
+        return clubRepository.updateClub(clubId, name, description, imageBytes, mimeType);
     }
 }

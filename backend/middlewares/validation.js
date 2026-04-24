@@ -10,9 +10,6 @@ export default function validation(schema, source = 'body') {
         parsedData &&
         typeof parsedData === 'object'
       ) {
-        Object.keys(currentData).forEach((key) => {
-          delete currentData[key];
-        });
         Object.assign(currentData, parsedData);
       } else if (source === 'body') {
         req.body = parsedData;

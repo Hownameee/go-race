@@ -20,6 +20,8 @@ import com.grouprace.core.common.result.Result;
 import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.feature.club.R;
 import com.grouprace.feature.club.ui.adapter.ClubAdminAdapter;
+import com.grouprace.core.system.ui.TopAppBarConfig;
+import com.grouprace.core.system.ui.TopAppBarHelper;
 
 import javax.inject.Inject;
 
@@ -56,6 +58,12 @@ public class OverviewFragment extends Fragment {
         viewModel = new ViewModelProvider(requireActivity()).get(OverviewViewModel.class);
         viewModel.setClubId(clubId);
 
+        TopAppBarHelper.setupTopAppBar(view, new TopAppBarConfig.Builder()
+                .setTitle("Club Overview")
+                .setLeftIcon(com.grouprace.core.system.R.drawable.ic_back)
+                .setOnLeftIconClick(v -> requireActivity().onBackPressed())
+                .build());
+
         setupViews(view);
         observeViewModel(view);
     }
@@ -73,15 +81,8 @@ public class OverviewFragment extends Fragment {
         int clubId = getArguments() != null ? getArguments().getInt(ARG_CLUB_ID, -1) : -1;
         ImageButton btnEdit = view.findViewById(R.id.btn_edit_club);
         btnEdit.setOnClickListener(v -> {
-            if (getView() != null && getView().getParent() != null) {
-                int containerId = ((ViewGroup) getView().getParent()).getId();
-                requireActivity().getSupportFragmentManager()
-                        .beginTransaction()
-                        .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out,
-                                android.R.anim.fade_in, android.R.anim.fade_out)
-                        .replace(containerId, EditClubFragment.newInstance(clubId))
-                        .addToBackStack(null)
-                        .commit();
+            if (appNavigator != null) {
+                appNavigator.openEditClub(this, clubId);
             }
         });
     }
