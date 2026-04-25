@@ -37,7 +37,7 @@ public class AppNavigatorImpl implements AppNavigator {
     public AppNavigatorImpl() {
     }
 
-    // Top App Bar
+    // ===== Top App Bar =====
     @Override
     public void navigateToNotification(Fragment currentFragment) {
         navigateTo(currentFragment, new NotificationFragment());
@@ -48,90 +48,94 @@ public class AppNavigatorImpl implements AppNavigator {
         navigateTo(currentFragment, new SearchFragment());
     }
 
-    // Profile
-    @Override
-    public void openForgotPassword(Fragment currentFragment) {
-        navigateTo(currentFragment, PasswordResetRequestFragment.newInstance());
-    }
-
+    // ===== Profile =====
     @Override
     public void openEditProfile(Fragment currentFragment) {
-        navigateTo(currentFragment, new EditProfileFragment());
-    }
-
-    @Override
-    public void openProfileSettings(Fragment currentFragment) {
-        navigateTo(currentFragment, ProfileSettingsFragment.newInstance());
-    }
-
-    @Override
-    public void openChangeEmail(Fragment currentFragment) {
-        navigateTo(currentFragment, ChangeEmailFragment.newInstance());
-    }
-
-    @Override
-    public void openChangeEmailOtp(Fragment currentFragment) {
-        navigateTo(currentFragment, ChangeEmailOtpFragment.newInstance());
-    }
-
-    @Override
-    public void openChangePassword(Fragment currentFragment) {
-        navigateTo(currentFragment, ChangePasswordFragment.newInstance());
-    }
-
-    @Override
-    public void openPasswordResetRequest(Fragment currentFragment) {
-        navigateTo(currentFragment, PasswordResetRequestFragment.newInstance());
-    }
-
-    @Override
-    public void openPasswordResetOtp(Fragment currentFragment) {
-        navigateTo(currentFragment, PasswordResetOtpFragment.newInstance());
-    }
-
-    @Override
-    public void openSetNewPassword(Fragment currentFragment) {
-        navigateTo(currentFragment, SetNewPasswordFragment.newInstance());
-    }
-
-    @Override
-    public void openComingSoon(Fragment currentFragment, String title) {
-        navigateTo(currentFragment, ProfileComingSoonFragment.newInstance(title));
+      navigateTo(currentFragment, new EditProfileFragment());
     }
 
     @Override
     public void openProfileComingSoon(Fragment currentFragment, String title) {
-        navigateTo(currentFragment, ProfileComingSoonFragment.newInstance(title));
+      navigateTo(currentFragment, ProfileComingSoonFragment.newInstance(title));
     }
 
     @Override
     public void openMyPosts(Fragment currentFragment) {
-        navigateTo(currentFragment, MyPostsFragment.newInstance());
+      navigateTo(currentFragment, MyPostsFragment.newInstance());
     }
+
+//  public void openMyRoutes(Fragment currentFragment)
 
     @Override
     public void openProfileActivities(Fragment currentFragment, int userId, String profileName, boolean isSelf) {
-        navigateTo(currentFragment, ProfileRecordsFragment.newInstance(userId, profileName, isSelf));
+      navigateTo(currentFragment, ProfileRecordsFragment.newInstance(userId, profileName, isSelf));
     }
 
     @Override
     public void openProfileFollowList(Fragment currentFragment, int userId, String profileName, boolean isSelf, String initialTab) {
-        navigateTo(currentFragment, FollowListFragment.newInstance(userId, profileName, isSelf, initialTab));
+      navigateTo(currentFragment, FollowListFragment.newInstance(userId, profileName, isSelf, initialTab));
     }
 
     @Override
     public void openProfileStatistics(Fragment currentFragment, int userId, boolean isSelf) {
-        navigateTo(currentFragment, ProfileStatisticsDetailFragment.newInstance(isSelf, userId));
+      navigateTo(currentFragment, ProfileStatisticsDetailFragment.newInstance(isSelf, userId));
     }
 
     @Override
     public void openProfileAchievements(Fragment currentFragment, int userId, boolean isSelf) {
-        navigateTo(currentFragment, ProfileAchievementsFragment.newInstance(isSelf, userId));
+      navigateTo(currentFragment, ProfileAchievementsFragment.newInstance(isSelf, userId));
     }
 
     @Override
     public void openUserProfile(Fragment currentFragment, int userId) {
-        navigateTo(currentFragment, UserProfileFragment.newInstance(userId));
+      navigateTo(currentFragment, UserProfileFragment.newInstance(userId));
+    }
+
+    // Profile setting
+    @Override
+    public void openProfileSettings(Fragment currentFragment) {
+      navigateTo(currentFragment, ProfileSettingsFragment.newInstance());
+    }
+
+    @Override
+    public void openChangeEmail(Fragment currentFragment) {
+      navigateTo(currentFragment, ChangeEmailFragment.newInstance());
+    }
+
+    @Override
+    public void openChangeEmailOtp(Fragment currentFragment) {
+      navigateTo(currentFragment, ChangeEmailOtpFragment.newInstance());
+    }
+
+    @Override
+    public void openChangePassword(Fragment currentFragment) {
+      navigateTo(currentFragment, ChangePasswordFragment.newInstance());
+    }
+
+    //    @Override
+    //    public void openPasswordResetRequest(Fragment currentFragment) {
+    //      navigateTo(currentFragment, PasswordResetRequestFragment.newInstance());
+    //    }
+
+    @Override
+    public void openPasswordResetOtp(Fragment currentFragment) {
+      navigateTo(currentFragment, PasswordResetOtpFragment.newInstance());
+    }
+
+    @Override
+    public void openSetNewPassword(Fragment currentFragment) {
+      navigateTo(currentFragment, SetNewPasswordFragment.newInstance());
+    }
+
+    @Override
+    public void openComingSoon(Fragment currentFragment, String title) {
+      navigateTo(currentFragment, ProfileComingSoonFragment.newInstance(title));
+    }
+
+    // ===== Authentication =====
+    @Override
+    public void openForgotPassword(Fragment currentFragment) {
+        navigateTo(currentFragment, PasswordResetRequestFragment.newInstance());
     }
 
     @Override
@@ -154,6 +158,7 @@ public class AppNavigatorImpl implements AppNavigator {
         navigateTo(currentFragment, RegisterFragment.newInstance(fullname, email, googleIdToken));
     }
 
+    // ===== Others =====
     @Override
     public void navigateToVisualEditor(Fragment currentFragment, String photoUri, String title, String distance, String time, String speed) {
         navigateTo(currentFragment, VisualEditorFragment.newInstance(photoUri, title, distance, time, speed));

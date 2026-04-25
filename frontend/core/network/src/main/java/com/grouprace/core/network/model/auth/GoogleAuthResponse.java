@@ -3,8 +3,11 @@ package com.grouprace.core.network.model.auth;
 import com.google.gson.annotations.SerializedName;
 
 public class GoogleAuthResponse {
-  @SerializedName("token")
-  private String token;
+  @SerializedName("access_token")
+  private String accessToken;
+
+  @SerializedName("refresh_token")
+  private String refreshToken;
 
   @SerializedName("requires_profile_completion")
   private boolean requiresProfileCompletion;
@@ -12,8 +15,12 @@ public class GoogleAuthResponse {
   @SerializedName("profile")
   private GoogleProfileInfo profile;
 
-  public String getToken() {
-    return token;
+  public String getAccessToken() {
+    return accessToken;
+  }
+
+  public String getRefreshToken() {
+    return refreshToken;
   }
 
   public boolean isRequiresProfileCompletion() {

@@ -4,6 +4,7 @@ import com.grouprace.core.network.model.auth.GoogleAuthPayload;
 import com.grouprace.core.network.model.auth.GoogleAuthResponse;
 import com.grouprace.core.network.model.auth.LoginPayload;
 import com.grouprace.core.network.model.auth.LoginResponse;
+import com.grouprace.core.network.model.auth.RefreshTokenPayload;
 import com.grouprace.core.network.model.auth.RequestPasswordResetOtpPayload;
 import com.grouprace.core.network.model.auth.RegisterPayload;
 import com.grouprace.core.network.model.auth.VerifyPasswordResetOtpPayload;
@@ -24,6 +25,9 @@ public interface AuthApiService {
     // return token
     @POST("/api/auth/login")
     Call<ApiResponse<LoginResponse>> login(@Body LoginPayload loginPayload);
+
+    @POST("/api/auth/refresh-token")
+    Call<ApiResponse<LoginResponse>> refreshToken(@Body RefreshTokenPayload payload);
 
     @POST("/api/auth/password/request-otp")
     Call<ApiResponse<Void>> requestPasswordResetOtp(@Body RequestPasswordResetOtpPayload payload);

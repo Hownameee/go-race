@@ -11,6 +11,7 @@ import com.grouprace.core.network.model.auth.GoogleAuthPayload;
 import com.grouprace.core.network.model.auth.GoogleAuthResponse;
 import com.grouprace.core.network.model.auth.LoginPayload;
 import com.grouprace.core.network.model.auth.LoginResponse;
+import com.grouprace.core.network.model.auth.RefreshTokenPayload;
 import com.grouprace.core.network.model.auth.RequestPasswordResetOtpPayload;
 import com.grouprace.core.network.model.auth.RegisterPayload;
 import com.grouprace.core.network.model.auth.VerifyPasswordResetOtpPayload;
@@ -43,12 +44,21 @@ public class AuthDataSource {
         );
     }
 
-    public LiveData<Result<String>> login(LoginPayload payload) {
+    public LiveData<Result<LoginResponse>> login(LoginPayload payload) {
         return executeCall(
                 apiService.login(payload),
                 "Login failed.",
                 "Login",
-                response -> response != null ? response.getToken() : null
+                response -> response
+        );
+    }
+
+    public LiveData<Result<LoginResponse>> refreshToken(String refreshToken) {
+        return executeCall(
+                apiService.refreshToken(new RefreshTokenPayload(refreshToken)),
+                "Refresh token failed.",
+                "Refresh token",
+                response -> response
         );
     }
 

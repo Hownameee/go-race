@@ -11,7 +11,7 @@ public interface AppNavigator {
     void openChangeEmail(Fragment currentFragment);
     void openChangeEmailOtp(Fragment currentFragment);
     void openChangePassword(Fragment currentFragment);
-    void openPasswordResetRequest(Fragment currentFragment);
+//    void openPasswordResetRequest(Fragment currentFragment);
     void openPasswordResetOtp(Fragment currentFragment);
     void openSetNewPassword(Fragment currentFragment);
     void openComingSoon(Fragment currentFragment, String title);
