@@ -14,14 +14,17 @@ import com.grouprace.core.data.model.ClubAdminEntity;
 import com.grouprace.core.data.model.ClubEntity;
 import com.grouprace.core.model.Club;
 import com.grouprace.core.model.ClubAdmin;
+import com.grouprace.core.model.ClubMember;
 import com.grouprace.core.network.model.club.ClubListPayload;
 import com.grouprace.core.network.model.club.ClubPayload;
+import com.grouprace.core.network.model.club.CreateClubRequest;
 import com.grouprace.core.network.model.club.JoinClubResponse;
 import com.grouprace.core.network.model.club.NetworkClub;
 import com.grouprace.core.network.model.club.NetworkClubAdmin;
 import com.grouprace.core.network.model.club.UpdateClubRequest;
 import com.grouprace.core.network.source.ClubNetworkDataSource;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -222,6 +225,11 @@ public class ClubRepositoryImpl implements ClubRepository {
     }
 
     @Override
+    public LiveData<Result<Boolean>> checkIsAdmin(int clubId) {
+        return networkDataSource.checkIsAdmin(clubId);
+    }
+
+    @Override
     public LiveData<Result<String>> updateClub(int clubId, String name, String description, byte[] imageBytes, String mimeType) {
         MutableLiveData<Result<String>> result = new MutableLiveData<>();
         result.setValue(new Result.Loading<>());
@@ -398,6 +406,34 @@ public class ClubRepositoryImpl implements ClubRepository {
         });
 
         return result;
+    }
+
+    @Override
+    public LiveData<Result<List<ClubMember>>> getMembers(int clubId) {
+        return Transformations.map(networkDataSource.getMembers(clubId), networkResult -> {
+            if (networkResult instanceof Result.Success) {
+                List<com.grouprace.core.network.model.club.NetworkClubMember> data = ((Result.Success<List<com.grouprace.core.network.model.club.NetworkClubMember>>) networkResult).data;
+                List<ClubMember> members = data.stream().map(n -> new ClubMember(
+                    n.getUserId(), n.getFullname(), n.getAvatarUrl(), n.getRole(), n.getStatus(), n.getJoinedAt(), n.isLeader()
+                )).collect(Collectors.toList());
+                return new Result.Success<>(members);
+            } else if (networkResult instanceof Result.Error) {
+                Result.Error<?> error = (Result.Error<?>) networkResult;
+                return new Result.Error<>(error.exception, error.message);
+            } else {
+                return new Result.Loading<>();
+            }
+        });
+    }
+
+    @Override
+    public LiveData<Result<String>> updateMemberStatus(int clubId, int userId, String status) {
+        return networkDataSource.updateMemberStatus(clubId, userId, status);
+    }
+
+    @Override
+    public LiveData<Result<String>> updateMemberRole(int clubId, int userId, String role) {
+        return networkDataSource.updateMemberRole(clubId, userId, role);
     }
 
     private ClubEntity toEntity(NetworkClub n) {

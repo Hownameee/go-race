@@ -85,8 +85,18 @@ const clubService = {
         return admins;
     },
 
-    async checkIsLeader(clubId, userId) {
+    async isLeader(clubId, userId) {
         return clubRepo.checkIsLeader(clubId, userId);
+    },
+
+    async isAdminOrLeader(clubId, userId) {
+        const club = await clubRepo.findById(clubId);
+        if (!club) return false;
+        
+        if (club.leader_id === userId) return true;
+        
+        const member = await clubRepo.findMemberStatus(clubId, userId);
+        return member && member.role === 'admin' && member.status === 'approved';
     },
 
     async updateClub(userId, clubId, { name, description, imageBase64, imageContentType }) {
@@ -159,6 +169,94 @@ const clubService = {
                 distance: item.total_distance
             }))
         };
+    },
+
+    async getMembers(clubId, requesterId) {
+        const club = await clubRepo.findById(clubId);
+        if (!club) throw Object.assign(new Error('Club not found'), { status: 404 });
+
+        const requesterStatus = clubRepo.findMemberStatus(clubId, requesterId);
+        const isAdminOrLeader = requesterStatus && 
+            (requesterStatus.status === 'approved' && (requesterStatus.role === 'admin' || club.leader_id === requesterId));
+
+        let members = await clubRepo.findAllMembers(clubId);
+
+        // Nếu không phải Admin/Leader, ẩn các thành viên đang 'pending'
+        if (!isAdminOrLeader) {
+            members = members.filter(m => m.status === 'approved');
+        }
+
+        return await Promise.all(members.map(async m => {
+            return {
+                userId: m.user_id,
+                fullname: m.fullname,
+                avatarUrl: m.avatar_url,
+                role: m.role,
+                status: m.status,
+                joinedAt: m.joined_at,
+                isLeader: !!m.is_leader
+            };
+        }));
+    },
+
+    async updateMemberRole(clubId, requesterId, targetUserId, newRole) {
+        const club = await clubRepo.findById(clubId);
+        if (club.leader_id !== requesterId) {
+            throw Object.assign(new Error('Only the club leader can change roles'), { status: 403 });
+        }
+
+        if (requesterId === targetUserId) {
+            throw Object.assign(new Error('You cannot change your own role'), { status: 400 });
+        }
+
+        const validRoles = ['admin', 'member'];
+        if (!validRoles.includes(newRole)) {
+            throw Object.assign(new Error('Invalid role'), { status: 400 });
+        }
+
+        await clubRepo.updateMemberRole(clubId, targetUserId, newRole);
+        return { message: `Role updated to ${newRole}` };
+    },
+
+    async updateMemberStatus(clubId, requesterId, targetUserId, newStatus) {
+        const club = await clubRepo.findById(clubId);
+        if (!club) throw Object.assign(new Error('Club not found'), { status: 404 });
+
+        const requester = clubRepo.findAllMembers(clubId).find(m => m.user_id === requesterId);
+        const target = clubRepo.findAllMembers(clubId).find(m => m.user_id === targetUserId);
+
+        if (!requester || requester.status !== 'approved') {
+            throw Object.assign(new Error('Unauthorized'), { status: 403 });
+        }
+
+        const isRequesterLeader = club.leader_id === requesterId;
+        const isRequesterAdmin = requester.role === 'admin';
+
+        if (!isRequesterLeader && !isRequesterAdmin) {
+            throw Object.assign(new Error('Permission denied'), { status: 403 });
+        }
+
+        if (newStatus === 'approved' || newStatus === 'rejected') {
+            if (!target || target.status !== 'pending') {
+                throw Object.assign(new Error('No pending request found for this user'), { status: 400 });
+            }
+        } 
+        else if (newStatus === 'left') {
+            if (!target || target.status !== 'approved') {
+                throw Object.assign(new Error('User is not an active member'), { status: 400 });
+            }
+            if (targetUserId === club.leader_id) {
+                throw Object.assign(new Error('Cannot kick the club leader'), { status: 400 });
+            }
+            if (!isRequesterLeader && target.role === 'admin') {
+                throw Object.assign(new Error('Admins cannot kick other admins'), { status: 403 });
+            }
+        } else {
+            throw Object.assign(new Error('Invalid status update'), { status: 400 });
+        }
+
+        await clubRepo.updateMemberStatus(clubId, targetUserId, newStatus);
+        return { message: `Member status updated to ${newStatus}` };
     },
 };
 

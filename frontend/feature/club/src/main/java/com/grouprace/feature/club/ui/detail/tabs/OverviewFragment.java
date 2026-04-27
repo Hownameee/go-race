@@ -20,8 +20,13 @@ import com.grouprace.core.common.result.Result;
 import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.feature.club.R;
 import com.grouprace.feature.club.ui.adapter.ClubAdminAdapter;
+import com.grouprace.feature.club.ui.adapter.ClubMemberAdapter;
 import com.grouprace.core.system.ui.TopAppBarConfig;
 import com.grouprace.core.system.ui.TopAppBarHelper;
+import com.grouprace.core.model.ClubMember;
+import com.grouprace.core.model.Club;
+import java.util.List;
+import java.util.ArrayList;
 
 import javax.inject.Inject;
 
@@ -34,7 +39,9 @@ public class OverviewFragment extends Fragment {
     @Inject
     AppNavigator appNavigator;
     private OverviewViewModel viewModel;
-    private ClubAdminAdapter adapter;
+    private MemberManagementViewModel memberViewModel;
+    private ClubMemberAdapter memberAdapter;
+    private ClubMemberAdapter pendingAdapter;
 
     public OverviewFragment() {
         super(R.layout.fragment_club_overview);
@@ -53,10 +60,14 @@ public class OverviewFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         int clubId = getArguments() != null ? getArguments().getInt(ARG_CLUB_ID, -1) : -1;
-        if (clubId == -1) return;
+        if (clubId == -1)
+            return;
 
         viewModel = new ViewModelProvider(requireActivity()).get(OverviewViewModel.class);
         viewModel.setClubId(clubId);
+
+        memberViewModel = new ViewModelProvider(this).get(MemberManagementViewModel.class);
+        memberViewModel.setClubId(clubId);
 
         TopAppBarHelper.setupTopAppBar(view, new TopAppBarConfig.Builder()
                 .setTitle("Club Overview")
@@ -69,13 +80,23 @@ public class OverviewFragment extends Fragment {
     }
 
     private void setupViews(View view) {
-        RecyclerView rvAdmins = view.findViewById(R.id.rv_club_admins);
-        rvAdmins.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new ClubAdminAdapter();
-        rvAdmins.setAdapter(adapter);
+        RecyclerView rvMembers = view.findViewById(R.id.rv_club_members);
+        rvMembers.setLayoutManager(new LinearLayoutManager(getContext()));
+        memberAdapter = new ClubMemberAdapter(this::onMemberClick);
+        rvMembers.setAdapter(memberAdapter);
+
+        RecyclerView rvPending = view.findViewById(R.id.rv_pending_members);
+        rvPending.setLayoutManager(new LinearLayoutManager(getContext()));
+        pendingAdapter = new ClubMemberAdapter(this::onMemberClick);
+        rvPending.setAdapter(pendingAdapter);
 
         view.findViewById(R.id.btn_leave_club_action).setOnClickListener(v -> {
-            new androidx.appcompat.app.AlertDialog.Builder(requireContext()).setTitle("Leave Club").setMessage("Are you sure you want to leave this club?").setPositiveButton("Leave", (dialog, which) -> leaveClub()).setNegativeButton("Cancel", null).show();
+            new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                    .setTitle("Leave Club")
+                    .setMessage("Are you sure you want to leave this club?")
+                    .setPositiveButton("Leave", (dialog, which) -> leaveClub())
+                    .setNegativeButton("Cancel", null)
+                    .show();
         });
 
         int clubId = getArguments() != null ? getArguments().getInt(ARG_CLUB_ID, -1) : -1;
@@ -123,13 +144,119 @@ public class OverviewFragment extends Fragment {
 
         viewModel.getIsLeader().observe(getViewLifecycleOwner(), isLeader -> {
             btnEdit.setVisibility(Boolean.TRUE.equals(isLeader) ? View.VISIBLE : View.GONE);
+            updateManagementVisibility(view);
         });
 
-        viewModel.getAdmins().observe(getViewLifecycleOwner(), admins -> {
-            if (admins != null) {
-                adapter.setAdmins(admins);
+        viewModel.getIsAdmin().observe(getViewLifecycleOwner(), isAdmin -> {
+            updateManagementVisibility(view);
+        });
+
+        // Member Management Observers
+        memberViewModel.getMembers().observe(getViewLifecycleOwner(), result -> {
+            if (result instanceof Result.Success) {
+                List<ClubMember> all = ((Result.Success<List<ClubMember>>) result).data;
+
+                List<ClubMember> approved = new ArrayList<>();
+                List<ClubMember> pending = new ArrayList<>();
+
+                for (ClubMember m : all) {
+                    if ("pending".equalsIgnoreCase(m.getStatus())) {
+                        pending.add(m);
+                    } else {
+                        approved.add(m);
+                    }
+                }
+
+                memberAdapter.setMembers(approved);
+                pendingAdapter.setMembers(pending);
+
+                updateManagementVisibility(view);
             }
         });
+
+        memberViewModel.getActionResult().observe(getViewLifecycleOwner(), result -> {
+            if (result instanceof Result.Success) {
+                Toast.makeText(getContext(), ((Result.Success<String>) result).data, Toast.LENGTH_SHORT).show();
+            } else if (result instanceof Result.Error) {
+                Toast.makeText(getContext(), "Error: " + ((Result.Error<?>) result).message, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void updateManagementVisibility(View view) {
+        boolean isLeader = Boolean.TRUE.equals(viewModel.getIsLeader().getValue());
+        boolean isAdmin = Boolean.TRUE.equals(viewModel.getIsAdmin().getValue());
+        boolean canManage = isLeader || isAdmin;
+
+        View layoutPending = view.findViewById(R.id.layout_pending_requests);
+        // Only show pending section if can manage AND there are pending requests
+        boolean hasPending = pendingAdapter != null && pendingAdapter.getItemCount() > 0;
+        layoutPending.setVisibility((canManage && hasPending) ? View.VISIBLE : View.GONE);
+
+        // Management title and list visibility
+        view.findViewById(R.id.tv_club_management_title).setVisibility(canManage ? View.VISIBLE : View.GONE);
+        view.findViewById(R.id.rv_club_members).setVisibility(canManage ? View.VISIBLE : View.GONE);
+    }
+
+    private void onMemberClick(ClubMember targetMember) {
+        boolean isLeader = Boolean.TRUE.equals(viewModel.getIsLeader().getValue());
+        boolean isAdmin = Boolean.TRUE.equals(viewModel.getIsAdmin().getValue());
+
+        if ("pending".equalsIgnoreCase(targetMember.getStatus())) {
+            if (isLeader || isAdmin) {
+                showJoinRequestDialog(targetMember);
+            }
+        } else {
+            showMemberActionDialog(targetMember, isLeader, isAdmin);
+        }
+    }
+
+    private void showJoinRequestDialog(ClubMember member) {
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("Join Request")
+                .setMessage("Accept " + member.getFullname() + " to the club?")
+                .setPositiveButton("Approve",
+                        (d, w) -> memberViewModel.updateMemberStatus(member.getUserId(), "approved"))
+                .setNegativeButton("Reject",
+                        (d, w) -> memberViewModel.updateMemberStatus(member.getUserId(), "rejected"))
+                .setNeutralButton("Cancel", null)
+                .show();
+    }
+
+    private void showMemberActionDialog(ClubMember targetMember, boolean isLeader,
+            boolean isAdmin) {
+        if (targetMember.isLeader())
+            return;
+
+        List<String> options = new ArrayList<>();
+
+        if (isLeader) {
+            options.add("admin".equalsIgnoreCase(targetMember.getRole()) ? "Demote from Admin" : "Promote to Admin");
+        }
+
+        if (isLeader || (isAdmin && !"admin".equalsIgnoreCase(targetMember.getRole()))) {
+            options.add("Kick Member");
+        }
+
+        options.add("View Profile");
+
+        if (options.isEmpty())
+            return;
+
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle(targetMember.getFullname())
+                .setItems(options.toArray(new String[0]), (dialog, which) -> {
+                    String selected = options.get(which);
+                    if (selected.contains("Admin")) {
+                        String newRole = "admin".equalsIgnoreCase(targetMember.getRole()) ? "member" : "admin";
+                        memberViewModel.updateMemberRole(targetMember.getUserId(), newRole);
+                    } else if (selected.equals("Kick Member")) {
+                        memberViewModel.updateMemberStatus(targetMember.getUserId(), "left");
+                    } else if (selected.equals("View Profile")) {
+                        // TODO: Navigate to profile
+                    }
+                })
+                .show();
     }
 
     private void leaveClub() {
@@ -138,7 +265,8 @@ public class OverviewFragment extends Fragment {
                 Toast.makeText(getContext(), "You have left the club.", Toast.LENGTH_SHORT).show();
                 appNavigator.navigateToClubs(this);
             } else if (result instanceof Result.Error) {
-                Toast.makeText(getContext(), "Failed to leave club: " + ((Result.Error<?>) result).message, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Failed to leave club: " + ((Result.Error<?>) result).message,
+                        Toast.LENGTH_SHORT).show();
             }
         });
     }

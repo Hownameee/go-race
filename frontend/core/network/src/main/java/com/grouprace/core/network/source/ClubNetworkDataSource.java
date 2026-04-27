@@ -247,6 +247,35 @@ public class ClubNetworkDataSource {
         return liveData;
     }
 
+    public LiveData<Result<Boolean>> checkIsAdmin(int clubId) {
+        MutableLiveData<Result<Boolean>> liveData = new MutableLiveData<>();
+        liveData.setValue(new Result.Loading<>());
+
+        apiService.checkIsAdmin(clubId).enqueue(new Callback<ApiResponse<com.grouprace.core.network.model.club.IsAdminResponse>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<com.grouprace.core.network.model.club.IsAdminResponse>> call, Response<ApiResponse<com.grouprace.core.network.model.club.IsAdminResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<com.grouprace.core.network.model.club.IsAdminResponse> apiResponse = response.body();
+                    if (apiResponse.isSuccess() && apiResponse.getData() != null) {
+                        liveData.postValue(new Result.Success<>(apiResponse.getData().isAdmin()));
+                    } else {
+                        liveData.postValue(new Result.Success<>(false));
+                    }
+                } else {
+                    liveData.postValue(new Result.Success<>(false));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<com.grouprace.core.network.model.club.IsAdminResponse>> call, Throwable t) {
+                Log.e(TAG, "checkIsAdmin: network failure - " + t.getMessage(), t);
+                liveData.postValue(new Result.Success<>(false));
+            }
+        });
+
+        return liveData;
+    }
+
     public LiveData<Result<String>> updateClub(int clubId, UpdateClubRequest request) {
         MutableLiveData<Result<String>> liveData = new MutableLiveData<>();
         liveData.setValue(new Result.Loading<>());
@@ -424,6 +453,96 @@ public class ClubNetworkDataSource {
                 liveData.postValue(new Result.Error<>(new Exception(t), t.getMessage()));
             }
         });
+        return liveData;
+    }
+
+    public LiveData<Result<java.util.List<com.grouprace.core.network.model.club.NetworkClubMember>>> getMembers(int clubId) {
+        MutableLiveData<Result<java.util.List<com.grouprace.core.network.model.club.NetworkClubMember>>> liveData = new MutableLiveData<>();
+        liveData.setValue(new Result.Loading<>());
+
+        apiService.getMembers(clubId).enqueue(new Callback<ApiResponse<java.util.List<com.grouprace.core.network.model.club.NetworkClubMember>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<java.util.List<com.grouprace.core.network.model.club.NetworkClubMember>>> call, Response<ApiResponse<java.util.List<com.grouprace.core.network.model.club.NetworkClubMember>>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<java.util.List<com.grouprace.core.network.model.club.NetworkClubMember>> apiResponse = response.body();
+                    if (apiResponse.isSuccess() && apiResponse.getData() != null) {
+                        liveData.postValue(new Result.Success<>(apiResponse.getData()));
+                    } else {
+                        liveData.postValue(new Result.Error<>(null, apiResponse.getMessage()));
+                    }
+                } else {
+                    liveData.postValue(new Result.Error<>(null, "HTTP Error: " + response.code()));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<java.util.List<com.grouprace.core.network.model.club.NetworkClubMember>>> call, Throwable t) {
+                liveData.postValue(new Result.Error<>(new Exception(t), t.getMessage()));
+            }
+        });
+
+        return liveData;
+    }
+
+    public LiveData<Result<String>> updateMemberStatus(int clubId, int userId, String status) {
+        MutableLiveData<Result<String>> liveData = new MutableLiveData<>();
+        liveData.setValue(new Result.Loading<>());
+
+        java.util.Map<String, String> body = new java.util.HashMap<>();
+        body.put("status", status);
+
+        apiService.updateMemberStatus(clubId, userId, body).enqueue(new Callback<ApiResponse<Object>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Object>> call, Response<ApiResponse<Object>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<Object> apiResponse = response.body();
+                    if (apiResponse.isSuccess()) {
+                        liveData.postValue(new Result.Success<>("Status updated"));
+                    } else {
+                        liveData.postValue(new Result.Error<>(null, apiResponse.getMessage()));
+                    }
+                } else {
+                    liveData.postValue(new Result.Error<>(null, "HTTP Error: " + response.code()));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<Object>> call, Throwable t) {
+                liveData.postValue(new Result.Error<>(new Exception(t), t.getMessage()));
+            }
+        });
+
+        return liveData;
+    }
+
+    public LiveData<Result<String>> updateMemberRole(int clubId, int userId, String role) {
+        MutableLiveData<Result<String>> liveData = new MutableLiveData<>();
+        liveData.setValue(new Result.Loading<>());
+
+        java.util.Map<String, String> body = new java.util.HashMap<>();
+        body.put("role", role);
+
+        apiService.updateMemberRole(clubId, userId, body).enqueue(new Callback<ApiResponse<Object>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Object>> call, Response<ApiResponse<Object>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<Object> apiResponse = response.body();
+                    if (apiResponse.isSuccess()) {
+                        liveData.postValue(new Result.Success<>("Role updated"));
+                    } else {
+                        liveData.postValue(new Result.Error<>(null, apiResponse.getMessage()));
+                    }
+                } else {
+                    liveData.postValue(new Result.Error<>(null, "HTTP Error: " + response.code()));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<Object>> call, Throwable t) {
+                liveData.postValue(new Result.Error<>(new Exception(t), t.getMessage()));
+            }
+        });
+
         return liveData;
     }
 }

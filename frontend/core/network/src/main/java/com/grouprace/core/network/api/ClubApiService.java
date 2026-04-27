@@ -41,7 +41,10 @@ public interface ClubApiService {
     Call<ApiResponse<java.util.List<com.grouprace.core.network.model.club.NetworkClubAdmin>>> getAdmins(@Path("clubId") int clubId);
 
     @GET("api/clubs/{clubId}/is-leader")
-    Call<ApiResponse<IsLeaderResponse>> checkIsLeader(@Path("clubId") int clubId);
+    Call<ApiResponse<com.grouprace.core.network.model.club.IsLeaderResponse>> checkIsLeader(@Path("clubId") int clubId);
+
+    @GET("api/clubs/{clubId}/is-admin")
+    Call<ApiResponse<com.grouprace.core.network.model.club.IsAdminResponse>> checkIsAdmin(@Path("clubId") int clubId);
 
     @PUT("api/clubs/{clubId}")
     Call<ApiResponse<Object>> updateClub(@Path("clubId") int clubId, @Body UpdateClubRequest request);
@@ -60,4 +63,21 @@ public interface ClubApiService {
 
     @GET("api/clubs/{clubId}/events/{eventId}/stats")
     Call<ApiResponse<com.grouprace.core.network.model.club.NetworkEventStats>> getEventStats(@Path("clubId") int clubId, @Path("eventId") int eventId);
+
+    @GET("api/clubs/{clubId}/members")
+    Call<ApiResponse<java.util.List<com.grouprace.core.network.model.club.NetworkClubMember>>> getMembers(@Path("clubId") int clubId);
+
+    @PUT("api/clubs/{clubId}/members/{userId}/status")
+    Call<ApiResponse<Object>> updateMemberStatus(
+            @Path("clubId") int clubId,
+            @Path("userId") int userId,
+            @Body java.util.Map<String, String> body
+    );
+
+    @PUT("api/clubs/{clubId}/members/{userId}/role")
+    Call<ApiResponse<Object>> updateMemberRole(
+            @Path("clubId") int clubId,
+            @Path("userId") int userId,
+            @Body java.util.Map<String, String> body
+    );
 }

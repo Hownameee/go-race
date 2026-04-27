@@ -21,6 +21,7 @@ public class OverviewViewModel extends ViewModel {
     private final ClubRepository repository;
     private int clubId;
     private final MutableLiveData<Boolean> isLeader = new MutableLiveData<>(false);
+    private final MutableLiveData<Boolean> isAdmin = new MutableLiveData<>(false);
 
     @Inject
     public OverviewViewModel(ClubRepository repository) {
@@ -35,13 +36,21 @@ public class OverviewViewModel extends ViewModel {
         repository.syncAdmins(clubId);
         repository.syncClubById(clubId);
         
-        androidx.lifecycle.Observer<Result<Boolean>> observer = result -> {
+        androidx.lifecycle.Observer<Result<Boolean>> leaderObserver = result -> {
             if (result instanceof Result.Success) {
                 isLeader.postValue(((Result.Success<Boolean>) result).data);
             }
         };
-        activeObservers.add(observer);
-        repository.checkIsLeader(clubId).observeForever(observer);
+        activeObservers.add(leaderObserver);
+        repository.checkIsLeader(clubId).observeForever(leaderObserver);
+
+        androidx.lifecycle.Observer<Result<Boolean>> adminObserver = result -> {
+            if (result instanceof Result.Success) {
+                isAdmin.postValue(((Result.Success<Boolean>) result).data);
+            }
+        };
+        activeObservers.add(adminObserver);
+        repository.checkIsAdmin(clubId).observeForever(adminObserver);
     }
 
     @Override
@@ -63,6 +72,10 @@ public class OverviewViewModel extends ViewModel {
 
     public LiveData<Boolean> getIsLeader() {
         return isLeader;
+    }
+
+    public LiveData<Boolean> getIsAdmin() {
+        return isAdmin;
     }
 
     public LiveData<Result<String>> leaveClub() {

@@ -90,8 +90,19 @@ const clubController = {
         try {
             const userId = req.user.userId;
             const clubId = parseInt(req.params.clubId);
-            const isLeader = await clubService.checkIsLeader(clubId, userId);
+            const isLeader = await clubService.isLeader(clubId, userId);
             res.ok({ is_leader: isLeader });
+        } catch (error) {
+            res.error(null, error.message);
+        }
+    },
+
+    checkIsAdmin: async (req, res) => {
+        try {
+            const userId = req.user.userId;
+            const clubId = parseInt(req.params.clubId);
+            const isAdmin = await clubService.isAdminOrLeader(clubId, userId);
+            res.ok({ is_admin: isAdmin });
         } catch (error) {
             res.error(null, error.message);
         }
@@ -123,6 +134,49 @@ const clubController = {
             const stats = await clubService.getClubStats(clubId, userId);
             res.ok(stats, 'Club stats retrieved successfully.');
         } catch (error) {
+            res.error(null, error.message);
+        }
+    },
+
+    getMembers: async (req, res) => {
+        try {
+            const userId = req.user.userId;
+            const clubId = parseInt(req.params.clubId);
+            const members = await clubService.getMembers(clubId, userId);
+            res.ok(members, 'Club members retrieved successfully.');
+        } catch (error) {
+            res.error(null, error.message);
+        }
+    },
+
+    updateMemberStatus: async (req, res) => {
+        try {
+            const requesterId = req.user.userId;
+            const clubId = parseInt(req.params.clubId);
+            const targetUserId = parseInt(req.params.userId);
+            const { status } = req.body;
+            const result = await clubService.updateMemberStatus(clubId, requesterId, targetUserId, status);
+            res.ok(result);
+        } catch (error) {
+            const status = error.status || 500;
+            if (status === 403) return res.violate(null, error.message);
+            if (status === 400) return res.badRequest(null, error.message);
+            res.error(null, error.message);
+        }
+    },
+
+    updateMemberRole: async (req, res) => {
+        try {
+            const requesterId = req.user.userId;
+            const clubId = parseInt(req.params.clubId);
+            const targetUserId = parseInt(req.params.userId);
+            const { role } = req.body;
+            const result = await clubService.updateMemberRole(clubId, requesterId, targetUserId, role);
+            res.ok(result);
+        } catch (error) {
+            const status = error.status || 500;
+            if (status === 403) return res.violate(null, error.message);
+            if (status === 400) return res.badRequest(null, error.message);
             res.error(null, error.message);
         }
     },

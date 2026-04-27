@@ -281,17 +281,6 @@ BEGIN
       AND NEW.status != 'approved';
 END;
 
--- 3. Khi người dùng RỜI KHỎI club (xóa record)
-CREATE TRIGGER IF NOT EXISTS trigger_club_member_delete
-AFTER DELETE ON CLUB_MEMBERS
-WHEN OLD.status = 'approved'
-BEGIN
-    UPDATE CLUBS 
-    SET member_count = member_count - 1 
-    WHERE club_id = OLD.club_id;
-END;
-
-
 -- ==========================================
 -- TRIGGERS CHO POST_COUNT (Bảng POST)
 -- ==========================================

@@ -136,6 +136,36 @@ const clubRepo = {
         return !!db.prepare(sql).get(clubId, userId);
     },
 
+    findAllMembers(clubId) {
+        const sql = `
+            SELECT 
+                u.user_id, 
+                u.fullname, 
+                u.avatar_url, 
+                cm.role,
+                cm.status,
+                cm.joined_at,
+                CASE WHEN c.leader_id = u.user_id THEN 1 ELSE 0 END as is_leader
+            FROM CLUB_MEMBERS cm
+            JOIN USERS u ON cm.user_id = u.user_id
+            JOIN CLUBS c ON cm.club_id = c.club_id
+            WHERE cm.club_id = ? 
+              AND cm.status IN ('approved', 'pending')
+            ORDER BY is_leader DESC, cm.role ASC, u.fullname ASC;
+        `;
+        return db.prepare(sql).all(clubId);
+    },
+
+    updateMemberRole(clubId, userId, role) {
+        const sql = `UPDATE CLUB_MEMBERS SET role = ? WHERE club_id = ? AND user_id = ?`;
+        return db.prepare(sql).run(role, clubId, userId);
+    },
+
+    updateMemberStatus(clubId, userId, status) {
+        const sql = `UPDATE CLUB_MEMBERS SET status = ? WHERE club_id = ? AND user_id = ?`;
+        return db.prepare(sql).run(status, clubId, userId);
+    },
+
     updateClub(clubId, { name, description, avatarS3Key }) {
         const fields = [];
         const values = [];
