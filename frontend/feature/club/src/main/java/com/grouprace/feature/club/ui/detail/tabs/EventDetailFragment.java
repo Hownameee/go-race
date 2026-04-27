@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.grouprace.core.common.TimeUtils;
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.ClubStats;
@@ -67,11 +68,11 @@ public class EventDetailFragment extends Fragment {
         pbLoading = view.findViewById(R.id.pb_detail_loading);
         TextView tvTitle = view.findViewById(R.id.tv_detail_title);
         TextView tvDesc = view.findViewById(R.id.tv_detail_desc);
-        TextView tvTarget = view.findViewById(R.id.tv_detail_target);
+//        TextView tvTarget = view.findViewById(R.id.tv_detail_target);
         View layoutProgress = view.findViewById(R.id.layout_detail_progress);
         TextView tvProgressPercent = view.findViewById(R.id.tv_detail_progress_percent);
         TextView tvProgressSummary = view.findViewById(R.id.tv_detail_progress_summary);
-        com.google.android.material.progressindicator.LinearProgressIndicator pbProgress = view.findViewById(R.id.pb_detail_progress);
+        LinearProgressIndicator pbProgress = view.findViewById(R.id.pb_detail_progress);
         TextView tvStartTime = view.findViewById(R.id.tv_detail_start_time);
         TextView tvDuration = view.findViewById(R.id.tv_detail_duration);
         TextView tvParticipants = view.findViewById(R.id.tv_detail_participants);
@@ -132,9 +133,23 @@ public class EventDetailFragment extends Fragment {
                 int pCount = stats.getParticipantsCount();
                 tvParticipants.setText(pCount + (pCount == 1 ? " participant" : " participants"));
 
+                // Update progress bar with live global progress data
+                double liveGlobal = stats.getTotalDistance() > 0 ? stats.getTotalDistance() : stats.getTotalDurationSeconds();
+                double liveTarget = stats.getTargetDistance() > 0 ? stats.getTargetDistance() : stats.getTargetDurationSeconds();
+                if (liveTarget > 0) {
+                    layoutProgress.setVisibility(View.VISIBLE);
+                    int livePercent = (int) Math.min((liveGlobal / liveTarget) * 100, 100);
+                    tvProgressPercent.setText(livePercent + "%");
+                    if (stats.getTargetDistance() > 0) {
+                        tvProgressSummary.setText(String.format("%.2f / %.2f km", liveGlobal, stats.getTargetDistance()));
+                    } else {
+                        tvProgressSummary.setText(com.grouprace.core.common.TimeUtils.formatDuration((int) liveGlobal) + " / " + com.grouprace.core.common.TimeUtils.formatDuration((int) liveTarget));
+                    }
+                    pbProgress.setProgress(livePercent);
+                }
+
                 if (stats.getLeaderboard() != null) {
                     adapter.submitList(stats.getLeaderboard());
-                    layoutProgress.setVisibility(View.VISIBLE);
                 }
             } else if (result instanceof Result.Error) {
                 android.util.Log.e("EventDetail", "Failed to fetch live stats: " + ((Result.Error<?>) result).message);

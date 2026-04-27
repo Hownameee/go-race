@@ -153,7 +153,7 @@ public class ClubRepositoryImpl implements ClubRepository {
             if (networkResult instanceof Result.Success) {
                 String message = ((Result.Success<JoinClubResponse>) networkResult).data.getResult();
                 Executors.newSingleThreadExecutor().execute(() -> {
-                    clubDao.removeStatus(id);
+                    clubDao.updateStatus(id, "left");
                 });
                 result.postValue(new Result.Success<>(message));
             } else if (networkResult instanceof Result.Error) {

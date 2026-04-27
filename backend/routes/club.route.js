@@ -3,7 +3,7 @@ import clubController from '../controllers/club.controller.js';
 import validation from '../middlewares/validation.js';
 import { createClubSchema, clubIdSchema, updateClubSchema } from '../utils/schemas/club.schema.js';
 import { eventIdSchema, createClubEventSchema } from '../utils/schemas/club_event.schema.js';
-import clubEventController from '../controllers/club_event.controller.js';
+import clubEventController from '../controllers/clubEvent.controller.js';
 
 const clubRouter = express.Router();
 

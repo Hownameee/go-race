@@ -54,16 +54,16 @@
                     android:textColor="@color/text_secondary"
                     android:textSize="14sp" />
 
-                <TextView
-                    android:id="@+id/tv_detail_target"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:background="@drawable/bg_badge_cyan_pill"
-                    android:text="Target: 1.00 km"
-                    android:textColor="@color/cyan_accent"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
+<!--                <TextView-->
+<!--                    android:id="@+id/tv_detail_target"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginTop="16dp"-->
+<!--                    android:background="@drawable/bg_badge_cyan_pill"-->
+<!--                    android:text="Target: 1.00 km"-->
+<!--                    android:textColor="@color/cyan_accent"-->
+<!--                    android:textSize="12sp"-->
+<!--                    android:textStyle="bold" />-->
 
                 <TextView
                     android:id="@+id/tv_detail_participants"

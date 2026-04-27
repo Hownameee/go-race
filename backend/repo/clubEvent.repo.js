@@ -79,8 +79,8 @@ const clubEventRepo = {
             start_time: event.start_time,
             end_time: event.end_time,
             participants_count: event.participants_count,
-            total_distance: leaderboard.reduce((sum, entry) => sum + entry.distance, 0),
-            total_duration_seconds: leaderboard.reduce((sum, entry) => sum + entry.duration, 0),
+            total_distance: event.total_distance,
+            total_duration_seconds: event.total_duration_seconds,
             leaderboard: leaderboard
         };
     }

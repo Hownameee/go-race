@@ -1,7 +1,6 @@
 import db from '../utils/db/db.js';
 
 const clubRepo = {
-    // Get clubs the user is a member of (approved)
     findMyClubs(userId, offset, limit) {
         const sql = `
             SELECT 
@@ -26,7 +25,6 @@ const clubRepo = {
         return db.prepare(sql).all(userId, limit, offset);
     },
 
-    // Get public clubs the user has NOT joined
     findDiscoverClubs(userId, offset, limit) {
         const sql = `
             SELECT 
@@ -75,16 +73,23 @@ const clubRepo = {
         return db.prepare(sql).get(userId, clubId);
     },
 
+    findMemberStatus(clubId, userId) {
+        const sql = `SELECT status FROM CLUB_MEMBERS WHERE club_id = ? AND user_id = ?`;
+        return db.prepare(sql).get(clubId, userId);
+    },
+
     addMember(clubId, userId, status) {
         const sql = `
             INSERT INTO CLUB_MEMBERS (club_id, user_id, role, status)
-            VALUES (?, ?, 'member', ?);
+            VALUES (?, ?, 'member', ?)
+            ON CONFLICT(club_id, user_id) DO UPDATE SET
+                status = excluded.status;
         `;
         return db.prepare(sql).run(clubId, userId, status);
     },
 
     removeMember(clubId, userId) {
-        const sql = `DELETE FROM CLUB_MEMBERS WHERE club_id = ? AND user_id = ?;`;
+        const sql = `UPDATE CLUB_MEMBERS SET status = 'left' WHERE club_id = ? AND user_id = ?;`;
         return db.prepare(sql).run(clubId, userId);
     },
 
@@ -158,7 +163,6 @@ const clubRepo = {
     },
 
     getClubStats(clubId) {
-        // 1. Get totals from the club table
         const clubTotalsSql = `
             SELECT 
                 COALESCE(total_distance, 0) as total_distance,
@@ -174,7 +178,6 @@ const clubRepo = {
             throw new Error("Club not found");
         }
 
-        // 2. Get leaderboard from CLUB_MEMBERS
         const memberStatsSql = `
             SELECT 
                 cm.user_id as member_id, 
