@@ -243,12 +243,12 @@ public class PostFragment extends Fragment {
 
         view.findViewById(R.id.fab_post).setOnClickListener(v -> {
             collapseFab();
-            appNavigator.openAddPost(this, false);
+            appNavigator.openAddPost(this, false, null);
         });
 
         view.findViewById(R.id.fab_activity).setOnClickListener(v -> {
             collapseFab();
-            appNavigator.openAddPost(this, true);
+            appNavigator.openAddPost(this, true, null);
         });
         
         // Ensure initial state

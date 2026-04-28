@@ -66,6 +66,7 @@ dependencies {
     implementation(project(":feature:auth:login"))
     implementation(project(":feature:profile"))
     implementation(project(":feature:notification"))
+    implementation(project(":feature:club"))
     implementation(project(":core:data"))
     implementation(project(":core:network"))
     implementation(project(":core:system"))

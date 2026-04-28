@@ -6,6 +6,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import com.grouprace.core.network.BuildConfig;
 import com.grouprace.core.network.api.DirectionsApiService;
+import com.grouprace.core.network.api.ClubApiService;
 import com.grouprace.core.network.api.NotificationApiService;
 import com.grouprace.core.network.api.RecordApiService;
 import com.grouprace.core.network.api.SearchBoxApiService;
@@ -124,5 +125,11 @@ public class NetworkModule {
     @Singleton
     public DirectionsApiService provideDirectionsApiService(@Named("mapbox") Retrofit retrofit) {
         return retrofit.create(DirectionsApiService.class);
+    }
+
+    @Provides
+    @Singleton
+    public ClubApiService provideClubApiService(Retrofit retrofit) {
+        return retrofit.create(ClubApiService.class);
     }
 }

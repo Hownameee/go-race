@@ -8,10 +8,11 @@ const postRepo = {
     description,
     photo_url,
     view_mode,
+    club_id,
   }) {
     const stmt = db.prepare(
-      `INSERT INTO POST (owner_id, record_id, title, description, photo_url, view_mode)
-       VALUES (?, ?, ?, ?, ?, ?)
+      `INSERT INTO POST (owner_id, record_id, title, description, photo_url, view_mode, club_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?)
        RETURNING *`,
     );
     return stmt.get(
@@ -21,7 +22,42 @@ const postRepo = {
       description ?? null,
       photo_url ?? null,
       view_mode,
+      club_id ?? null,
     );
+  },
+
+  async selectClubPosts(clubId, cursor, limit) {
+    const stmt = db.prepare(
+      `SELECT p.*, u.username, u.fullname, u.avatar_url,
+              r.activity_type, r.duration_seconds, r.distance_km, r.speed, r.s3_key
+       FROM POST p
+       JOIN USERS u ON u.user_id = p.owner_id
+       LEFT JOIN RECORD r ON r.record_id = p.record_id
+       WHERE p.club_id = ? AND p.created_at < ?
+       ORDER BY p.created_at DESC
+       LIMIT ?`,
+    );
+    return stmt.all(clubId, cursor, limit);
+  },
+
+  async selectPostById(postId) {
+    const stmt = db.prepare(`SELECT * FROM POST WHERE post_id = ?`);
+    return stmt.get(postId);
+  },
+
+  async selectPostWithAccess(postId, userId) {
+    const sql = `
+      SELECT 
+        p.*, 
+        c.privacy_type, 
+        cm.status AS membership_status
+      FROM POST p
+      LEFT JOIN CLUBS c ON p.club_id = c.club_id
+      LEFT JOIN CLUB_MEMBERS cm ON p.club_id = cm.club_id AND cm.user_id = ?
+      WHERE p.post_id = ?
+    `;
+    const stmt = db.prepare(sql);
+    return stmt.get(userId, postId);
   },
 
   async selectFeed(cursor, limit) {
@@ -31,7 +67,7 @@ const postRepo = {
        FROM POST p
        JOIN USERS u ON u.user_id = p.owner_id
        LEFT JOIN RECORD r ON r.record_id = p.record_id
-       WHERE p.created_at < ?
+       WHERE p.created_at < ? AND p.club_id IS NULL
        ORDER BY p.created_at DESC
        LIMIT ?`,
     );
@@ -48,7 +84,7 @@ const postRepo = {
        JOIN USERS u ON u.user_id = p.owner_id
        LEFT JOIN LIKE l ON l.post_id = p.post_id AND l.user_id = ?
        LEFT JOIN RECORD r ON r.record_id = p.record_id
-       WHERE f.follower_id = ? AND p.created_at < ?
+       WHERE f.follower_id = ? AND p.created_at < ? AND p.club_id IS NULL
        ORDER BY p.created_at DESC
        LIMIT ?`,
     );

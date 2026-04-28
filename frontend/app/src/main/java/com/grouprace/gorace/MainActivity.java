@@ -16,6 +16,8 @@ import com.grouprace.core.data.TokenManager;
 import com.grouprace.core.network.utils.SessionManager;
 import com.grouprace.core.system.ui.PlaceholderFragment;
 import com.grouprace.feature.login.ui.LoginViewModel;
+import com.grouprace.feature.club.ui.ClubsFragment;
+import com.grouprace.feature.profile.ui.ProfileFragment;
 import com.grouprace.feature.profile.ui.main.ProfileFragment;
 import com.grouprace.feature.login.ui.LoginFragment;
 import com.grouprace.feature.posts.ui.PostFragment;
@@ -60,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (itemId == R.id.nav_record) {
                 fragment = new NearbyRouteFragment();
             } else if (itemId == R.id.nav_clubs) {
-                fragment = new PlaceholderFragment();
+                fragment = new ClubsFragment();
             } else if (itemId == R.id.nav_you) {
                 fragment = new ProfileFragment();
             }
@@ -90,7 +92,8 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     fragment = new LoginFragment();
                 }
-            } else if (!isLoggedIn && !(currentFragment instanceof LoginFragment) && !(currentFragment instanceof RegisterFragment)) {
+            } else if (!isLoggedIn && !(currentFragment instanceof LoginFragment)
+                    && !(currentFragment instanceof RegisterFragment)) {
                 // If logged out and not on auth screens, go to login
                 fragment = new LoginFragment();
             }
@@ -137,9 +140,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void requestNotificationPermissionIfNeeded() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                        != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                ContextCompat.checkSelfPermission(this,
+                        Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[] { Manifest.permission.POST_NOTIFICATIONS },
                     NOTIFICATION_PERMISSION_REQUEST_CODE);
         }
     }

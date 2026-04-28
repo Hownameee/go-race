@@ -5,8 +5,8 @@ const postController = {
     try {
       const userId = req.user.userId;
       const newPost = await postService.createPost({
-        owner_id: userId,
         ...req.body,
+        owner_id: userId,
       });
       return res.created(newPost, 'Post created successfully.');
     } catch (error) {

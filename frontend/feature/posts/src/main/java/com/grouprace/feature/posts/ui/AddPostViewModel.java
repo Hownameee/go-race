@@ -30,7 +30,7 @@ public class AddPostViewModel extends ViewModel {
         return recordRepository.getTodayRecords();
     }
 
-    public LiveData<Result<Boolean>> createPost(String title, String description, Integer recordId) {
-        return postRepository.createPost(title, description, recordId);
+    public LiveData<Result<Boolean>> createPost(String title, String description, Integer recordId, Integer clubId) {
+        return postRepository.createPost(title, description, recordId, clubId);
     }
 }

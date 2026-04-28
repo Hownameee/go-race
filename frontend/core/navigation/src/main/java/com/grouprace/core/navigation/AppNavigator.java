@@ -27,6 +27,15 @@ public interface AppNavigator {
     void openRegister(Fragment currentFragment, String fullname, String email);
     void openRegister(Fragment currentFragment, String fullname, String email, String googleIdToken);
     void navigateToVisualEditor(Fragment currentFragment, String photoUri, String title, String distance, String time, String speed);
-    void openAddPost(Fragment currentFragment, boolean withActivity);
+    void openAddPost(Fragment currentFragment, boolean withActivity, Integer clubId);
     void setBottomNavigationVisibility(Fragment fragment, boolean visible);
+    void navigateToCreateClub(Fragment currentFragment);
+    void navigateToClubs(Fragment currentFragment);
+    void openCreateEvent(Fragment currentFragment, int clubId);
+    void openEventDetail(Fragment currentFragment, int clubId, int eventId);
+    void openClubOverview(Fragment currentFragment, int clubId);
+    void openClubEvents(Fragment currentFragment, int clubId);
+    void openClubStats(Fragment currentFragment, int clubId);
+    void openEditClub(Fragment currentFragment, int clubId);
+    void openClubDetail(Fragment currentFragment, int clubId);
 }

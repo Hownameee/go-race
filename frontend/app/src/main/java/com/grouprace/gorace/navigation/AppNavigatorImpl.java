@@ -5,8 +5,10 @@ import android.view.ViewGroup;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import com.grouprace.feature.club.ui.ClubsFragment;
 import com.grouprace.gorace.R;
 import com.grouprace.core.navigation.AppNavigator;
+import com.grouprace.feature.club.ui.CreateClubFragment;
 import com.grouprace.feature.notification.ui.NotificationFragment;
 import com.grouprace.feature.posts.ui.MyPostsFragment;
 import com.grouprace.feature.profile.ui.edit.EditProfileFragment;
@@ -28,6 +30,13 @@ import com.grouprace.feature.register.ui.RegisterFragment;
 import com.grouprace.feature.search.ui.SearchFragment;
 import com.grouprace.feature.posts.ui.AddPostFragment;
 import com.grouprace.feature.posts.ui.VisualEditorFragment;
+import com.grouprace.feature.club.ui.detail.tabs.CreateEventFragment;
+import com.grouprace.feature.club.ui.detail.tabs.EventDetailFragment;
+import com.grouprace.feature.club.ui.detail.tabs.OverviewFragment;
+import com.grouprace.feature.club.ui.detail.tabs.ClubEventsFragment;
+import com.grouprace.feature.club.ui.detail.tabs.ClubStatisticsFragment;
+import com.grouprace.feature.club.ui.detail.tabs.EditClubFragment;
+import com.grouprace.feature.club.ui.detail.ClubDetailFragment;
 
 import javax.inject.Inject;
 
@@ -165,8 +174,8 @@ public class AppNavigatorImpl implements AppNavigator {
     }
 
     @Override
-    public void openAddPost(Fragment currentFragment, boolean withActivity) {
-        navigateTo(currentFragment, AddPostFragment.newInstance(withActivity));
+    public void openAddPost(Fragment currentFragment, boolean withActivity, Integer clubId) {
+        navigateTo(currentFragment, AddPostFragment.newInstance(withActivity, clubId));
     }
 
     @Override
@@ -178,7 +187,49 @@ public class AppNavigatorImpl implements AppNavigator {
             }
         }
     }
+    @Override
+    public void navigateToCreateClub(Fragment currentFragment) {
+        navigateTo(currentFragment, new CreateClubFragment());
+    }
+    @Override
+    public void navigateToClubs(Fragment currentFragment) {
+        navigateTo(currentFragment, new ClubsFragment());
+    }
 
+    @Override
+    public void openCreateEvent(Fragment currentFragment, int clubId) {
+        navigateTo(currentFragment, CreateEventFragment.newInstance(clubId));
+    }
+
+    @Override
+    public void openEventDetail(Fragment currentFragment, int clubId, int eventId) {
+        navigateTo(currentFragment, EventDetailFragment.newInstance(clubId, eventId));
+    }
+
+    @Override
+    public void openClubOverview(Fragment currentFragment, int clubId) {
+        navigateTo(currentFragment, OverviewFragment.newInstance(clubId));
+    }
+
+    @Override
+    public void openClubEvents(Fragment currentFragment, int clubId) {
+        navigateTo(currentFragment, ClubEventsFragment.newInstance(clubId));
+    }
+
+    @Override
+    public void openClubStats(Fragment currentFragment, int clubId) {
+        navigateTo(currentFragment, ClubStatisticsFragment.newInstance(clubId));
+    }
+
+    @Override
+    public void openEditClub(Fragment currentFragment, int clubId) {
+        navigateTo(currentFragment, EditClubFragment.newInstance(clubId));
+    }
+
+    @Override
+    public void openClubDetail(Fragment currentFragment, int clubId) {
+        navigateTo(currentFragment, ClubDetailFragment.newInstance(clubId));
+    }
 
     private void navigateTo(Fragment currentFragment, Fragment targetFragment) {
         if (currentFragment != null && currentFragment.getView() != null && currentFragment.getView().getParent() != null) {

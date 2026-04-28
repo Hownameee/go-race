@@ -98,6 +98,62 @@ INSERT OR IGNORE INTO FOLLOW (follower_id, following_id) VALUES
 (5, 3);
 
 -- Insert mock notifications
+INSERT INTO NOTIFICATIONS (user_id, type, actor_id, activity_id, title, message)
+VALUES (
+    1,
+    'system',
+    NULL,
+    NULL,
+    'New Activity',
+    'Your running record has been saved'
+),
+(
+    4,
+    'system',
+    NULL,
+    NULL,
+    'New Activity',
+    'Your running record has been saved'
+);
+
+-- club mock data
+INSERT INTO CLUBS (name, description, avatar_s3_key, privacy_type, leader_id)
+VALUES 
+('Hanoi Runners', 'Nhóm chạy vui vẻ khu vực Hồ Tây, giao lưu là chính. Mỗi tuần 1 lần mại zô mại zô', 'club-avatar-image/thobaymau.jpg', 'public', 1),
+('Elite Marathoners', 'Nhóm chỉ dành cho các runners có pace dưới 5.0. Cần duyệt!', 'club-avatar-image/linux.png', 'private', 2),
+('Weekend Joggers', 'Chạy nhẹ nhàng mỗi cuối tuần để rèn luyện sức khỏe.', 'club-avatar-image/Ai.jpeg', 'public', 4);
+
+INSERT INTO CLUB_MEMBERS (club_id, user_id, role, status) VALUES 
+(1, 1, 'admin', 'approved'),
+(1, 3, 'member', 'approved'),
+(1, 4, 'member', 'approved');
+
+INSERT INTO CLUB_MEMBERS (club_id, user_id, role, status) VALUES 
+(2, 2, 'admin', 'approved'),
+(2, 1, 'admin', 'approved'),
+(2, 5, 'member', 'pending');
+
+INSERT INTO CLUB_MEMBERS (club_id, user_id, role, status) VALUES 
+(3, 4, 'admin', 'approved'),
+(3, 5, 'member', 'approved');
+
+
+INSERT INTO CLUB_EVENTS (club_id, created_by, title, description, start_time, end_time) VALUES 
+(1, 1, 'Hồ Tây Long Run', 'Chạy 1 vòng Hồ Tây 15km vào sáng Chủ Nhật tuần này nhé mọi người!', '2026-04-12 05:30:00', '2026-04-12 08:30:00'),
+(2, 2, 'April Time Trial', 'Bài test pace 5km hàng tháng. Bắt buộc có mặt!', '2026-04-15 18:00:00', '2026-04-15 19:30:00');
+
+INSERT INTO CLUB_EVENT_PARTICIPANTS (event_id, user_id) VALUES 
+(1, 1), 
+(1, 4);
+
+INSERT INTO CLUB_EVENT_PARTICIPANTS (event_id, user_id) VALUES 
+(2, 2);
+
+INSERT INTO NOTIFICATIONS (user_id, type, actor_id, activity_id, title, message)
+VALUES 
+(2, 'club_join_request', 5, 2, 'Yêu cầu tham gia', 'Nam Huynh xin gia nhập Elite Marathoners'),
+(3, 'club_event', 1, 1, 'Sự kiện mới', 'Hanoi Runners vừa tạo sự kiện: Hồ Tây Long Run'),
+(4, 'club_announcement', 1, 1, 'Thông báo quan trọng', 'Hanoi Runners: Nhắc nhở đóng quỹ');
 INSERT OR IGNORE INTO NOTIFICATIONS (
     user_id,
     type,
