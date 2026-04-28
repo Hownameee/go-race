@@ -26,6 +26,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.NotificationModel;
+import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.feature.notification.R;
 import com.grouprace.feature.notification.ui.apdater.NotificationAdapter;
 
@@ -35,18 +36,19 @@ import java.util.List;
 import com.grouprace.core.system.ui.TopAppBarConfig;
 import com.grouprace.core.system.ui.TopAppBarHelper;
 
+import javax.inject.Inject;
+
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class NotificationFragment extends Fragment {
+    @Inject
+    AppNavigator navigator;
 
     private NotificationViewModel viewModel;
     private NotificationAdapter adapter;
 
     private ProgressBar progressBar;
-
-    private Integer lastShownNotificationId = null;
-    private boolean hasHydratedInitialList = false;
 
     private TextView tvEmpty;
 
@@ -66,6 +68,17 @@ public class NotificationFragment extends Fragment {
             if (!notification.isRead()) {
                 viewModel.markAsRead(notification);
             }
+            switch (notification.getType()) {
+
+                case "follow":
+                    navigator.openUserProfile(this, notification.getActorId());
+                    break;
+
+                case "comment":
+                case "post":
+                    navigator.openCommentFragment(this, notification.getActivityId());
+                    break;
+            }
         });
 
         progressBar = view.findViewById(R.id.progressBar);
@@ -80,15 +93,15 @@ public class NotificationFragment extends Fragment {
 
     private void observeNotifications() {
         viewModel.getNotifications().observe(getViewLifecycleOwner(), result -> {
-            progressBar.setVisibility(View.VISIBLE);
-            if (result instanceof Result.Success) {
+            if (result instanceof Result.Loading) {
+                progressBar.setVisibility(View.VISIBLE);
+                tvEmpty.setVisibility(View.GONE);
+            } else if (result instanceof Result.Success) {
                 progressBar.setVisibility(View.GONE);
-
                 List<NotificationModel> notifications =
                         ((Result.Success<List<NotificationModel>>) result).data;
-
                 handleSuccessState(notifications);
-            } else {
+            } else if (result instanceof Result.Error) {
                 progressBar.setVisibility(View.GONE);
             }
         });
@@ -102,38 +115,13 @@ public class NotificationFragment extends Fragment {
                     notifications,
                     (a, b) -> a.getId() - b.getId()
             );
-            maybeShowSystemNotification(latest);
+//            maybeShowSystemNotification(latest);
             Log.d("NotificationFragment", "Notifications count: " + notifications.size());
         } else {
             adapter.submitList(Collections.emptyList());
             tvEmpty.setVisibility(View.VISIBLE);
             Log.d("NotificationFragment", "No notifications found");
         }
-    }
-    private void maybeShowSystemNotification(NotificationModel latest) {
-        if (latest == null) return;
-
-        if (!hasHydratedInitialList) {
-            hasHydratedInitialList = true;
-            lastShownNotificationId = latest.getId();
-            return;
-        }
-
-        if (lastShownNotificationId != null &&
-                latest.getId() == lastShownNotificationId) {
-            return;
-        }
-
-        lastShownNotificationId = latest.getId();
-
-        Intent intent = new Intent(requireContext(), NotificationFragment.class);
-        com.grouprace.core.notification.NotificationHelper.showNotification(
-                requireContext(),
-                latest.getId(),
-                latest.getTitle(),
-                latest.getMessage(),
-                intent
-        );
     }
 
     private TopAppBarConfig getTopAppBarConfig() {

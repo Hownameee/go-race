@@ -1,6 +1,7 @@
 package com.grouprace.gorace;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,6 +17,8 @@ import com.grouprace.core.data.TokenManager;
 import com.grouprace.core.network.utils.SessionManager;
 import com.grouprace.core.system.ui.PlaceholderFragment;
 import com.grouprace.feature.login.ui.LoginViewModel;
+import com.grouprace.feature.notification.ui.NotificationFragment;
+import com.grouprace.feature.posts.ui.CommentFragment;
 import com.grouprace.feature.profile.ui.ProfileFragment;
 import com.grouprace.feature.login.ui.LoginFragment;
 import com.grouprace.feature.posts.ui.PostFragment;
@@ -36,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
     private BottomNavigationView bottomNav;
     private MainViewModel viewModel;
+    private boolean handledIntent = false;
     private static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 101;
 
     @Override
@@ -74,6 +78,8 @@ public class MainActivity extends AppCompatActivity {
         requestNotificationPermissionIfNeeded();
 
         retryRegisterFcmToken();
+
+        handleIntent(getIntent());
     }
 
     private void observeViewModel() {
@@ -127,6 +133,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         retryRegisterFcmToken();
+
+        handleIntent(getIntent());
     }
 
     private void requestNotificationPermissionIfNeeded() {
@@ -135,6 +143,61 @@ public class MainActivity extends AppCompatActivity {
                         != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},
                     NOTIFICATION_PERMISSION_REQUEST_CODE);
+        }
+    }
+
+    private int safeParse(String value) {
+        try {
+            return (value == null || value.isEmpty())
+                    ? -1
+                    : Integer.parseInt(value);
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    private void handleIntent(Intent intent) {
+
+        if (intent == null || intent.getExtras() == null) return;
+        if (handledIntent) return;
+        handledIntent = true;
+
+        String type = intent.getStringExtra("type");
+        if (type == null) return;
+
+        int postId = safeParse(intent.getStringExtra("activity_id"));
+        int userId = safeParse(intent.getStringExtra("actor_id"));
+
+        Fragment current = getSupportFragmentManager()
+                .findFragmentById(R.id.fragment_container);
+
+        if (current == null) {
+            current = new PostFragment();
+            loadFragment(current);
+        }
+
+        switch (type) {
+
+            case "follow":
+                if (userId > 0) {
+                    loadFragment(ProfileFragment.newInstance(userId));
+                }
+                break;
+
+            case "comment":
+                if (postId > 0) {
+                    loadFragment(CommentFragment.newInstance(postId));
+                }
+                break;
+
+            case "post":
+                loadFragment(new PostFragment());
+                bottomNav.setSelectedItemId(R.id.nav_home);
+                break;
+
+            case "system":
+                loadFragment(new NotificationFragment());
+                break;
         }
     }
 

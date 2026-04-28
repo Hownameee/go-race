@@ -84,3 +84,24 @@ VALUES (
     'New Activity',
     'Your running record has been saved'
 );
+
+-- Insert mock clubs
+INSERT OR IGNORE INTO CLUBS (club_id, name, description, avatar_s3_key, privacy_type, leader_id) VALUES
+(1, 'HCMC Runners', 'Community of runners in Ho Chi Minh City', 'http://example.com/club1.jpg', 'public', 1),
+(2, 'Sunday Long Run', 'We love running long distances on weekends', 'http://example.com/club2.jpg', 'private', 2),
+(3, 'Beginner Pace', 'Start your running journey with us', 'http://example.com/club3.jpg', 'public', 3),
+(4, 'Trail Blazers', 'Trail running enthusiasts', 'http://example.com/club4.jpg', 'public', 4),
+(5, 'Speed Track', 'Intervals and speed work', 'http://example.com/club5.jpg', 'private', 1);
+
+-- Insert mock club members
+INSERT OR IGNORE INTO CLUB_MEMBERS (club_id, user_id, role, status) VALUES
+(1, 1, 'admin', 'approved'),
+(1, 2, 'member', 'approved'),
+(1, 3, 'member', 'approved'),
+(2, 2, 'admin', 'approved'),
+(2, 4, 'member', 'pending'),
+(3, 3, 'admin', 'approved'),
+(3, 1, 'member', 'approved'),
+(3, 4, 'member', 'approved'),
+(4, 4, 'admin', 'approved'),
+(4, 2, 'member', 'approved');

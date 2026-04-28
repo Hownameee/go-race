@@ -1,6 +1,7 @@
 import notificationRepository from '../repo/notification.repo.js';
 import deviceTokenService from './device-token.service.js';
 import { getFirebaseAdmin } from '../utils/firebase/admin.js';
+import userRepo from '../repo/user.repo.js';
 
 function buildPayload(data, fallbackUserId) {
   return {
@@ -45,6 +46,11 @@ const notificationService = {
     title,
     message,
   }) {
+    if (userId === actorId) return;
+    let user = null;
+    if (actorId !== null) {
+      user = userRepo.getUserById(userId);
+    }
     const id = await notificationRepository.create({
       user_id: userId,
       type,
@@ -60,9 +66,12 @@ const notificationService = {
       type,
       actor_id: actorId,
       activity_id: activityId,
+      actor_avatar_url: user ? user.actor_avatar_url : null,
       title,
       message,
     };
+
+    console.log(notification)
 
     if (type === 'system') {
       await this.sendPushAllUsers(notification);

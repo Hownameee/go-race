@@ -77,18 +77,35 @@ public class SearchFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
         adapter = new SearchAdapter(new ArrayList<>(), (userId, isFollowing) -> {
-            if (isFollowing) {
-                viewModel.unfollowUser(userId).observe(getViewLifecycleOwner(), res -> {
-                    if (res instanceof Result.Success) {
-                        adapter.updateUserStatus(userId, false);
-                    }
-                });
+            boolean isFriendsTab = tabLayout.getSelectedTabPosition() == 0;
+            if (isFriendsTab) {
+                if (isFollowing) {
+                    viewModel.unfollowUser(userId).observe(getViewLifecycleOwner(), res -> {
+                        if (res instanceof Result.Success) {
+                            adapter.updateUserStatus(userId, false);
+                        }
+                    });
+                } else {
+                    viewModel.followUser(userId).observe(getViewLifecycleOwner(), res -> {
+                        if (res instanceof Result.Success) {
+                            adapter.updateUserStatus(userId, true);
+                        }
+                    });
+                }
             } else {
-                viewModel.followUser(userId).observe(getViewLifecycleOwner(), res -> {
-                    if (res instanceof Result.Success) {
-                        adapter.updateUserStatus(userId, true);
-                    }
-                });
+                if (isFollowing) {
+                    viewModel.leaveClub(userId).observe(getViewLifecycleOwner(), res -> {
+                        if (res instanceof Result.Success) {
+                            adapter.updateUserStatus(userId, false);
+                        }
+                    });
+                } else {
+                    viewModel.joinClub(userId).observe(getViewLifecycleOwner(), res -> {
+                        if (res instanceof Result.Success) {
+                            adapter.updateUserStatus(userId, true);
+                        }
+                    });
+                }
             }
         });
 
@@ -152,7 +169,7 @@ public class SearchFragment extends Fragment {
 
             adapter.updateData(
                     state.data != null ? state.data : new ArrayList<>(),
-                    false
+                    !isFriendsTab
             );
         });
     }

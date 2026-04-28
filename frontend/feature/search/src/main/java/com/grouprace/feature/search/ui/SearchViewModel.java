@@ -105,4 +105,12 @@ public class SearchViewModel extends ViewModel {
     public LiveData<Result<Boolean>> unfollowUser(int id) {
         return repository.unfollowUser(id);
     }
+
+    public LiveData<Result<Boolean>> joinClub(int id) {
+        return repository.joinClub(id);
+    }
+
+    public LiveData<Result<Boolean>> leaveClub(int id) {
+        return repository.leaveClub(id);
+    }
 }

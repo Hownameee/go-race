@@ -5,19 +5,19 @@ import com.grouprace.core.model.UserSearchResult;
 
 public class NetworkUserSearch {
 
-    @SerializedName("user_id")
+    @SerializedName(value = "user_id", alternate = {"club_id"})
     private int userId;
 
-    @SerializedName("fullname")
+    @SerializedName(value = "fullname", alternate = {"name"})
     private String fullname;
 
-    @SerializedName("address")
+    @SerializedName(value = "address", alternate = {"description"})
     private String address;
 
-    @SerializedName("avatar_url")
+    @SerializedName(value = "avatar_url", alternate = {"avatar_s3_key"})
     private String avatarUrl;
 
-    @SerializedName("is_following")
+    @SerializedName(value = "is_following", alternate = {"is_joined"})
     private int isFollowing;
 
     public NetworkUserSearch() {}

@@ -113,6 +113,52 @@ public class SearchNetworkDataSource {
         return liveData;
     }
 
+    public LiveData<Result<Boolean>> joinClub(int clubId) {
+        MutableLiveData<Result<Boolean>> liveData = new MutableLiveData<>();
+        liveData.postValue(new Result.Loading<>());
+
+        apiService.joinClub(clubId).enqueue(new Callback<ApiResponse<Void>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    liveData.postValue(new Result.Success<>(true));
+                } else {
+                    String msg = response.body() != null ? response.body().getMessage() : "HTTP " + response.code();
+                    liveData.postValue(new Result.Error<>(new Exception(msg), msg));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
+                liveData.postValue(new Result.Error<>(new Exception(t), "Network Failure: " + t.getMessage()));
+            }
+        });
+        return liveData;
+    }
+
+    public LiveData<Result<Boolean>> leaveClub(int clubId) {
+        MutableLiveData<Result<Boolean>> liveData = new MutableLiveData<>();
+        liveData.postValue(new Result.Loading<>());
+
+        apiService.leaveClub(clubId).enqueue(new Callback<ApiResponse<Void>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    liveData.postValue(new Result.Success<>(true));
+                } else {
+                    String msg = response.body() != null ? response.body().getMessage() : "HTTP " + response.code();
+                    liveData.postValue(new Result.Error<>(new Exception(msg), msg));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
+                liveData.postValue(new Result.Error<>(new Exception(t), "Network Failure: " + t.getMessage()));
+            }
+        });
+        return liveData;
+    }
+
     /**
      * Helper class để tái sử dụng logic xử lý Callback cho danh sách kết quả (User/Club).
      */

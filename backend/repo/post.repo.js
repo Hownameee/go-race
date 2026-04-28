@@ -236,6 +236,27 @@ const postRepo = {
     );
     return stmt.all(currentUserId, commentId, cursor, limit);
   },
+
+  async getPostOwner(postId) {
+    const stmt = db.prepare(
+      `SELECT owner_id FROM POST WHERE post_id = ?`
+    );
+    return stmt.get(postId);
+  },
+
+  async getCommentOwner(commentId) {
+    const stmt = db.prepare(
+      `SELECT user_id FROM COMMENT WHERE comment_id = ?`
+    );
+    return stmt.get(commentId);
+  },
+
+  async getPostFromCommentId(commentId) {
+    const stmt = db.prepare(
+      `SELECT post_id FROM COMMENT WHERE comment_id = ?`
+    );
+    return stmt.get(commentId);
+  },
 };
 
 export default postRepo;

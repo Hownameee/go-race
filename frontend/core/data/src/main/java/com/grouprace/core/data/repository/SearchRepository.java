@@ -39,4 +39,8 @@ public interface SearchRepository {
      * Lấy danh sách câu lạc bộ gợi ý (Popular/Local Clubs).
      */
     LiveData<Result<List<UserSearchResult>>> getSuggestedClubs();
+
+    LiveData<Result<Boolean>> joinClub(int clubId);
+
+    LiveData<Result<Boolean>> leaveClub(int clubId);
 }
