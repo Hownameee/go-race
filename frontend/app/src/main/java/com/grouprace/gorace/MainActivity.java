@@ -15,27 +15,28 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.data.TokenManager;
 import com.grouprace.core.network.utils.SessionManager;
-import com.grouprace.core.system.ui.PlaceholderFragment;
 import com.grouprace.feature.login.ui.LoginViewModel;
 import com.grouprace.feature.notification.ui.NotificationFragment;
 import com.grouprace.feature.posts.ui.CommentFragment;
+import com.grouprace.feature.club.ui.ClubsFragment;
 import com.grouprace.feature.profile.ui.ProfileFragment;
 import com.grouprace.feature.login.ui.LoginFragment;
 import com.grouprace.feature.posts.ui.PostFragment;
-import com.grouprace.feature.records.list.ui.RecordsFragment;
 import com.grouprace.feature.register.ui.RegisterFragment;
 import com.grouprace.feature.tracking.ui.NearbyRouteFragment;
-import com.grouprace.feature.tracking.ui.TrackingFragment;
 import com.grouprace.feature.map.ui.DrawRouteFragment;
 import androidx.core.splashscreen.SplashScreen;
 import androidx.lifecycle.ViewModelProvider;
 
-import dagger.hilt.android.AndroidEntryPoint;
+import javax.inject.Inject;
 
-import androidx.core.splashscreen.SplashScreen;
+import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class MainActivity extends AppCompatActivity {
+
+    @Inject
+    SessionManager sessionManager;
 
     private BottomNavigationView bottomNav;
     private MainViewModel viewModel;
@@ -62,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (itemId == R.id.nav_record) {
                 fragment = new NearbyRouteFragment();
             } else if (itemId == R.id.nav_clubs) {
-                fragment = new PlaceholderFragment();
+                fragment = new ClubsFragment();
             } else if (itemId == R.id.nav_you) {
                 fragment = new ProfileFragment();
             }
@@ -94,7 +95,8 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     fragment = new LoginFragment();
                 }
-            } else if (!isLoggedIn && !(currentFragment instanceof LoginFragment) && !(currentFragment instanceof RegisterFragment)) {
+            } else if (!isLoggedIn && !(currentFragment instanceof LoginFragment)
+                    && !(currentFragment instanceof RegisterFragment)) {
                 // If logged out and not on auth screens, go to login
                 fragment = new LoginFragment();
             }
@@ -111,6 +113,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void retryRegisterFcmToken() {
+        if (!sessionManager.isLoggedIn()) {
+            return;
+        }
+
         String token = TokenManager.getToken(this);
         boolean isRegistered = TokenManager.isRegistered(this);
 
@@ -139,9 +145,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void requestNotificationPermissionIfNeeded() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                        != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                ContextCompat.checkSelfPermission(this,
+                        Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[] { Manifest.permission.POST_NOTIFICATIONS },
                     NOTIFICATION_PERMISSION_REQUEST_CODE);
         }
     }

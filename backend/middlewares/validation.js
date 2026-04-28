@@ -1,7 +1,9 @@
 export default function validation(schema, source = 'body') {
   return function (req, res, next) {
     try {
-      const parsedData = schema.parse(req[source]);
+      const rawData =
+        source === 'body' && req[source] === undefined ? {} : req[source];
+      const parsedData = schema.parse(rawData);
       const currentData = req[source];
 
       if (
@@ -10,9 +12,6 @@ export default function validation(schema, source = 'body') {
         parsedData &&
         typeof parsedData === 'object'
       ) {
-        Object.keys(currentData).forEach((key) => {
-          delete currentData[key];
-        });
         Object.assign(currentData, parsedData);
       } else if (source === 'body') {
         req.body = parsedData;

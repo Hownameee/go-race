@@ -4,11 +4,17 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Transformations;
 
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.model.Profile.FollowUser;
 import com.grouprace.core.model.Profile.MyProfileInfo;
 import com.grouprace.core.model.Profile.ProfileOverview;
+import com.grouprace.core.network.model.user.FollowListResponse;
+import com.grouprace.core.network.model.user.FollowUserResponse;
 import com.grouprace.core.network.model.user.MyProfileInfoPayload;
 import com.grouprace.core.network.model.user.ProfileOverviewResponse;
 import com.grouprace.core.network.source.UserDataSource;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -39,6 +45,37 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    public LiveData<Result<ProfileOverview>> getUserOverview(int userId) {
+        LiveData<Result<ProfileOverviewResponse>> networkResult = userDataSource.getUserOverview(userId);
+
+        return Transformations.map(networkResult, result -> {
+            if (result instanceof Result.Loading) {
+                return new Result.Loading<>();
+            } else if (result instanceof Result.Success) {
+                ProfileOverviewResponse response = ((Result.Success<ProfileOverviewResponse>) result).data;
+                return new Result.Success<>(mapToProfileOverview(response));
+            } else {
+                Result.Error<ProfileOverviewResponse> error = (Result.Error<ProfileOverviewResponse>) result;
+                return new Result.Error<>(error.exception, error.message);
+            }
+        });
+    }
+
+    @Override
+    public LiveData<Result<List<FollowUser>>> getFollowers(int userId) {
+        LiveData<Result<FollowListResponse>> networkResult = userDataSource.getFollowers(userId);
+
+        return Transformations.map(networkResult, result -> mapFollowListResult(result, true));
+    }
+
+    @Override
+    public LiveData<Result<List<FollowUser>>> getFollowing(int userId) {
+        LiveData<Result<FollowListResponse>> networkResult = userDataSource.getFollowing(userId);
+
+        return Transformations.map(networkResult, result -> mapFollowListResult(result, false));
+    }
+
+    @Override
     public LiveData<Result<MyProfileInfo>> getMyInfo() {
         LiveData<Result<MyProfileInfoPayload>> networkResult = userDataSource.getMyInfo();
 
@@ -56,8 +93,18 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public LiveData<Result<Void>> requestEmailChangeOtp(String newEmail) {
-        return userDataSource.requestEmailChangeOtp(newEmail);
+    public LiveData<Result<Void>> requestEmailChangeOtp() {
+        return userDataSource.requestEmailChangeOtp();
+    }
+
+    @Override
+    public LiveData<Result<Void>> verifyEmailChangeOtp(String otpCode) {
+        return userDataSource.verifyEmailChangeOtp(otpCode);
+    }
+
+    @Override
+    public LiveData<Result<Void>> requestNewEmailChangeOtp(String newEmail) {
+        return userDataSource.requestNewEmailChangeOtp(newEmail);
     }
 
     @Override
@@ -109,10 +156,12 @@ public class UserRepositoryImpl implements UserRepository {
                 response.getUserId(),
                 response.getFullname(),
                 response.getAvatarUrl(),
+                response.getBio(),
                 response.getCity(),
                 response.getCountry(),
                 response.getTotalFollowings(),
-                response.getTotalFollowers()
+                response.getTotalFollowers(),
+                response.isFollowing()
         );
     }
 
@@ -127,8 +176,9 @@ public class UserRepositoryImpl implements UserRepository {
                 payload.getEmail(),
                 payload.getBirthdate(),
                 payload.getAvatarUrl(),
-                payload.getNationality(),
-                payload.getAddress(),
+                payload.getBio(),
+                payload.getProvinceCity(),
+                payload.getCountry(),
                 payload.getHeightCm(),
                 payload.getWeightKg()
         );
@@ -145,10 +195,49 @@ public class UserRepositoryImpl implements UserRepository {
                 profileInfo.getEmail(),
                 profileInfo.getBirthdate(),
                 profileInfo.getAvatarUrl(),
-                profileInfo.getNationality(),
-                profileInfo.getAddress(),
+                profileInfo.getBio(),
+                profileInfo.getProvinceCity(),
+                profileInfo.getCountry(),
                 profileInfo.getHeightCm(),
                 profileInfo.getWeightKg()
         );
+    }
+
+    private Result<List<FollowUser>> mapFollowListResult(Result<FollowListResponse> result, boolean followersTab) {
+        if (result instanceof Result.Loading) {
+            return new Result.Loading<>();
+        } else if (result instanceof Result.Success) {
+            FollowListResponse response = ((Result.Success<FollowListResponse>) result).data;
+            return new Result.Success<>(mapToFollowUsers(response, followersTab));
+        } else {
+            Result.Error<FollowListResponse> error = (Result.Error<FollowListResponse>) result;
+            return new Result.Error<>(error.exception, error.message);
+        }
+    }
+
+    private List<FollowUser> mapToFollowUsers(FollowListResponse response, boolean followersTab) {
+        List<FollowUser> users = new ArrayList<>();
+        if (response == null) {
+            return users;
+        }
+
+        List<FollowUserResponse> source = followersTab ? response.getFollowers() : response.getFollowing();
+        if (source == null) {
+            return users;
+        }
+
+        for (FollowUserResponse item : source) {
+            if (item == null) {
+                continue;
+            }
+            users.add(new FollowUser(
+                    item.getUserId(),
+                    item.getUsername(),
+                    item.getFullname(),
+                    item.getAvatarUrl(),
+                    item.getCreatedAt()
+            ));
+        }
+        return users;
     }
 }

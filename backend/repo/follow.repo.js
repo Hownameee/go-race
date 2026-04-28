@@ -15,6 +15,15 @@ const followRepo = {
     return stmt.run(followerId, followingId);
   },
 
+  async existsFollow(followerId, followingId) {
+    const stmt = db.prepare(
+      `SELECT 1 AS is_following
+         FROM FOLLOW
+        WHERE follower_id = ? AND following_id = ?`,
+    );
+    return stmt.get(followerId, followingId);
+  },
+
   async selectFollowers(userId, cursor, limit) {
     let sql = `
       SELECT u.user_id, u.username, u.fullname, u.avatar_url, f.created_at

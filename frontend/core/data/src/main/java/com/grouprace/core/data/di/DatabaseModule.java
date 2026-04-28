@@ -6,10 +6,13 @@ import androidx.room.Room;
 
 import com.grouprace.core.data.AppDatabase;
 import com.grouprace.core.data.dao.NotificationDao;
+import com.grouprace.core.data.dao.ClubDao;
 import com.grouprace.core.data.dao.RecordDao;
 import com.grouprace.core.data.dao.RoutePointDao;
 import com.grouprace.core.data.dao.UserRouteDao;
 import com.grouprace.core.data.dao.PostDao;
+import com.grouprace.core.data.dao.ClubAdminDao;
+import com.grouprace.core.data.dao.EventDao;
 
 import dagger.Module;
 import dagger.Provides;
@@ -29,8 +32,7 @@ public class DatabaseModule {
         return Room.databaseBuilder(
                 context,
                 AppDatabase.class,
-                "gorace.db"
-        ).fallbackToDestructiveMigration().build();
+                "gorace.db").fallbackToDestructiveMigration().build();
     }
 
     @Provides
@@ -42,7 +44,7 @@ public class DatabaseModule {
     public RecordDao provideRecordDao(AppDatabase appDatabase) {
         return appDatabase.recordDao();
     }
-    
+
     @Provides
     public PostDao providePostDao(AppDatabase appDatabase) {
         return appDatabase.postDao();
@@ -56,5 +58,20 @@ public class DatabaseModule {
     @Provides
     public NotificationDao provideNotificationDao(AppDatabase appDatabase) {
         return appDatabase.notificationDao();
+    }
+
+    @Provides
+    public ClubDao provideClubDao(AppDatabase appDatabase) {
+        return appDatabase.clubDao();
+    }
+
+    @Provides
+    public ClubAdminDao provideClubAdminDao(AppDatabase appDatabase) {
+        return appDatabase.clubAdminDao();
+    }
+
+    @Provides
+    public EventDao provideEventDao(AppDatabase appDatabase) {
+        return appDatabase.eventDao();
     }
 }

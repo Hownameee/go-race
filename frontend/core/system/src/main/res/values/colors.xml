@@ -4,6 +4,8 @@
     <color name="white">#FFFFFF</color>
 
     <color name="surface_dark">#1A1A1A</color>
+    <color name="surface_dark_card">#1E1E1E</color>
+    <color name="deep_dark_bg">#121212</color>
     <color name="surface_medium">#282828</color>
 
     <color name="text_primary">#FFFFFF</color>
@@ -11,4 +13,5 @@
     <color name="text_tertiary">#7A7A7A</color>
 
     <color name="error_red">#FF5252</color>
+    <color name="cyan_accent">#00DFB6</color>
 </resources>

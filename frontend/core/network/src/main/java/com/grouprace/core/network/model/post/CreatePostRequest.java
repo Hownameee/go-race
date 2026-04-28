@@ -22,6 +22,9 @@ public class CreatePostRequest {
     @SerializedName("view_mode")
     private String viewMode;
 
+    @SerializedName("club_id")
+    private Integer clubId;
+
     public CreatePostRequest(int ownerId, String title, String description) {
         this.ownerId = ownerId;
         this.title = title;
@@ -46,4 +49,7 @@ public class CreatePostRequest {
 
     public String getViewMode() { return viewMode; }
     public void setViewMode(String viewMode) { this.viewMode = viewMode; }
+
+    public Integer getClubId() { return clubId; }
+    public void setClubId(Integer clubId) { this.clubId = clubId; }
 }

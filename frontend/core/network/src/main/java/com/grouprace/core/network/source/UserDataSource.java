@@ -10,10 +10,12 @@ import com.grouprace.core.network.api.UserApiService;
 import com.grouprace.core.network.model.user.AvatarUploadResponse;
 import com.grouprace.core.network.model.user.ChangePasswordPayload;
 import com.grouprace.core.network.model.user.ConfirmEmailChangePayload;
+import com.grouprace.core.network.model.user.FollowListResponse;
 import com.grouprace.core.network.model.user.MyProfileInfoPayload;
 import com.grouprace.core.network.model.user.ProfileOverviewResponse;
-import com.grouprace.core.network.model.user.RequestEmailOtpPayload;
+import com.grouprace.core.network.model.user.RequestNewEmailOtpPayload;
 import com.grouprace.core.network.model.user.ResetPasswordWithOtpPayload;
+import com.grouprace.core.network.model.user.VerifyEmailOtpPayload;
 import com.grouprace.core.network.model.user.VerifyCurrentPasswordPayload;
 import com.grouprace.core.network.utils.ApiResponse;
 
@@ -27,6 +29,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class UserDataSource {
+    private static final int FOLLOW_LIST_LIMIT = 100;
     private final UserApiService apiService;
 
     @Inject
@@ -64,6 +67,88 @@ public class UserDataSource {
             @Override
             public void onFailure(Call<ApiResponse<ProfileOverviewResponse>> call, Throwable t) {
                 Log.e("UserDataSource", "Overview Network Failure: " + t.getMessage(), t);
+                Exception exception = (t instanceof Exception) ? (Exception) t : new Exception(t);
+                liveData.postValue(new Result.Error<>(exception, "Network Failure: " + t.getMessage()));
+            }
+        });
+
+        return liveData;
+    }
+
+    public LiveData<Result<ProfileOverviewResponse>> getUserOverview(int userId) {
+        MutableLiveData<Result<ProfileOverviewResponse>> liveData = new MutableLiveData<>();
+        liveData.postValue(new Result.Loading<>());
+
+        apiService.getUserOverview(userId).enqueue(new Callback<ApiResponse<ProfileOverviewResponse>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<ProfileOverviewResponse>> call,
+                                   Response<ApiResponse<ProfileOverviewResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<ProfileOverviewResponse> apiResponse = response.body();
+
+                    if (apiResponse.isSuccess() && apiResponse.getData() != null) {
+                        liveData.postValue(new Result.Success<>(apiResponse.getData()));
+                    } else {
+                        String msg = apiResponse.getMessage() != null
+                                ? apiResponse.getMessage()
+                                : "Load user profile overview failed.";
+                        Log.e("UserDataSource", "User Overview API Failed: " + msg);
+                        liveData.postValue(new Result.Error<>(new Exception(msg), msg));
+                    }
+                } else {
+                    String errorMessage = "HTTP Error: " + response.code() + " " + response.message();
+                    Log.e("UserDataSource", errorMessage);
+                    liveData.postValue(new Result.Error<>(new Exception(errorMessage), errorMessage));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<ProfileOverviewResponse>> call, Throwable t) {
+                Log.e("UserDataSource", "User Overview Network Failure: " + t.getMessage(), t);
+                Exception exception = (t instanceof Exception) ? (Exception) t : new Exception(t);
+                liveData.postValue(new Result.Error<>(exception, "Network Failure: " + t.getMessage()));
+            }
+        });
+
+        return liveData;
+    }
+
+    public LiveData<Result<FollowListResponse>> getFollowers(int userId) {
+        MutableLiveData<Result<FollowListResponse>> liveData = new MutableLiveData<>();
+        liveData.postValue(new Result.Loading<>());
+
+        apiService.getFollowers(userId, FOLLOW_LIST_LIMIT).enqueue(new Callback<ApiResponse<FollowListResponse>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<FollowListResponse>> call,
+                                   Response<ApiResponse<FollowListResponse>> response) {
+                handleFollowListResponse(liveData, response, "Load followers failed.");
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<FollowListResponse>> call, Throwable t) {
+                Log.e("UserDataSource", "Followers Network Failure: " + t.getMessage(), t);
+                Exception exception = (t instanceof Exception) ? (Exception) t : new Exception(t);
+                liveData.postValue(new Result.Error<>(exception, "Network Failure: " + t.getMessage()));
+            }
+        });
+
+        return liveData;
+    }
+
+    public LiveData<Result<FollowListResponse>> getFollowing(int userId) {
+        MutableLiveData<Result<FollowListResponse>> liveData = new MutableLiveData<>();
+        liveData.postValue(new Result.Loading<>());
+
+        apiService.getFollowing(userId, FOLLOW_LIST_LIMIT).enqueue(new Callback<ApiResponse<FollowListResponse>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<FollowListResponse>> call,
+                                   Response<ApiResponse<FollowListResponse>> response) {
+                handleFollowListResponse(liveData, response, "Load following failed.");
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<FollowListResponse>> call, Throwable t) {
+                Log.e("UserDataSource", "Following Network Failure: " + t.getMessage(), t);
                 Exception exception = (t instanceof Exception) ? (Exception) t : new Exception(t);
                 liveData.postValue(new Result.Error<>(exception, "Network Failure: " + t.getMessage()));
             }
@@ -110,9 +195,19 @@ public class UserDataSource {
         return liveData;
     }
 
-    public LiveData<Result<Void>> requestEmailChangeOtp(String newEmail) {
-        return executeVoidCall(apiService.requestEmailChangeOtp(new RequestEmailOtpPayload(newEmail)),
+    public LiveData<Result<Void>> requestEmailChangeOtp() {
+        return executeVoidCall(apiService.requestEmailChangeOtp(),
                 "Request email OTP failed.");
+    }
+
+    public LiveData<Result<Void>> verifyEmailChangeOtp(String otpCode) {
+        return executeVoidCall(apiService.verifyEmailChangeOtp(new VerifyEmailOtpPayload(otpCode)),
+                "Verify email OTP failed.");
+    }
+
+    public LiveData<Result<Void>> requestNewEmailChangeOtp(String newEmail) {
+        return executeVoidCall(apiService.requestNewEmailChangeOtp(new RequestNewEmailOtpPayload(newEmail)),
+                "Request new email OTP failed.");
     }
 
     public LiveData<Result<Void>> confirmEmailChange(String newEmail, String otpCode) {
@@ -244,5 +339,29 @@ public class UserDataSource {
         });
 
         return liveData;
+    }
+
+    private void handleFollowListResponse(
+            MutableLiveData<Result<FollowListResponse>> liveData,
+            Response<ApiResponse<FollowListResponse>> response,
+            String fallbackMessage
+    ) {
+        if (response.isSuccessful() && response.body() != null) {
+            ApiResponse<FollowListResponse> apiResponse = response.body();
+
+            if (apiResponse.isSuccess() && apiResponse.getData() != null) {
+                liveData.postValue(new Result.Success<>(apiResponse.getData()));
+            } else {
+                String msg = apiResponse.getMessage() != null
+                        ? apiResponse.getMessage()
+                        : fallbackMessage;
+                Log.e("UserDataSource", "Follow List API Failed: " + msg);
+                liveData.postValue(new Result.Error<>(new Exception(msg), msg));
+            }
+        } else {
+            String errorMessage = "HTTP Error: " + response.code() + " " + response.message();
+            Log.e("UserDataSource", errorMessage);
+            liveData.postValue(new Result.Error<>(new Exception(errorMessage), errorMessage));
+        }
     }
 }

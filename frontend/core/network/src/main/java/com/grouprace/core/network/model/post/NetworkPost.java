@@ -29,6 +29,9 @@ public class NetworkPost {
     @SerializedName("comment_count")
     private int commentCount;
 
+    @SerializedName("is_liked")
+    private int isLiked;
+
     @SerializedName("view_mode")
     private String viewMode;
 
@@ -59,6 +62,9 @@ public class NetworkPost {
     @SerializedName("record_image_url")
     private String recordImageUrl;
 
+    @SerializedName("club_id")
+    private Integer clubId;
+
     public NetworkPost() {}
 
     public int getPostId() { return postId; }
@@ -84,6 +90,9 @@ public class NetworkPost {
 
     public int getCommentCount() { return commentCount; }
     public void setCommentCount(int commentCount) { this.commentCount = commentCount; }
+
+    public int getIsLiked() { return isLiked; }
+    public void setIsLiked(int isLiked) { this.isLiked = isLiked; }
 
     public String getViewMode() { return viewMode; }
     public void setViewMode(String viewMode) { this.viewMode = viewMode; }
@@ -116,10 +125,12 @@ public class NetworkPost {
     public void setRecordImageUrl(String recordImageUrl) { this.recordImageUrl = recordImageUrl; }
 
     public Post asExternalModel() {
-        return new Post(
+        Post post = new Post(
             postId, recordId, ownerId, title, description, photoUrl,
             likeCount, commentCount, viewMode, createdAt, username, fullName, profilePictureUrl,
-            activityType, durationSeconds, distanceKm, speed, recordImageUrl
+            activityType, durationSeconds, distanceKm, speed, recordImageUrl, clubId
         );
+        post.setLiked(isLiked == 1);
+        return post;
     }
 }

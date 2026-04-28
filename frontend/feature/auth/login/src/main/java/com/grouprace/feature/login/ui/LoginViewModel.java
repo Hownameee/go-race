@@ -1,11 +1,14 @@
 package com.grouprace.feature.login.ui;
 
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.data.repository.AuthRepository;
+import com.grouprace.core.network.model.auth.GoogleAuthPayload;
+import com.grouprace.core.network.model.auth.GoogleAuthResponse;
 import com.grouprace.core.network.model.auth.LoginPayload;
 
 import javax.inject.Inject;
@@ -15,11 +18,18 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 public class LoginViewModel extends ViewModel {
 
     private final MutableLiveData<String> toastMessage = new MutableLiveData<>();
+    private final MediatorLiveData<Result<GoogleAuthResponse>> googleAuthState = new MediatorLiveData<>();
+
     public LiveData<String> getToastMessage() {
         return toastMessage;
     }
 
+    public LiveData<Result<GoogleAuthResponse>> getGoogleAuthState() {
+        return googleAuthState;
+    }
+
     private final AuthRepository repository;
+
 
     @Inject
     public LoginViewModel(AuthRepository repository) {
@@ -36,6 +46,26 @@ public class LoginViewModel extends ViewModel {
         LoginPayload payload = new LoginPayload(email, password);
 
         return repository.login(payload);
+    }
+
+    public void onGoogleIdTokenReceived(String idToken) {
+        if (idToken == null || idToken.isEmpty()) {
+            googleAuthState.setValue(
+                    new Result.Error<>(new IllegalArgumentException("Missing Google ID token"),
+                            "Google ID token is missing!")
+            );
+            return;
+        }
+
+        LiveData<Result<GoogleAuthResponse>> source =
+                repository.googleAuth(new GoogleAuthPayload(idToken));
+
+        googleAuthState.addSource(source, result -> {
+            googleAuthState.setValue(result);
+            if (!(result instanceof Result.Loading)) {
+                googleAuthState.removeSource(source);
+            }
+        });
     }
 
     public LiveData<Result<Boolean>>  registerDeviceToken(String token) {

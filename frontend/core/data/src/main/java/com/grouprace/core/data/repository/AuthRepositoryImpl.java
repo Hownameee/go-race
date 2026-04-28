@@ -1,11 +1,15 @@
 package com.grouprace.core.data.repository;
 
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 
+import android.util.Log;
+
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.network.model.auth.GoogleAuthPayload;
+import com.grouprace.core.network.model.auth.GoogleAuthResponse;
 import com.grouprace.core.network.model.auth.LoginPayload;
+import com.grouprace.core.network.model.auth.LoginResponse;
 import com.grouprace.core.network.model.auth.RegisterPayload;
 import com.grouprace.core.network.source.AuthDataSource;
 import com.grouprace.core.network.utils.SessionManager;
@@ -16,14 +20,11 @@ public class AuthRepositoryImpl implements AuthRepository {
 
     private final AuthDataSource authNetworkDataSource;
     private final SessionManager sessionManager;
-    private final MutableLiveData<Boolean> _isLoggedIn = new MutableLiveData<>();
 
-    // 2. Inject SessionManager qua Hilt thay vì dùng 'new'
     @Inject
     public AuthRepositoryImpl(AuthDataSource authNetworkDataSource, SessionManager sessionManager) {
         this.authNetworkDataSource = authNetworkDataSource;
         this.sessionManager = sessionManager;
-        this._isLoggedIn.setValue(sessionManager.isLoggedIn());
     }
 
     @Override
@@ -31,24 +32,28 @@ public class AuthRepositoryImpl implements AuthRepository {
         return authNetworkDataSource.register(payload);
     }
 
-    // 3. Đổi Result<void> thành Result<Void>
     @Override
     public LiveData<Result<Void>> login(LoginPayload payload) {
-        LiveData<Result<String>> networkResult = authNetworkDataSource.login(payload);
+        LiveData<Result<LoginResponse>> networkResult = authNetworkDataSource.login(payload);
 
         return Transformations.map(networkResult, result -> {
             if (result instanceof Result.Loading) {
                 return new Result.Loading<>();
 
             } else if (result instanceof Result.Success) {
-                String token = ((Result.Success<String>) result).data;
-                sessionManager.saveAuthToken(token);
-                _isLoggedIn.setValue(true);
+                LoginResponse response = ((Result.Success<LoginResponse>) result).data;
+                if (response == null
+                        || response.getAccessToken() == null
+                        || response.getRefreshToken() == null) {
+                    return new Result.Error<>(new IllegalStateException("Missing token response"), "Missing token response");
+                }
+
+                sessionManager.saveSession(response.getAccessToken(), response.getRefreshToken());
 
                 return new Result.Success<>(null);
 
             } else {
-                Result.Error<String> error = (Result.Error<String>) result;
+                Result.Error<LoginResponse> error = (Result.Error<LoginResponse>) result;
                 return new Result.Error<>(error.exception, error.message);
             }
         });
@@ -71,13 +76,48 @@ public class AuthRepositoryImpl implements AuthRepository {
 
     @Override
     public LiveData<Boolean> getIsLoggedIn() {
-        return _isLoggedIn;
+        return sessionManager.getLoginState();
     }
 
     @Override
     public void logout() {
         sessionManager.clearSession();
-        _isLoggedIn.setValue(false);
+    }
+
+    @Override
+    public LiveData<Result<GoogleAuthResponse>> googleAuth(GoogleAuthPayload payload) {
+        LiveData<Result<GoogleAuthResponse>> networkResult = authNetworkDataSource.googleAuth(payload);
+
+        return Transformations.map(networkResult, result -> {
+            if (result instanceof  Result.Loading) {
+                return new Result.Loading<>();
+            } else if (result instanceof Result.Success) {
+                GoogleAuthResponse response = ((Result.Success<GoogleAuthResponse>) result).data;
+
+                if (response == null) {
+                    return new Result.Error<>(new IllegalStateException("Empty Google auth response"), "Empty Google auth response");
+                }
+
+                if (response != null
+                        && response.getAccessToken() != null
+                        && !response.getAccessToken().isEmpty()
+                        && response.getRefreshToken() != null
+                        && !response.getRefreshToken().isEmpty()) {
+                  sessionManager.saveSession(response.getAccessToken(), response.getRefreshToken());
+                  Log.d("AuthRepository", "Google session saved.");
+                } else if (!response.isRequiresProfileCompletion()) {
+                    return new Result.Error<>(
+                            new IllegalStateException("Missing Google auth tokens"),
+                            "Google login succeeded but tokens were missing."
+                    );
+                }
+
+                return new Result.Success<>(response);
+            } else {
+                Result.Error<GoogleAuthResponse> error = (Result.Error<GoogleAuthResponse>) result;
+                return new Result.Error<>(error.exception, error.message);
+            }
+        });
     }
 
     @Override

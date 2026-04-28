@@ -38,10 +38,18 @@ CREATE TABLE IF NOT EXISTS USERS (
 
   -- extra information (profile)
   avatar_url TEXT,
-  nationality TEXT,
-  address TEXT, -- "street, ward, province / city, country"
+  bio TEXT,
+  province_city TEXT,
+  country TEXT,
   height_cm REAL,
   weight_kg REAL,
+
+  -- Google
+  auth_provider TEXT NOT NULL DEFAULT 'local' CHECK (
+    auth_provider IN ('local', 'google')
+  ),
+
+  google_sub TEXT UNIQUE,
 
   -- timestamps
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -185,8 +193,12 @@ CREATE TABLE IF NOT EXISTS CLUBS (
     avatar_s3_key TEXT,
     privacy_type TEXT DEFAULT 'public' CHECK (privacy_type IN ('public', 'private')), -- public: vào thẳng, private: cần duyệt (Req 5)
     leader_id INTEGER NOT NULL, -- Club Leader
-    member_count INTEGER DEFAULT 1,
+    member_count INTEGER DEFAULT 0,
     post_count INTEGER DEFAULT 0,
+    total_distance REAL DEFAULT 0,
+    total_activities INTEGER DEFAULT 0,
+    club_record_distance REAL DEFAULT 0,
+    club_record_duration INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     
@@ -198,7 +210,9 @@ CREATE TABLE IF NOT EXISTS CLUB_MEMBERS (
     club_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     role TEXT DEFAULT 'member' CHECK (role IN ('admin', 'member')),
-    status TEXT DEFAULT 'approved' CHECK (status IN ('pending', 'approved', 'rejected')), -- pending dành cho private club
+    status TEXT DEFAULT 'approved' CHECK (status IN ('pending', 'approved', 'rejected', 'left')),
+    total_distance REAL DEFAULT 0,
+    total_duration INTEGER DEFAULT 0,
     joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     
     PRIMARY KEY (club_id, user_id),
@@ -213,8 +227,13 @@ CREATE TABLE IF NOT EXISTS CLUB_EVENTS (
     created_by INTEGER NOT NULL,
     title TEXT NOT NULL,
     description TEXT,
+    target_distance REAL DEFAULT 0,
+    target_duration_seconds INTEGER DEFAULT 0,
     start_time DATETIME NOT NULL,
     end_time DATETIME,
+    participants_count INTEGER DEFAULT 0,
+    total_distance REAL DEFAULT 0,
+    total_duration_seconds INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     
     FOREIGN KEY (club_id) REFERENCES CLUBS(club_id) ON DELETE CASCADE,
@@ -224,6 +243,8 @@ CREATE TABLE IF NOT EXISTS CLUB_EVENTS (
 CREATE TABLE IF NOT EXISTS CLUB_EVENT_PARTICIPANTS (
     event_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
+    current_distance REAL DEFAULT 0,
+    current_duration_seconds INTEGER DEFAULT 0,
     joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     
     PRIMARY KEY (event_id, user_id),
@@ -264,17 +285,6 @@ BEGIN
       AND NEW.status != 'approved';
 END;
 
--- 3. Khi người dùng RỜI KHỎI club (xóa record)
-CREATE TRIGGER IF NOT EXISTS trigger_club_member_delete
-AFTER DELETE ON CLUB_MEMBERS
-WHEN OLD.status = 'approved'
-BEGIN
-    UPDATE CLUBS 
-    SET member_count = member_count - 1 
-    WHERE club_id = OLD.club_id;
-END;
-
-
 -- ==========================================
 -- TRIGGERS CHO POST_COUNT (Bảng POST)
 -- ==========================================
@@ -299,33 +309,158 @@ BEGIN
     WHERE club_id = OLD.club_id;
 END;
 
---- FTS5 extension cho search Club
-CREATE VIRTUAL TABLE IF NOT EXISTS CLUB_FTS USING FTS5(
-    name,
-    description,
-    content="CLUBS",
-    content_rowid="club_id"
-);
+CREATE TRIGGER IF NOT EXISTS trigger_record_insert_update_club_stats
+AFTER INSERT ON RECORD
+BEGIN
+    UPDATE CLUB_MEMBERS
+    SET total_distance = total_distance + COALESCE(NEW.distance_km, 0),
+        total_duration = total_duration + COALESCE(NEW.duration_seconds, 0)
+    WHERE user_id = NEW.owner_id AND status = 'approved';
 
---- Trigger khi INSERT Club mới
-CREATE TRIGGER IF NOT EXISTS CLUB_AI AFTER INSERT ON CLUBS BEGIN
-  INSERT INTO CLUB_FTS(rowid, name, description)
-  VALUES (NEW.club_id, NEW.name, NEW.description);
+    UPDATE CLUBS
+    SET total_distance = total_distance + COALESCE(NEW.distance_km, 0),
+        total_activities = total_activities + 1,
+        club_record_distance = MAX(
+            club_record_distance, 
+            (SELECT total_distance FROM CLUB_MEMBERS WHERE club_id = CLUBS.club_id AND user_id = NEW.owner_id)
+        ),
+        club_record_duration = MAX(
+            club_record_duration, 
+            (SELECT total_duration FROM CLUB_MEMBERS WHERE club_id = CLUBS.club_id AND user_id = NEW.owner_id)
+        )
+    WHERE club_id IN (
+        SELECT club_id FROM CLUB_MEMBERS WHERE user_id = NEW.owner_id AND status = 'approved'
+    );
 END;
 
---- Trigger khi DELETE Club
-CREATE TRIGGER IF NOT EXISTS CLUB_AD AFTER DELETE ON CLUBS BEGIN
-  INSERT INTO CLUB_FTS(CLUB_FTS, rowid, name, description)
-  VALUES('delete', OLD.club_id, OLD.name, OLD.description);
+DROP TRIGGER IF EXISTS trigger_record_insert_update_event_progress;
+CREATE TRIGGER trigger_record_insert_update_event_progress
+AFTER INSERT ON RECORD
+BEGIN
+    -- 1. Cập nhật tiến độ cá nhân (chỉ rows user đã join + event đang diễn ra)
+    UPDATE CLUB_EVENT_PARTICIPANTS
+    SET current_distance         = current_distance         + COALESCE(NEW.distance_km, 0),
+        current_duration_seconds = current_duration_seconds + COALESCE(NEW.duration_seconds, 0)
+    WHERE user_id = NEW.owner_id
+      AND event_id IN (
+          SELECT e.event_id
+          FROM CLUB_EVENTS e
+          WHERE datetime(NEW.start_time) >= datetime(e.start_time)
+            AND (e.end_time IS NULL OR datetime(NEW.start_time) <= datetime(e.end_time))
+      );
+
+    -- 2. Cập nhật global progress (chỉ event mà user ĐÃ join)
+    UPDATE CLUB_EVENTS
+    SET total_distance         = total_distance         + COALESCE(NEW.distance_km, 0),
+        total_duration_seconds = total_duration_seconds + COALESCE(NEW.duration_seconds, 0)
+    WHERE event_id IN (
+          SELECT ep.event_id
+          FROM CLUB_EVENT_PARTICIPANTS ep
+          JOIN CLUB_EVENTS e ON ep.event_id = e.event_id
+          WHERE ep.user_id = NEW.owner_id
+            AND datetime(NEW.start_time) >= datetime(e.start_time)
+            AND (e.end_time IS NULL OR datetime(NEW.start_time) <= datetime(e.end_time))
+      );
 END;
 
---- Trigger khi UPDATE Club (Tên hoặc Mô tả)
-CREATE TRIGGER IF NOT EXISTS CLUB_AU AFTER UPDATE ON CLUBS BEGIN
-  -- Xóa dữ liệu cũ trong chỉ mục
-  INSERT INTO CLUB_FTS(CLUB_FTS, rowid, name, description)
-  VALUES('delete', OLD.club_id, OLD.name, OLD.description);
+DROP TRIGGER IF EXISTS trigger_record_delete_update_club_stats;
+CREATE TRIGGER trigger_record_delete_update_club_stats
+AFTER DELETE ON RECORD
+BEGIN
+    UPDATE CLUB_MEMBERS
+    SET total_distance = MAX(0, total_distance - COALESCE(OLD.distance_km, 0)),
+        total_duration = MAX(0, total_duration - COALESCE(OLD.duration_seconds, 0))
+    WHERE user_id = OLD.owner_id AND status = 'approved';
 
-  -- Thêm dữ liệu mới vào chỉ mục
-  INSERT INTO CLUB_FTS(rowid, name, description)
-  VALUES (NEW.club_id, NEW.name, NEW.description);
+    UPDATE CLUBS
+    SET total_distance   = MAX(0, total_distance - COALESCE(OLD.distance_km, 0)),
+        total_activities = MAX(0, total_activities - 1)
+    WHERE club_id IN (
+        SELECT club_id FROM CLUB_MEMBERS WHERE user_id = OLD.owner_id AND status = 'approved'
+    );
 END;
+
+DROP TRIGGER IF EXISTS trigger_record_delete_update_event_progress;
+CREATE TRIGGER trigger_record_delete_update_event_progress
+AFTER DELETE ON RECORD
+BEGIN
+    UPDATE CLUB_EVENT_PARTICIPANTS
+    SET current_distance         = MAX(0, current_distance         - COALESCE(OLD.distance_km, 0)),
+        current_duration_seconds = MAX(0, current_duration_seconds - COALESCE(OLD.duration_seconds, 0))
+    WHERE user_id = OLD.owner_id
+      AND event_id IN (
+          SELECT e.event_id
+          FROM CLUB_EVENTS e
+          WHERE datetime(OLD.start_time) >= datetime(e.start_time)
+            AND (e.end_time IS NULL OR datetime(OLD.start_time) <= datetime(e.end_time))
+      );
+
+    UPDATE CLUB_EVENTS
+    SET total_distance         = MAX(0, total_distance         - COALESCE(OLD.distance_km, 0)),
+        total_duration_seconds = MAX(0, total_duration_seconds - COALESCE(OLD.duration_seconds, 0))
+    WHERE event_id IN (
+          SELECT ep.event_id
+          FROM CLUB_EVENT_PARTICIPANTS ep
+          JOIN CLUB_EVENTS e ON ep.event_id = e.event_id
+          WHERE ep.user_id = OLD.owner_id
+            AND datetime(OLD.start_time) >= datetime(e.start_time)
+            AND (e.end_time IS NULL OR datetime(OLD.start_time) <= datetime(e.end_time))
+      );
+END;
+
+CREATE TRIGGER IF NOT EXISTS trigger_club_event_participant_insert
+AFTER INSERT ON CLUB_EVENT_PARTICIPANTS
+BEGIN
+    UPDATE CLUB_EVENTS
+    SET participants_count = participants_count + 1
+    WHERE event_id = NEW.event_id;
+END;
+
+DROP TRIGGER IF EXISTS trigger_club_event_participant_delete;
+CREATE TRIGGER trigger_club_event_participant_delete
+AFTER DELETE ON CLUB_EVENT_PARTICIPANTS
+BEGIN
+    UPDATE CLUB_EVENTS
+    SET participants_count = MAX(0, participants_count - 1)
+    WHERE event_id = OLD.event_id;
+END;
+
+-- ==========================================
+-- INDEXES TỐI ƯU QUERY
+-- ==========================================
+
+-- findMyClubs: WHERE cm.user_id = ? AND cm.status = 'approved'
+CREATE INDEX IF NOT EXISTS idx_club_members_user_status
+    ON CLUB_MEMBERS(user_id, status);
+
+-- findAdmins: WHERE cm.club_id = ? AND cm.role = 'admin' AND cm.status = 'approved'
+CREATE INDEX IF NOT EXISTS idx_club_members_club_role_status
+    ON CLUB_MEMBERS(club_id, role, status);
+
+-- getClubStats leaderboard: WHERE club_id = ? AND status = 'approved' ORDER BY total_distance DESC
+CREATE INDEX IF NOT EXISTS idx_club_members_leaderboard
+    ON CLUB_MEMBERS(club_id, status, total_distance DESC);
+
+-- checkIsLeader: WHERE club_id = ? AND leader_id = ?
+CREATE INDEX IF NOT EXISTS idx_clubs_leader
+    ON CLUBS(leader_id);
+
+-- findDiscoverClubs: ORDER BY member_count DESC
+CREATE INDEX IF NOT EXISTS idx_clubs_member_count
+    ON CLUBS(member_count DESC);
+
+-- findEventsByClubId: WHERE e.club_id = ? ORDER BY created_at DESC
+CREATE INDEX IF NOT EXISTS idx_club_events_club_created
+    ON CLUB_EVENTS(club_id, created_at DESC);
+
+-- trigger & getEventStats: time-window lookup trên CLUB_EVENTS
+CREATE INDEX IF NOT EXISTS idx_club_events_time_window
+    ON CLUB_EVENTS(start_time, end_time);
+
+-- getEventStats leaderboard: WHERE event_id = ? ORDER BY current_distance DESC
+CREATE INDEX IF NOT EXISTS idx_club_event_participants_leaderboard
+    ON CLUB_EVENT_PARTICIPANTS(event_id, current_distance DESC);
+
+-- trigger event progress: WHERE user_id = ? AND event_id IN (...)
+CREATE INDEX IF NOT EXISTS idx_club_event_participants_user
+    ON CLUB_EVENT_PARTICIPANTS(user_id);

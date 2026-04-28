@@ -1,13 +1,30 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.hilt)
     alias(libs.plugins.google.services)
 }
 
+val properties = Properties()
+val localPropertiesFile = project.rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    properties.load(localPropertiesFile.inputStream())
+}
+
+fun stringBuildConfigValue(name: String, fallback: String): String {
+    val value = properties.getProperty(name)?.trim()?.trim('"') ?: fallback
+    return "\"$value\""
+}
+
 android {
     namespace = "com.grouprace.gorace"
     compileSdk {
         version = release(36)
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     defaultConfig {
@@ -18,6 +35,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "BASE_URL", stringBuildConfigValue("API_BASE_URL", "http://10.0.2.2:5000"))
     }
 
     buildTypes {
@@ -47,6 +66,7 @@ dependencies {
     implementation(project(":feature:auth:login"))
     implementation(project(":feature:profile"))
     implementation(project(":feature:notification"))
+    implementation(project(":feature:club"))
     implementation(project(":core:data"))
     implementation(project(":core:network"))
     implementation(project(":core:system"))

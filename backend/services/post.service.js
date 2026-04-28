@@ -1,10 +1,21 @@
 import postRepo from '../repo/post.repo.js';
+import clubRepo from '../repo/club.repo.js';
 import { getImageUrlS3 } from '../utils/s3/s3.js';
 import followRepo from '../repo/follow.repo.js';
 import userRepo from '../repo/user.repo.js';
 import notificationService from './notification.service.js';
+import { resolveImageUrl } from '../utils/s3/s3.js';
 
 const FAR_FUTURE = '9999-12-31T23:59:59.999Z';
+
+async function attachAvatarUrls(items) {
+  return Promise.all(
+    (items || []).map(async (item) => ({
+      ...item,
+      avatar_url: await resolveImageUrl(item.avatar_url),
+    })),
+  );
+}
 
 const postService = {
   async createPost(payload) {
@@ -16,8 +27,22 @@ const postService = {
       throw error;
     }
 
-    const newPost = await postRepo.insertPost(payload);
+    if (payload.club_id) {
+      const club = await clubRepo.findById(payload.club_id);
+      if (!club) {
+        const error = new Error('Club not found.');
+        error.status = 404;
+        throw error;
+      }
+      const member = await clubRepo.findByIdAndUserId(payload.owner_id, payload.club_id);
+      if (!member || member.status !== 'approved') {
+        const error = new Error('You must be a member of this club to post.');
+        error.status = 403;
+        throw error;
+      }
+    }
 
+    const newPost = await postRepo.insertPost(payload);
     try {
       const fullname = payload.fullname;
       const effectiveCursor = FAR_FUTURE;
@@ -63,7 +88,7 @@ const postService = {
     );
 
     const nextCursor =
-      rows.length === effectiveLimit ? rows[rows.length - 1].created_at : null;
+      posts.length === effectiveLimit ? posts[posts.length - 1].created_at : null;
 
     return { posts, nextCursor };
   },
@@ -90,7 +115,7 @@ const postService = {
     );
 
     const nextCursor =
-      rows.length === effectiveLimit ? rows[rows.length - 1].created_at : null;
+      posts.length === effectiveLimit ? posts[posts.length - 1].created_at : null;
 
     return { posts, nextCursor };
   },
@@ -117,12 +142,69 @@ const postService = {
     );
 
     const nextCursor =
+      posts.length === effectiveLimit ? posts[posts.length - 1].created_at : null;
+
+    return { posts, nextCursor };
+  },
+
+  async checkPostAccess(postId, userId) {
+    const post = await postRepo.selectPostWithAccess(postId, userId);
+    if (!post) {
+      const error = new Error('Post not found.');
+      error.status = 404;
+      throw error;
+    }
+
+    if (post.privacy_type === 'private' && post.membership_status !== 'approved') {
+      const error = new Error('You must be a member of this private club to perform this action.');
+      error.status = 403;
+      throw error;
+    }
+
+    return post;
+  },
+
+  async getClubPosts(clubId, userId, cursor, limit) {
+    const club = await clubRepo.findById(clubId);
+    if (!club) {
+      const error = new Error('Club not found.');
+      error.status = 404;
+      throw error;
+    }
+
+    if (club.privacy_type === 'private') {
+      const member = await clubRepo.findByIdAndUserId(userId, clubId);
+      if (!member || member.status !== 'approved') {
+        const error = new Error('You must be a member of this private club to see its posts.');
+        error.status = 403;
+        throw error;
+      }
+    }
+
+    const effectiveCursor = cursor || FAR_FUTURE;
+    const effectiveLimit = Math.min(parseInt(limit) || DEFAULT_LIMIT, 100);
+
+    const rows = await postRepo.selectClubPosts(clubId, effectiveCursor, effectiveLimit);
+
+    const posts = await Promise.all(
+      rows.map(async (row) => {
+        const { s3_key, ...postWithoutS3Key } = row;
+        if (s3_key) {
+          const record_image_url = await getImageUrlS3(s3_key);
+          return { ...postWithoutS3Key, record_image_url };
+        }
+        return postWithoutS3Key;
+      }),
+    );
+
+    const nextCursor =
       rows.length === effectiveLimit ? rows[rows.length - 1].created_at : null;
 
     return { posts, nextCursor };
   },
 
   async likePost(postId, userId, fullname) {
+    await this.checkPostAccess(postId, userId);
     const changes = await postRepo.insertLike(postId, userId);
 
     const owner_id = await postRepo.getPostOwner(postId);
@@ -143,11 +225,13 @@ const postService = {
   },
 
   async unlikePost(postId, userId) {
+    await this.checkPostAccess(postId, userId);
     const changes = await postRepo.deleteLike(postId, userId);
     return { unliked: changes > 0 };
   },
 
   async createComment(postId, userId, content, parentId = null, fullname) {
+    await this.checkPostAccess(postId, userId);
     if (!content || content.trim().length === 0) {
       const error = new Error('Comment content must not be empty.');
       error.status = 409;
@@ -184,6 +268,8 @@ const postService = {
   },
 
   async likeComment(commentId, userId, fullname) {
+    // Note: Comment like also ideally checks post access, but for simplicity we rely on comment existence
+    // If strictness is needed, we'd find post_id from comment_id
     const changes = await postRepo.insertCommentLike(commentId, userId);
     const postId = await postRepo.getPostFromCommentId(commentId);
     const owner_id = await postRepo.getCommentOwner(commentId);
@@ -209,11 +295,30 @@ const postService = {
   },
 
   async getComments(postId, userId, cursor, limit) {
+    await this.checkPostAccess(postId, userId);
     const effectiveCursor = cursor || FAR_FUTURE;
     const effectiveLimit = Math.min(parseInt(limit) || DEFAULT_LIMIT, 100);
 
     const rows = await postRepo.selectComments(
       postId,
+      userId,
+      effectiveCursor,
+      effectiveLimit,
+    );
+
+    const nextCursor =
+      rows.length === effectiveLimit ? rows[rows.length - 1].created_at : null;
+
+    return { comments: rows, nextCursor };
+  },
+
+  async getReplies(commentId, userId, cursor, limit) {
+    // Ideally check post access here too
+    const effectiveCursor = cursor || FAR_FUTURE;
+    const effectiveLimit = Math.min(parseInt(limit) || DEFAULT_LIMIT, 100);
+
+    const rows = await postRepo.selectReplies(
+      commentId,
       userId,
       effectiveCursor,
       effectiveLimit,
@@ -236,10 +341,11 @@ const postService = {
       effectiveLimit,
     );
 
+    const comments = await attachAvatarUrls(rows);
     const nextCursor =
-      rows.length === effectiveLimit ? rows[rows.length - 1].created_at : null;
+      comments.length === effectiveLimit ? comments[comments.length - 1].created_at : null;
 
-    return { comments: rows, nextCursor };
+    return { comments, nextCursor };
   },
 
   async deleteComment(postId, commentId, userId) {

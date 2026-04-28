@@ -40,7 +40,7 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
         for (int i = 0; i < users.size(); i++) {
             if (users.get(i).getUserId() == userId) {
                 users.get(i).setFollowing(isFollowing);
-                notifyItemChanged(i); // Chỉ vẽ lại item này
+                notifyItemChanged(i);
                 break;
             }
         }

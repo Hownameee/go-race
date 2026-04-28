@@ -33,6 +33,7 @@ import dagger.hilt.android.AndroidEntryPoint;
 public class AddPostFragment extends Fragment {
 
     public static final String ARG_WITH_ACTIVITY = "with_activity";
+    public static final String ARG_CLUB_ID = "club_id";
 
     private AddPostViewModel viewModel;
     private EditText etTitle;
@@ -45,14 +46,22 @@ public class AddPostFragment extends Fragment {
 
     private boolean withActivity;
     private Integer selectedRecordId = null;
+    private Integer clubId = null;
 
     @Inject
     AppNavigator appNavigator;
 
     public static AddPostFragment newInstance(boolean withActivity) {
+        return newInstance(withActivity, null);
+    }
+
+    public static AddPostFragment newInstance(boolean withActivity, Integer clubId) {
         AddPostFragment fragment = new AddPostFragment();
         Bundle args = new Bundle();
         args.putBoolean(ARG_WITH_ACTIVITY, withActivity);
+        if (clubId != null) {
+            args.putInt(ARG_CLUB_ID, clubId);
+        }
         fragment.setArguments(args);
         return fragment;
     }
@@ -62,6 +71,9 @@ public class AddPostFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             withActivity = getArguments().getBoolean(ARG_WITH_ACTIVITY);
+            if (getArguments().containsKey(ARG_CLUB_ID)) {
+                clubId = getArguments().getInt(ARG_CLUB_ID);
+            }
         }
         viewModel = new ViewModelProvider(this).get(AddPostViewModel.class);
     }
@@ -142,7 +154,7 @@ public class AddPostFragment extends Fragment {
             return;
         }
 
-        viewModel.createPost(title, description, selectedRecordId).observe(getViewLifecycleOwner(), result -> {
+        viewModel.createPost(title, description, selectedRecordId, clubId).observe(getViewLifecycleOwner(), result -> {
             if (result instanceof Result.Loading) {
                 // Optionally show a loading dialog or state
                 Log.d("AddPostFragment", "Publishing post...");

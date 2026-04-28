@@ -4,7 +4,9 @@ import java.util.concurrent.TimeUnit;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
+import com.grouprace.core.network.BuildConfig;
 import com.grouprace.core.network.api.DirectionsApiService;
+import com.grouprace.core.network.api.ClubApiService;
 import com.grouprace.core.network.api.NotificationApiService;
 import com.grouprace.core.network.api.RecordApiService;
 import com.grouprace.core.network.api.SearchBoxApiService;
@@ -57,7 +59,7 @@ public class NetworkModule {
     @Provides
     @Singleton
     public Retrofit provideRetrofit(OkHttpClient okHttpClient) {
-        return new Retrofit.Builder().baseUrl(BASE_URL).client(okHttpClient)
+        return new Retrofit.Builder().baseUrl(BuildConfig.BASE_URL + "/").client(okHttpClient)
                 .addConverterFactory(GsonConverterFactory.create()).build();
     }
 
@@ -124,5 +126,11 @@ public class NetworkModule {
     @Singleton
     public DirectionsApiService provideDirectionsApiService(@Named("mapbox") Retrofit retrofit) {
         return retrofit.create(DirectionsApiService.class);
+    }
+
+    @Provides
+    @Singleton
+    public ClubApiService provideClubApiService(Retrofit retrofit) {
+        return retrofit.create(ClubApiService.class);
     }
 }

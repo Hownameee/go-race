@@ -40,6 +40,15 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
+    public LiveData<List<Post>> getPostsByClubId(int clubId) {
+        return Transformations.map(postDao.getAllPostsByClubId(clubId), entities ->
+                entities.stream()
+                        .map(PostEntity::asExternalModel)
+                        .collect(Collectors.toList())
+        );
+    }
+
+    @Override
     public LiveData<Result<List<Post>>> getMyPosts(String cursor, int limit) {
         return Transformations.map(postNetworkDataSource.getMyPosts(cursor, limit), result -> {
             if (result instanceof Result.Success) {
@@ -57,10 +66,17 @@ public class PostRepositoryImpl implements PostRepository {
 
     @Override
     public LiveData<Result<Boolean>> syncPosts(String cursor, int limit) {
+        return syncInternal(postNetworkDataSource.getPosts(cursor, limit));
+    }
+
+    @Override
+    public LiveData<Result<Boolean>> syncClubPosts(int clubId, String cursor, int limit) {
+        return syncInternal(postNetworkDataSource.getClubPosts(clubId, cursor, limit));
+    }
+
+    private LiveData<Result<Boolean>> syncInternal(LiveData<Result<List<NetworkPost>>> networkCall) {
         MutableLiveData<Result<Boolean>> resultData = new MutableLiveData<>();
         resultData.postValue(new Result.Loading<>());
-
-        LiveData<Result<List<NetworkPost>>> networkCall = postNetworkDataSource.getPosts(cursor, limit);
         
         networkCall.observeForever(result -> {
             if (result instanceof Result.Success) {
@@ -75,7 +91,7 @@ public class PostRepositoryImpl implements PostRepository {
                             p.getCommentCount(), p.getViewMode(), p.getCreatedAt(),
                             p.getUsername(), p.getFullName(), p.getProfilePictureUrl(),
                             p.getActivityType(), p.getDurationSeconds(), p.getDistanceKm(),
-                            p.getSpeed(), p.getRecordImageUrl(), p.isLiked()
+                            p.getSpeed(), p.getRecordImageUrl(), p.isLiked(), p.getClubId()
                         );
                     })
                     .collect(Collectors.toList());
@@ -161,17 +177,21 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public LiveData<Result<Boolean>> createPost(String title, String description, Integer recordId) {
-        CreatePostRequest request = new CreatePostRequest(0, title, description); // ownerId will be handled by backend or auth interceptor
+    public LiveData<Result<Boolean>> createPost(String title, String description, Integer recordId, Integer clubId) {
+        CreatePostRequest request = new CreatePostRequest(0, title, description);
         request.setRecordId(recordId);
+        request.setClubId(clubId);
         
         MutableLiveData<Result<Boolean>> resultData = new MutableLiveData<>();
         resultData.postValue(new Result.Loading<>());
 
         postNetworkDataSource.createPost(request).observeForever(result -> {
             if (result instanceof Result.Success) {
-                // Trigger a sync to update the local feed with the new post
-                syncPosts(null, 1);
+                if (clubId != null) {
+                    syncClubPosts(clubId, null, 1);
+                } else {
+                    syncPosts(null, 1);
+                }
                 resultData.postValue(new Result.Success<>(true));
             } else if (result instanceof Result.Error) {
                 Result.Error<?> error = (Result.Error<?>) result;

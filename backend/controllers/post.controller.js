@@ -9,6 +9,7 @@ const postController = {
         owner_id: userId,
         fullname: fullname,
         ...req.body,
+        owner_id: userId,
       });
       return res.created(newPost, 'Post created successfully.');
     } catch (error) {

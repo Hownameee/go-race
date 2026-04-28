@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.grouprace.core.model.PlannedRoute;
 
@@ -78,6 +79,7 @@ public class TrackingFragment extends Fragment {
     private Button btnFinish;
     private Button btnRecords;
     private Button btnCompare;
+    private boolean pendingStartTracking = false;
 
     private static final long SNAP_BACK_DELAY_MS = 1000;
     private final Handler snapBackHandler = new Handler(Looper.getMainLooper());
@@ -107,6 +109,13 @@ public class TrackingFragment extends Fragment {
                 Boolean granted = result.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false);
                 if (Boolean.TRUE.equals(granted)) {
                     enableLocationTracking();
+                    if (pendingStartTracking) {
+                        pendingStartTracking = false;
+                        viewModel.startTracking();
+                    }
+                } else {
+                    pendingStartTracking = false;
+                    Toast.makeText(requireContext(), "Location permission is required to start tracking.", Toast.LENGTH_SHORT).show();
                 }
             });
 
@@ -172,6 +181,24 @@ public class TrackingFragment extends Fragment {
         }
     }
 
+    private boolean hasLocationPermission() {
+        return ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void startTrackingWithPermissionCheck() {
+        if (hasLocationPermission()) {
+            viewModel.startTracking();
+            return;
+        }
+
+        pendingStartTracking = true;
+        locationPermissionLauncher.launch(new String[]{
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+        });
+    }
+
     private void enableLocationTracking() {
         // Enable the blue location puck
         LocationComponentPlugin locationPlugin =
@@ -228,7 +255,7 @@ public class TrackingFragment extends Fragment {
     // --- Button handling ---
 
     private void setupButtons() {
-        btnStart.setOnClickListener(v -> viewModel.startTracking());
+        btnStart.setOnClickListener(v -> startTrackingWithPermissionCheck());
         btnPause.setOnClickListener(v -> viewModel.pauseTracking());
         btnResume.setOnClickListener(v -> viewModel.resumeTracking());
         btnFinish.setOnClickListener(v -> viewModel.finishTracking());
