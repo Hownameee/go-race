@@ -3,11 +3,17 @@ package com.grouprace.core.network.model.auth;
 import com.google.gson.annotations.SerializedName;
 
 public class LoginResponse {
-    @SerializedName("token")
-    private String token;
+    @SerializedName("access_token")
+    private String accessToken;
+
+    @SerializedName("refresh_token")
+    private String refreshToken;
 
     public LoginResponse() {}
 
-    public String getToken() { return token; }
-    public  void setToken(String token) { this.token = token; }
+    public String getAccessToken() { return accessToken; }
+    public void setAccessToken(String accessToken) { this.accessToken = accessToken; }
+
+    public String getRefreshToken() { return refreshToken; }
+    public void setRefreshToken(String refreshToken) { this.refreshToken = refreshToken; }
 }

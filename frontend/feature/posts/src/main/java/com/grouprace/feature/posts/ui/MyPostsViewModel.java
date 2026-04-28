@@ -43,6 +43,14 @@ public class MyPostsViewModel extends ViewModel {
         currentSource.observeForever(currentObserver);
     }
 
+    public LiveData<Result<Boolean>> likePost(int postId) {
+        return postRepository.likePost(postId);
+    }
+
+    public LiveData<Result<Boolean>> unlikePost(int postId) {
+        return postRepository.unlikePost(postId);
+    }
+
     @Override
     protected void onCleared() {
         if (currentSource != null && currentObserver != null) {

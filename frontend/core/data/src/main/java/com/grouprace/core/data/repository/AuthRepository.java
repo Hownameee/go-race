@@ -2,6 +2,8 @@ package com.grouprace.core.data.repository;
 import androidx.lifecycle.LiveData;
 
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.network.model.auth.GoogleAuthPayload;
+import com.grouprace.core.network.model.auth.GoogleAuthResponse;
 import com.grouprace.core.network.model.auth.LoginPayload;
 import com.grouprace.core.network.model.auth.LoginResponse;
 import com.grouprace.core.network.model.auth.RegisterPayload;
@@ -14,6 +16,7 @@ public interface AuthRepository {
     LiveData<Result<Void>> verifyPasswordResetOtp(String email, String otpCode);
     LiveData<Result<Void>> resetPasswordWithOtp(String email, String otpCode, String newPassword, String confirmNewPassword);
     LiveData<Boolean> getIsLoggedIn();
+    LiveData<Result<GoogleAuthResponse>> googleAuth(GoogleAuthPayload payload);
 
     LiveData<Result<Boolean>>  registerDeviceToken(String token);
     void logout();

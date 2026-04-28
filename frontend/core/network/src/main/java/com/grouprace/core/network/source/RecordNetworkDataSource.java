@@ -95,6 +95,34 @@ public class RecordNetworkDataSource {
         return liveData;
     }
 
+    public LiveData<Result<List<NetworkRecord>>> getUserRecords(int userId, int offset, int limit) {
+        MutableLiveData<Result<List<NetworkRecord>>> liveData = new MutableLiveData<>();
+        liveData.setValue(new Result.Loading<>());
+
+        apiService.getUserRecords(userId, offset, limit).enqueue(new Callback<ApiResponse<RecordPayload>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<RecordPayload>> call, Response<ApiResponse<RecordPayload>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<RecordPayload> apiResponse = response.body();
+                    if (apiResponse.isSuccess() && apiResponse.getData() != null) {
+                        liveData.postValue(new Result.Success<>(apiResponse.getData().getRecords()));
+                    } else {
+                        liveData.postValue(new Result.Error<>(null, apiResponse.getMessage()));
+                    }
+                } else {
+                    liveData.postValue(new Result.Error<>(null, "HTTP Error: " + response.code()));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<RecordPayload>> call, Throwable t) {
+                liveData.postValue(new Result.Error<>(new Exception(t), t.getMessage()));
+            }
+        });
+
+        return liveData;
+    }
+
     public LiveData<Result<NetworkRecord>> createRecord(CreateRecordRequest request) {
         MutableLiveData<Result<NetworkRecord>> liveData = new MutableLiveData<>();
         liveData.setValue(new Result.Loading<>());

@@ -35,6 +35,8 @@ dependencies {
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.mpandroidchart)
+    implementation(libs.glide)
+    implementation(libs.recyclerview)
 
     implementation(project(":core:data"))
     implementation(project(":core:model"))

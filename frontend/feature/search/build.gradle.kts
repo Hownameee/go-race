@@ -42,6 +42,7 @@ dependencies {
     implementation(project(":core:model"))
     implementation(project(":core:common"))
     implementation(project(":core:data"))
+    implementation(project(":core:navigation"))
 
     implementation("com.google.android.material:material:1.11.0")
 
