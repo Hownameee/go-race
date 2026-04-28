@@ -23,6 +23,7 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
 
     public interface OnUserActionListener {
         void onActionClick(int userId, boolean isFollowing);
+        void onProfileClick(int userId);
     }
 
     public SearchAdapter(List<UserSearchResult> users, OnUserActionListener listener) {
@@ -74,6 +75,11 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
         holder.btnFollow.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onActionClick(user.getUserId(), user.isFollowing());
+            }
+        });
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onProfileClick(user.getUserId());
             }
         });
     }

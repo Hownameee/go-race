@@ -1,7 +1,10 @@
-package com.grouprace.core.network.utils; // (Bạn có thể cân nhắc chuyển sang package com.grouprace.core.data.local cho đúng chuẩn Clean Architecture)
+package com.grouprace.core.network.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -10,68 +13,55 @@ import dagger.hilt.android.qualifiers.ApplicationContext;
 
 @Singleton
 public class SessionManager {
-    // 1. Chuyển các key thành static final để tiết kiệm bộ nhớ
     private static final String PREF_NAME = "GoRaceApp";
-    private static final String KEY_TOKEN = "Token";
-    private static final String KEY_EXPIRE_TIME = "Token_Expire_Time";
-
-    private static final long EXPIRATION_TIME_MS = 60 * 60 * 1000; // 60 phút
+    private static final String KEY_ACCESS_TOKEN = "Access_Token";
+    private static final String KEY_REFRESH_TOKEN = "Refresh_Token";
 
     private final SharedPreferences prefs;
+    private final MutableLiveData<Boolean> loginState = new MutableLiveData<>();
 
-    // 2. Thêm @Inject và @ApplicationContext cho Hilt
     @Inject
     public SessionManager(@ApplicationContext Context context) {
         this.prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        this.loginState.setValue(hasValidSession());
     }
 
-    /**
-     * Lưu Token và tự động tính toán thời gian hết hạn
-     */
-    public void saveAuthToken(String token) {
-        long expireTime = System.currentTimeMillis() + EXPIRATION_TIME_MS;
-
-        // 3. Nên gọi prefs.edit() trực tiếp khi cần lưu thay vì giữ Editor làm biến toàn cục
+    public void saveSession(String accessToken, String refreshToken) {
         prefs.edit()
-                .putString(KEY_TOKEN, token)
-                .putLong(KEY_EXPIRE_TIME, expireTime)
-                .apply();
+                .putString(KEY_ACCESS_TOKEN, accessToken)
+                .putString(KEY_REFRESH_TOKEN, refreshToken)
+                .commit();
+        loginState.postValue(true);
     }
 
-    /**
-     * Lấy Token ra. Nếu đã quá 60 phút thì tự động xóa và trả về null.
-     */
-    public String getAuthToken() {
-        long expireTime = prefs.getLong(KEY_EXPIRE_TIME, 0);
-
-        if (expireTime == 0) {
-            return null;
-        }
-
-        long currentTime = System.currentTimeMillis();
-        if (currentTime > expireTime) {
-            clearSession();
-            return null;
-        }
-
-        return prefs.getString(KEY_TOKEN, null);
+    public String getAccessToken() {
+        return prefs.getString(KEY_ACCESS_TOKEN, null);
     }
 
-    /**
-     * Xóa toàn bộ dữ liệu (Dùng khi Đăng xuất hoặc Token hết hạn)
-     */
+    public String getRefreshToken() {
+        return prefs.getString(KEY_REFRESH_TOKEN, null);
+    }
+
     public void clearSession() {
         prefs.edit()
-                .remove(KEY_TOKEN)
-                .remove(KEY_EXPIRE_TIME)
-                .apply();
-        // prefs.edit().clear().apply();
+                .remove(KEY_ACCESS_TOKEN)
+                .remove(KEY_REFRESH_TOKEN)
+                .commit();
+        loginState.postValue(false);
     }
 
-    /**
-     * Hàm tiện ích kiểm tra nhanh xem User đã đăng nhập chưa
-     */
     public boolean isLoggedIn() {
-        return getAuthToken() != null;
+        return hasValidSession();
+    }
+
+    public LiveData<Boolean> getLoginState() {
+        return loginState;
+    }
+
+    private boolean hasValidSession() {
+        String accessToken = prefs.getString(KEY_ACCESS_TOKEN, null);
+        String refreshToken = prefs.getString(KEY_REFRESH_TOKEN, null);
+        return accessToken != null && !accessToken.isEmpty()
+                && refreshToken != null && !refreshToken.isEmpty();
     }
 }

@@ -20,11 +20,14 @@ public class MyProfileInfoPayload {
     @SerializedName("avatar_url")
     private String avatarUrl;
 
-    @SerializedName("nationality")
-    private String nationality;
+    @SerializedName("bio")
+    private String bio;
 
-    @SerializedName("address")
-    private String address;
+    @SerializedName("province_city")
+    private String provinceCity;
+
+    @SerializedName("country")
+    private String country;
 
     @SerializedName("height_cm")
     private Double heightCm;
@@ -35,15 +38,16 @@ public class MyProfileInfoPayload {
     public MyProfileInfoPayload() {}
 
     public MyProfileInfoPayload(String username, String fullname, String email, String birthdate,
-                                String avatarUrl, String nationality, String address,
+                                String avatarUrl, String bio, String provinceCity, String country,
                                 Double heightCm, Double weightKg) {
         this.username = username;
         this.fullname = fullname;
         this.email = email;
         this.birthdate = birthdate;
         this.avatarUrl = avatarUrl;
-        this.nationality = nationality;
-        this.address = address;
+        this.bio = bio;
+        this.provinceCity = provinceCity;
+        this.country = country;
         this.heightCm = heightCm;
         this.weightKg = weightKg;
     }
@@ -63,11 +67,14 @@ public class MyProfileInfoPayload {
     public String getAvatarUrl() { return avatarUrl; }
     public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
 
-    public String getNationality() { return nationality; }
-    public void setNationality(String nationality) { this.nationality = nationality; }
+    public String getBio() { return bio; }
+    public void setBio(String bio) { this.bio = bio; }
 
-    public String getAddress() { return address; }
-    public void setAddress(String address) { this.address = address; }
+    public String getProvinceCity() { return provinceCity; }
+    public void setProvinceCity(String provinceCity) { this.provinceCity = provinceCity; }
+
+    public String getCountry() { return country; }
+    public void setCountry(String country) { this.country = country; }
 
     public Double getHeightCm() { return heightCm; }
     public void setHeightCm(Double heightCm) { this.heightCm = heightCm; }
@@ -84,8 +91,9 @@ public class MyProfileInfoPayload {
                 ", email='" + email + '\'' +
                 ", birthdate='" + birthdate + '\'' +
                 ", avatarUrl='" + avatarUrl + '\'' +
-                ", nationality='" + nationality + '\'' +
-                ", address='" + address + '\'' +
+                ", bio='" + bio + '\'' +
+                ", provinceCity='" + provinceCity + '\'' +
+                ", country='" + country + '\'' +
                 ", heightCm=" + heightCm +
                 ", weightKg=" + weightKg +
                 '}';

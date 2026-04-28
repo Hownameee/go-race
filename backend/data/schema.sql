@@ -38,10 +38,18 @@ CREATE TABLE IF NOT EXISTS USERS (
 
   -- extra information (profile)
   avatar_url TEXT,
-  nationality TEXT,
-  address TEXT, -- "street, ward, province / city, country"
+  bio TEXT,
+  province_city TEXT,
+  country TEXT,
   height_cm REAL,
   weight_kg REAL,
+
+  -- Google
+  auth_provider TEXT NOT NULL DEFAULT 'local' CHECK (
+    auth_provider IN ('local', 'google')
+  ),
+
+  google_sub TEXT UNIQUE,
 
   -- timestamps
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

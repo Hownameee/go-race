@@ -1,5 +1,7 @@
 import userService from '../services/user.service.js';
 import followService from '../services/follow.service.js';
+import { getImageUrlS3, uploadImageS3 } from '../utils/s3/s3.js';
+import path from 'path';
 
 const userController = {
   // getAllUsers: async function (req, res, next) {
@@ -80,10 +82,6 @@ const userController = {
       const user = await userService.getUserById(userId);
       if (!user) return res.notFound();
 
-      const city = user.address ? user.address.split(",").slice(-2, -1)[0]?.trim() || null : null;
-      const country = user.address ? user.address.split(",").slice(-1)[0]?.trim() || null : null;
-
-
       const followersCount = await followService.countFollowers(userId);
       const followingCount = await followService.countFollowings(userId);
 
@@ -91,8 +89,9 @@ const userController = {
         user_id: user.user_id,
         fullname: user.fullname,
         avatar_url: user.avatar_url,
-        city,
-        country,
+        bio: user.bio ?? null,
+        city: user.province_city ?? null,
+        country: user.country ?? null,
         total_followers: followersCount,
         total_followings: followingCount,
       };
@@ -106,6 +105,38 @@ const userController = {
         return res.notFound();
       }
       next(error);
+    }
+  },
+
+  getUserOverview: async function (req, res, next) {
+    try {
+      const currentUserId = req.user.userId;
+      const targetUserId = Number(req.params.userId);
+      const user = await userService.getUserById(targetUserId);
+      if (!user) return res.notFound();
+
+      const followersCount = await followService.countFollowers(targetUserId);
+      const followingCount = await followService.countFollowings(targetUserId);
+      const isFollowing = await followService.isFollowing(currentUserId, targetUserId);
+
+      const returnUser = {
+        user_id: user.user_id,
+        fullname: user.fullname,
+        avatar_url: user.avatar_url,
+        bio: user.bio ?? null,
+        city: user.province_city ?? null,
+        country: user.country ?? null,
+        total_followers: followersCount,
+        total_followings: followingCount,
+        is_following: isFollowing,
+      };
+
+      return res.ok(returnUser, 'User overview fetched successfully');
+    } catch (error) {
+      if (error.message === "User not found") {
+        return res.notFound();
+      }
+      return next(error);
     }
   },
 
@@ -135,12 +166,37 @@ const userController = {
   requestEmailChangeOtp: async function (req, res, next) {
     try {
       const userId = req.user.userId;
+      await userService.requestEmailChangeOtp(userId);
+      return res.ok(null, 'OTP sent to your current email successfully');
+    } catch (error) {
+      return next(error);
+    }
+  },
+  verifyEmailChangeOtp: async function (req, res, next) {
+    try {
+      const userId = req.user.userId;
+      const { otp_code } = req.body;
+      await userService.verifyEmailChangeOtp(userId, otp_code);
+      return res.ok(null, 'OTP verified successfully');
+    } catch (error) {
+      if (error.message === 'Invalid or expired OTP') {
+        return res.badRequest(null, error.message);
+      }
+      return next(error);
+    }
+  },
+  requestNewEmailChangeOtp: async function (req, res, next) {
+    try {
+      const userId = req.user.userId;
       const { new_email } = req.body;
-      await userService.requestEmailChangeOtp(userId, new_email);
-      return res.ok(null, 'OTP sent to new email successfully');
+      await userService.requestNewEmailChangeOtp(userId, new_email);
+      return res.ok(null, 'OTP sent to your new email successfully');
     } catch (error) {
       if (error.message === 'Email already exists') {
         return res.violate(null, error.message);
+      }
+      if (error.message === 'Email change verification required') {
+        return res.badRequest(null, error.message);
       }
       return next(error);
     }
@@ -154,6 +210,12 @@ const userController = {
     } catch (error) {
       if (error.message === 'Email already exists') {
         return res.violate(null, error.message);
+      }
+      if (error.message === 'Email change verification required') {
+        return res.badRequest(null, error.message);
+      }
+      if (error.message === 'New email verification required') {
+        return res.badRequest(null, error.message);
       }
       if (error.message === 'Invalid or expired OTP') {
         return res.badRequest(null, error.message);
@@ -221,9 +283,12 @@ const userController = {
   uploadMyAvatar: async function (req, res, next) {
     try {
       const userId = req.user.userId;
-      const avatarUrl = `${req.protocol}://${req.get('host')}/uploads/avatars/${req.file.filename}`;
+      const extension = path.extname(req.file.originalname || '') || '.jpg';
+      const avatarKey = `avatars/avatar-${userId}-${Date.now()}${extension}`;
 
-      await userService.updateUserById(userId, { avatarUrl });
+      await uploadImageS3(req.file.buffer, avatarKey, req.file.mimetype);
+      await userService.updateUserById(userId, { avatarUrl: avatarKey });
+      const avatarUrl = await getImageUrlS3(avatarKey);
 
       res.ok(
         { avatar_url: avatarUrl },

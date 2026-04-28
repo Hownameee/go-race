@@ -7,8 +7,11 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.network.api.AuthApiService;
+import com.grouprace.core.network.model.auth.GoogleAuthPayload;
+import com.grouprace.core.network.model.auth.GoogleAuthResponse;
 import com.grouprace.core.network.model.auth.LoginPayload;
 import com.grouprace.core.network.model.auth.LoginResponse;
+import com.grouprace.core.network.model.auth.RefreshTokenPayload;
 import com.grouprace.core.network.model.auth.RequestPasswordResetOtpPayload;
 import com.grouprace.core.network.model.auth.RegisterPayload;
 import com.grouprace.core.network.model.auth.VerifyPasswordResetOtpPayload;
@@ -16,11 +19,9 @@ import com.grouprace.core.network.model.notification.RegisterDeviceTokenRequest;
 import com.grouprace.core.network.model.user.ResetPasswordWithOtpPayload;
 import com.grouprace.core.network.utils.ApiResponse;
 
-import javax.inject.Inject;
-
 import org.json.JSONObject;
 
-import java.io.IOException;
+import javax.inject.Inject;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -35,130 +36,116 @@ public class AuthDataSource {
     }
 
     public LiveData<Result<Void>> register(RegisterPayload payload) {
-        MutableLiveData<Result<Void>> liveData = new MutableLiveData<>();
-
-        // Bắn trạng thái Loading
-        liveData.postValue(new Result.Loading<>());
-
-        // Chuyển toàn bộ callback sang ApiResponse<Void>
-        apiService.register(payload).enqueue(new Callback<ApiResponse<Void>>() {
-            @Override
-            public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    ApiResponse<Void> apiResponse = response.body();
-
-                    // Chỉ cần check isSuccess(), không cần check data nữa
-                    if (apiResponse.isSuccess()) {
-                        Log.d("AuthDataSource", "Register Success.");
-                        // Trả về null đại diện cho Void
-                        liveData.postValue(new Result.Success<>(null));
-                    } else {
-                        String msg = apiResponse.getMessage() != null ? apiResponse.getMessage() : "Registration failed.";
-                        Log.e("AuthDataSource", "Register API Failed: " + msg);
-                        liveData.postValue(new Result.Error<>(new Exception(msg), msg));
-                    }
-                } else {
-                    String errorMessage = extractErrorMessage(response, "Registration failed.");
-                    Log.e("AuthDataSource", errorMessage);
-                    liveData.postValue(new Result.Error<>(new Exception(errorMessage), errorMessage));
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
-                Log.e("AuthDataSource", "Register Network Failure: " + t.getMessage(), t);
-                Exception exception = (t instanceof Exception) ? (Exception) t : new Exception(t);
-                liveData.postValue(new Result.Error<>(exception, "Network Failure: " + t.getMessage()));
-            }
-        });
-
-        return liveData;
+        return executeCall(
+                apiService.register(payload),
+                "Registration failed.",
+                "Register",
+                ignored -> null
+        );
     }
 
-    public LiveData<Result<String>> login(LoginPayload payload) {
-        MutableLiveData<Result<String>> liveData = new MutableLiveData<>();
+    public LiveData<Result<LoginResponse>> login(LoginPayload payload) {
+        return executeCall(
+                apiService.login(payload),
+                "Login failed.",
+                "Login",
+                response -> response
+        );
+    }
 
-        // Bắn trạng thái Loading
-        liveData.postValue(new Result.Loading<>());
-
-        apiService.login(payload).enqueue(new Callback<ApiResponse<LoginResponse>>() {
-            @Override
-            public void onResponse(Call<ApiResponse<LoginResponse>> call, Response<ApiResponse<LoginResponse>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    ApiResponse<LoginResponse> apiResponse = response.body();
-
-                    if (apiResponse.isSuccess() && apiResponse.getData() != null) {
-                        Log.d("AuthDataSource", "Login Success. Token: " + apiResponse.getData().getToken());
-                        // Trả về thẳng Token chuỗi String khi Success
-                        liveData.postValue(new Result.Success<>(apiResponse.getData().getToken()));
-                    } else {
-                        String msg = apiResponse.getMessage() != null ? apiResponse.getMessage() : "Login failed.";
-                        Log.e("AuthDataSource", "Login API Failed: " + msg);
-                        liveData.postValue(new Result.Error<>(new Exception(msg), msg));
-                    }
-                } else {
-                    String errorMessage = extractErrorMessage(response, "Login failed.");
-                    Log.e("AuthDataSource", errorMessage);
-                    liveData.postValue(new Result.Error<>(new Exception(errorMessage), errorMessage));
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ApiResponse<LoginResponse>> call, Throwable t) {
-                Log.e("AuthDataSource", "Login Network Failure: " + t.getMessage(), t);
-                Exception exception = (t instanceof Exception) ? (Exception) t : new Exception(t);
-                liveData.postValue(new Result.Error<>(exception, "Network Failure: " + t.getMessage()));
-            }
-        });
-
-        return liveData;
+    public LiveData<Result<LoginResponse>> refreshToken(String refreshToken) {
+        return executeCall(
+                apiService.refreshToken(new RefreshTokenPayload(refreshToken)),
+                "Refresh token failed.",
+                "Refresh token",
+                response -> response
+        );
     }
 
     public LiveData<Result<Void>> requestPasswordResetOtp(String email) {
-        return executeVoidCall(
+        return executeCall(
                 apiService.requestPasswordResetOtp(new RequestPasswordResetOtpPayload(email)),
-                "Request password reset OTP failed."
+                "Request password reset OTP failed.",
+                "Request password reset OTP",
+                ignored -> null
         );
     }
 
     public LiveData<Result<Void>> verifyPasswordResetOtp(String email, String otpCode) {
-        return executeVoidCall(
+        return executeCall(
                 apiService.verifyPasswordResetOtp(new VerifyPasswordResetOtpPayload(email, otpCode)),
-                "Verify password reset OTP failed."
+                "Verify password reset OTP failed.",
+                "Verify password reset OTP",
+                ignored -> null
         );
     }
 
-    public LiveData<Result<Void>> resetPasswordWithOtp(String email, String otpCode, String newPassword, String confirmNewPassword) {
-        return executeVoidCall(
-                apiService.resetPasswordWithOtp(new ResetPasswordWithOtpPayload(email, otpCode, newPassword, confirmNewPassword)),
-                "Reset password failed."
+    public LiveData<Result<Void>> resetPasswordWithOtp(
+            String email,
+            String otpCode,
+            String newPassword,
+            String confirmNewPassword
+    ) {
+        return executeCall(
+                apiService.resetPasswordWithOtp(
+                        new ResetPasswordWithOtpPayload(email, otpCode, newPassword, confirmNewPassword)
+                ),
+                "Reset password failed.",
+                "Reset password",
+                ignored -> null
         );
     }
 
-    private LiveData<Result<Void>> executeVoidCall(Call<ApiResponse<Void>> call, String fallbackMessage) {
-        MutableLiveData<Result<Void>> liveData = new MutableLiveData<>();
+    public  LiveData<Result<GoogleAuthResponse>> googleAuth(GoogleAuthPayload payload) {
+        return executeCall(
+            apiService.googleAuth(payload),
+            "Google authentication failed.",
+            "Google auth",
+            response -> response
+        );
+    }
+
+    private <T, R> LiveData<Result<R>> executeCall(
+            Call<ApiResponse<T>> call,
+            String fallbackMessage,
+            String actionName,
+            DataMapper<T, R> mapper
+    ) {
+        MutableLiveData<Result<R>> liveData = new MutableLiveData<>();
         liveData.postValue(new Result.Loading<>());
 
-        call.enqueue(new Callback<ApiResponse<Void>>() {
+        call.enqueue(new Callback<ApiResponse<T>>() {
             @Override
-            public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
+            public void onResponse(Call<ApiResponse<T>> call, Response<ApiResponse<T>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    ApiResponse<Void> apiResponse = response.body();
+                    ApiResponse<T> apiResponse = response.body();
 
                     if (apiResponse.isSuccess()) {
-                        liveData.postValue(new Result.Success<>(null));
+                        R mappedData = mapper.map(apiResponse.getData());
+                        if (mappedData != null || apiResponse.getData() == null) {
+                            Log.d("AuthDataSource", actionName + " success.");
+                            liveData.postValue(new Result.Success<>(mappedData));
+                        } else {
+                            Log.e("AuthDataSource", actionName + " mapping failed: " + fallbackMessage);
+                            liveData.postValue(new Result.Error<>(new Exception(fallbackMessage), fallbackMessage));
+                        }
                     } else {
-                        String msg = apiResponse.getMessage() != null ? apiResponse.getMessage() : fallbackMessage;
+                        String msg = apiResponse.getMessage() != null
+                                ? apiResponse.getMessage()
+                                : fallbackMessage;
+                        Log.e("AuthDataSource", actionName + " API failed: " + msg);
                         liveData.postValue(new Result.Error<>(new Exception(msg), msg));
                     }
                 } else {
                     String errorMessage = extractErrorMessage(response, fallbackMessage);
+                    Log.e("AuthDataSource", actionName + " HTTP failed: " + errorMessage);
                     liveData.postValue(new Result.Error<>(new Exception(errorMessage), errorMessage));
                 }
             }
 
             @Override
-            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
+            public void onFailure(Call<ApiResponse<T>> call, Throwable t) {
+                Log.e("AuthDataSource", actionName + " network failure: " + t.getMessage(), t);
                 Exception exception = (t instanceof Exception) ? (Exception) t : new Exception(t);
                 liveData.postValue(new Result.Error<>(exception, "Network Failure: " + t.getMessage()));
             }
@@ -194,6 +181,10 @@ public class AuthDataSource {
         return fallbackMessage;
     }
 
+    private interface DataMapper<T, R> {
+        R map(T data);
+    }
+
     public LiveData<Result<Boolean>> registerDeviceToken(String token) {
         MutableLiveData<Result<Boolean>> result = new MutableLiveData<>();
         result.setValue(new Result.Loading<>());
@@ -203,20 +194,24 @@ public class AuthDataSource {
         apiService.registerDeviceToken(body).enqueue(new Callback<ApiResponse<Object>>() {
             @Override
             public void onResponse(Call<ApiResponse<Object>> call, Response<ApiResponse<Object>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    Log.d("DeviceToken", "register success=" + response.body().isSuccess());
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    Log.d("DeviceToken", "register success=true");
+                    result.postValue(new Result.Success<>(true));
                 } else {
-                    Log.e("DeviceToken", "register HTTP " + response.code() + " " + response.message());
+                    String message = extractErrorMessage(response, "Register device token failed.");
+                    Log.e("DeviceToken", "register HTTP " + response.code() + " " + message);
+                    result.postValue(new Result.Error<>(new Exception(message), message));
                 }
             }
 
             @Override
             public void onFailure(Call<ApiResponse<Object>> call, Throwable t) {
                 Log.e("DeviceToken", "register failure: " + t.getMessage());
+                Exception exception = (t instanceof Exception) ? (Exception) t : new Exception(t);
+                result.postValue(new Result.Error<>(exception, "Network Failure: " + t.getMessage()));
             }
         });
 
         return result;
     }
-
 }

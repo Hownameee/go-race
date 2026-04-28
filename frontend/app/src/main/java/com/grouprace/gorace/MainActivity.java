@@ -16,7 +16,7 @@ import com.grouprace.core.data.TokenManager;
 import com.grouprace.core.network.utils.SessionManager;
 import com.grouprace.core.system.ui.PlaceholderFragment;
 import com.grouprace.feature.login.ui.LoginViewModel;
-import com.grouprace.feature.profile.ui.ProfileFragment;
+import com.grouprace.feature.profile.ui.main.ProfileFragment;
 import com.grouprace.feature.login.ui.LoginFragment;
 import com.grouprace.feature.posts.ui.PostFragment;
 import com.grouprace.feature.records.list.ui.RecordsFragment;
@@ -27,10 +27,15 @@ import com.grouprace.feature.map.ui.DrawRouteFragment;
 
 import androidx.lifecycle.ViewModelProvider;
 
+import javax.inject.Inject;
+
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class MainActivity extends AppCompatActivity {
+
+    @Inject
+    SessionManager sessionManager;
 
     private BottomNavigationView bottomNav;
     private MainViewModel viewModel;
@@ -102,6 +107,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void retryRegisterFcmToken() {
+        if (!sessionManager.isLoggedIn()) {
+            return;
+        }
+
         String token = TokenManager.getToken(this);
         boolean isRegistered = TokenManager.isRegistered(this);
 

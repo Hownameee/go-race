@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.tabs.TabLayout;
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.core.system.ui.TopAppBarConfig;
 import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.feature.search.R;
@@ -23,10 +24,14 @@ import com.grouprace.feature.search.apdater.SearchAdapter;
 
 import java.util.ArrayList;
 
+import javax.inject.Inject;
+
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class SearchFragment extends Fragment {
+    @Inject
+    AppNavigator navigator;
 
     private SearchViewModel viewModel;
     private SearchAdapter adapter;
@@ -76,19 +81,27 @@ public class SearchFragment extends Fragment {
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        adapter = new SearchAdapter(new ArrayList<>(), (userId, isFollowing) -> {
-            if (isFollowing) {
-                viewModel.unfollowUser(userId).observe(getViewLifecycleOwner(), res -> {
-                    if (res instanceof Result.Success) {
-                        adapter.updateUserStatus(userId, false);
-                    }
-                });
-            } else {
-                viewModel.followUser(userId).observe(getViewLifecycleOwner(), res -> {
-                    if (res instanceof Result.Success) {
-                        adapter.updateUserStatus(userId, true);
-                    }
-                });
+        adapter = new SearchAdapter(new ArrayList<>(), new SearchAdapter.OnUserActionListener() {
+            @Override
+            public void onActionClick(int userId, boolean isFollowing) {
+                if (isFollowing) {
+                    viewModel.unfollowUser(userId).observe(getViewLifecycleOwner(), res -> {
+                        if (res instanceof Result.Success) {
+                            adapter.updateUserStatus(userId, false);
+                        }
+                    });
+                } else {
+                    viewModel.followUser(userId).observe(getViewLifecycleOwner(), res -> {
+                        if (res instanceof Result.Success) {
+                            adapter.updateUserStatus(userId, true);
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onProfileClick(int userId) {
+                navigator.openUserProfile(SearchFragment.this, userId);
             }
         });
 

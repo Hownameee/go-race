@@ -1,7 +1,5 @@
 package com.grouprace.core.common;
 
-import java.util.Locale;
-
 public class TimeUtils {
 
     /**
@@ -11,11 +9,13 @@ public class TimeUtils {
     public static String formatDuration(int totalSeconds) {
         if (totalSeconds <= 0) return "0s";
 
-        int hours = totalSeconds / 3600;
+        int days = totalSeconds / 86400;
+        int hours = (totalSeconds % 86400) / 3600;
         int minutes = (totalSeconds % 3600) / 60;
         int seconds = totalSeconds % 60;
 
         StringBuilder sb = new StringBuilder();
+        if (days > 0) sb.append(days).append("d ");
         if (hours > 0) sb.append(hours).append("h ");
         if (minutes > 0) sb.append(minutes).append("m ");
         if (seconds > 0) sb.append(seconds).append("s");

@@ -1,8 +1,18 @@
 import postRepo from '../repo/post.repo.js';
 import { getImageUrlS3 } from '../utils/s3/s3.js';
+import { resolveImageUrl } from '../utils/s3/s3.js';
 
 const DEFAULT_LIMIT = 20;
 const FAR_FUTURE = '9999-12-31T23:59:59.999Z';
+
+async function attachAvatarUrls(items) {
+  return Promise.all(
+    (items || []).map(async (item) => ({
+      ...item,
+      avatar_url: await resolveImageUrl(item.avatar_url),
+    })),
+  );
+}
 
 const postService = {
   async createPost(payload) {
@@ -35,7 +45,7 @@ const postService = {
     );
 
     const nextCursor =
-      rows.length === effectiveLimit ? rows[rows.length - 1].created_at : null;
+      posts.length === effectiveLimit ? posts[posts.length - 1].created_at : null;
 
     return { posts, nextCursor };
   },
@@ -62,7 +72,7 @@ const postService = {
     );
 
     const nextCursor =
-      rows.length === effectiveLimit ? rows[rows.length - 1].created_at : null;
+      posts.length === effectiveLimit ? posts[posts.length - 1].created_at : null;
 
     return { posts, nextCursor };
   },
@@ -89,7 +99,7 @@ const postService = {
     );
 
     const nextCursor =
-      rows.length === effectiveLimit ? rows[rows.length - 1].created_at : null;
+      posts.length === effectiveLimit ? posts[posts.length - 1].created_at : null;
 
     return { posts, nextCursor };
   },
@@ -156,6 +166,24 @@ const postService = {
       rows.length === effectiveLimit ? rows[rows.length - 1].created_at : null;
 
     return { comments: rows, nextCursor };
+  },
+
+  async getReplies(commentId, userId, cursor, limit) {
+    const effectiveCursor = cursor || FAR_FUTURE;
+    const effectiveLimit = Math.min(parseInt(limit) || DEFAULT_LIMIT, 100);
+
+    const rows = await postRepo.selectReplies(
+      commentId,
+      userId,
+      effectiveCursor,
+      effectiveLimit,
+    );
+
+    const comments = await attachAvatarUrls(rows);
+    const nextCursor =
+      comments.length === effectiveLimit ? comments[comments.length - 1].created_at : null;
+
+    return { comments, nextCursor };
   },
 
   async deleteComment(postId, commentId, userId) {

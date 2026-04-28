@@ -12,10 +12,9 @@ export const auth = (req, res, next) => {
     // get token
     const token = header.split(' ')[1];
 
-    // verify token
-    jwt.verify(token, config.JWT_SECRET, async (err, decoded) => {
+    jwt.verify(token, config.JWT_ACCESS_SECRET, async (err, decoded) => {
       if (err) {
-        return res.status(403).json({ message: 'Expired or invalid token' });
+        return res.status(401).json({ message: 'Expired or invalid token' });
       }
 
       req.user = decoded;

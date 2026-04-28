@@ -7,6 +7,12 @@ export const getWeeklySummarySchema = z
   })
   .strict();
 
+export const getProfileStatisticsSchema = z
+  .object({
+    activityType: z.enum(['Running', 'Walking']).optional(),
+  })
+  .strict();
+
 export const recordSchema = z.object({
   activityType: z.enum(['Walking', 'Running'], {
     errorMap: () => ({
@@ -41,4 +47,8 @@ export const recordIdSchema = z.object({
 
 export const recordUpdateSchema = z.object({
   title: z.string().max(100).optional(),
+});
+
+export const userIdSchema = z.object({
+  userId: z.coerce.number().int().positive(),
 });

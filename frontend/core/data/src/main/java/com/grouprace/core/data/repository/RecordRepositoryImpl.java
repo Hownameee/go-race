@@ -181,8 +181,7 @@ public class RecordRepositoryImpl implements RecordRepository {
                         point.getWeekStart(),
                         point.getWeekEnd(),
                         point.getTotalDistanceKm(),
-                        point.getTotalDurationSeconds(),
-                        point.getTotalElevationGainM()
+                        point.getTotalDurationSeconds()
                 ));
             }
         }
