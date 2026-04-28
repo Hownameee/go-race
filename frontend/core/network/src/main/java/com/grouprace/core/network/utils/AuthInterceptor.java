@@ -2,6 +2,10 @@ package com.grouprace.core.network.utils;
 
 import androidx.annotation.NonNull;
 
+import android.util.Log;
+
+import com.grouprace.core.network.BuildConfig;
+
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -16,7 +20,6 @@ import okhttp3.Response;
 
 public class AuthInterceptor implements Interceptor {
     private static final String REFRESH_PATH = "/api/auth/refresh-token";
-    private static final String BASE_URL = "http://192.168.2.105:5000";
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
     private final SessionManager sessionManager;
@@ -30,6 +33,8 @@ public class AuthInterceptor implements Interceptor {
     public Response intercept(Chain chain) throws IOException {
         Request originalRequest = chain.request();
         String accessToken = sessionManager.getAccessToken();
+        Log.d("AuthInterceptor", "path=" + originalRequest.url().encodedPath()
+                + ", hasAccessToken=" + (accessToken != null && !accessToken.isEmpty()));
 
         Request requestWithToken = originalRequest;
         if (accessToken != null && !accessToken.isEmpty()) {
@@ -78,7 +83,7 @@ public class AuthInterceptor implements Interceptor {
             bodyJson.put("refresh_token", refreshToken);
 
             Request refreshRequest = new Request.Builder()
-                    .url(BASE_URL + REFRESH_PATH)
+                    .url(BuildConfig.BASE_URL + REFRESH_PATH)
                     .post(RequestBody.create(bodyJson.toString(), JSON))
                     .build();
 

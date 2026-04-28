@@ -3,6 +3,8 @@ package com.grouprace.core.data.repository;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Transformations;
 
+import android.util.Log;
+
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.network.model.auth.GoogleAuthPayload;
 import com.grouprace.core.network.model.auth.GoogleAuthResponse;
@@ -102,6 +104,7 @@ public class AuthRepositoryImpl implements AuthRepository {
                         && response.getRefreshToken() != null
                         && !response.getRefreshToken().isEmpty()) {
                   sessionManager.saveSession(response.getAccessToken(), response.getRefreshToken());
+                  Log.d("AuthRepository", "Google session saved.");
                 } else if (!response.isRequiresProfileCompletion()) {
                     return new Result.Error<>(
                             new IllegalStateException("Missing Google auth tokens"),

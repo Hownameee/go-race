@@ -194,16 +194,21 @@ public class AuthDataSource {
         apiService.registerDeviceToken(body).enqueue(new Callback<ApiResponse<Object>>() {
             @Override
             public void onResponse(Call<ApiResponse<Object>> call, Response<ApiResponse<Object>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    Log.d("DeviceToken", "register success=" + response.body().isSuccess());
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    Log.d("DeviceToken", "register success=true");
+                    result.postValue(new Result.Success<>(true));
                 } else {
-                    Log.e("DeviceToken", "register HTTP " + response.code() + " " + response.message());
+                    String message = extractErrorMessage(response, "Register device token failed.");
+                    Log.e("DeviceToken", "register HTTP " + response.code() + " " + message);
+                    result.postValue(new Result.Error<>(new Exception(message), message));
                 }
             }
 
             @Override
             public void onFailure(Call<ApiResponse<Object>> call, Throwable t) {
                 Log.e("DeviceToken", "register failure: " + t.getMessage());
+                Exception exception = (t instanceof Exception) ? (Exception) t : new Exception(t);
+                result.postValue(new Result.Error<>(exception, "Network Failure: " + t.getMessage()));
             }
         });
 

@@ -4,6 +4,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
+import com.grouprace.core.network.BuildConfig;
 import com.grouprace.core.network.api.DirectionsApiService;
 import com.grouprace.core.network.api.NotificationApiService;
 import com.grouprace.core.network.api.RecordApiService;
@@ -26,8 +27,6 @@ import com.grouprace.core.network.utils.SessionManager;
 @Module
 @InstallIn(SingletonComponent.class)
 public class NetworkModule {
-    private static final String BASE_URL = "http://192.168.2.105:5000/";
-
     @Provides
     @Singleton
     public HttpLoggingInterceptor provideLoggingInterceptor() {
@@ -58,7 +57,7 @@ public class NetworkModule {
     @Provides
     @Singleton
     public Retrofit provideRetrofit(OkHttpClient okHttpClient) {
-        return new Retrofit.Builder().baseUrl(BASE_URL).client(okHttpClient)
+        return new Retrofit.Builder().baseUrl(BuildConfig.BASE_URL + "/").client(okHttpClient)
                 .addConverterFactory(GsonConverterFactory.create()).build();
     }
 

@@ -276,6 +276,11 @@ public class RegisterFragment extends Fragment {
     }
 
     private void startGoogleSignIn() {
+        if (!GoogleAuthConfig.isConfigured()) {
+            Toast.makeText(requireContext(), "Google OAuth is not configured.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
         buttonGoogleRegister.setEnabled(false);
         buttonGoogleRegister.setText("Connecting...");
 
@@ -297,6 +302,8 @@ public class RegisterFragment extends Fragment {
 
                     @Override
                     public void onError(GetCredentialException e) {
+                        Log.e("GoogleOAuth", "Credential error: "
+                                + e.getClass().getSimpleName() + " - " + e.getMessage(), e);
                         resetGoogleButtonState();
                         Toast.makeText(requireContext(), "Google sign up failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     }
