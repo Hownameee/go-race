@@ -12,7 +12,10 @@ export const googleAuthSchema = z
       .string()
       .min(3, 'Username must be at least 3 characters long')
       .max(50, 'Username cannot exceed 50 characters')
-      .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores')
+      .regex(
+        /^[a-zA-Z0-9_]+$/,
+        'Username can only contain letters, numbers, and underscores',
+      )
       .optional(),
     birthdate: z
       .string()
@@ -81,7 +84,10 @@ export const updateProfileSchema = z
     avatarUrl: z.string().url('Invalid avatar URL format').optional(),
     avatar_url: z.string().url('Invalid avatar URL format').optional(),
     provinceCity: z.string().max(100, 'Province / City is too long').optional(),
-    province_city: z.string().max(100, 'Province / City is too long').optional(),
+    province_city: z
+      .string()
+      .max(100, 'Province / City is too long')
+      .optional(),
     country: z.string().max(100, 'Country is too long').optional(),
     heightCm: z
       .number()
@@ -145,9 +151,7 @@ export const verifyCurrentPasswordSchema = z
   })
   .strict();
 
-export const requestEmailOtpSchema = z
-  .object({})
-  .strict();
+export const requestEmailOtpSchema = z.object({}).strict();
 
 export const requestNewEmailOtpSchema = z
   .object({

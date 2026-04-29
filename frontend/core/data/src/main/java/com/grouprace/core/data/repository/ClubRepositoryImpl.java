@@ -54,7 +54,7 @@ public class ClubRepositoryImpl implements ClubRepository {
 
     @Override
     public LiveData<Club> getLocalClubById(int clubId) {
-        return Transformations.map(clubDao.getClubById(clubId), ClubEntity::asExternalModel);
+        return Transformations.map(clubDao.getClubById(clubId), entity -> entity != null ? entity.asExternalModel() : null);
     }
 
 

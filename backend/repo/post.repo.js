@@ -225,7 +225,9 @@ const postRepo = {
 
   async deleteComment(postId, commentId, userId) {
     const tx = db.transaction((pId, cId, uId) => {
-      const checkStmt = db.prepare(`SELECT parent_id FROM COMMENT WHERE comment_id = ? AND post_id = ? AND user_id = ?`);
+      const checkStmt = db.prepare(
+        `SELECT parent_id FROM COMMENT WHERE comment_id = ? AND post_id = ? AND user_id = ?`,
+      );
       const commentTarget = checkStmt.get(cId, pId, uId);
       if (!commentTarget) return 0;
 
@@ -278,23 +280,17 @@ const postRepo = {
   },
 
   async getPostOwner(postId) {
-    const stmt = db.prepare(
-      `SELECT owner_id FROM POST WHERE post_id = ?`
-    );
+    const stmt = db.prepare(`SELECT owner_id FROM POST WHERE post_id = ?`);
     return stmt.get(postId);
   },
 
   async getCommentOwner(commentId) {
-    const stmt = db.prepare(
-      `SELECT user_id FROM COMMENT WHERE comment_id = ?`
-    );
+    const stmt = db.prepare(`SELECT user_id FROM COMMENT WHERE comment_id = ?`);
     return stmt.get(commentId);
   },
 
   async getPostFromCommentId(commentId) {
-    const stmt = db.prepare(
-      `SELECT post_id FROM COMMENT WHERE comment_id = ?`
-    );
+    const stmt = db.prepare(`SELECT post_id FROM COMMENT WHERE comment_id = ?`);
     return stmt.get(commentId);
   },
 };

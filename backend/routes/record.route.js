@@ -29,11 +29,7 @@ router.get(
   recordController.getMyProfileStatistics,
 );
 
-router.get(
-  '/users/:userId',
-  auth,
-  recordController.getUserRecords,
-);
+router.get('/users/:userId', auth, recordController.getUserRecords);
 
 router.get(
   '/users/:userId/weekly-summary',
@@ -66,11 +62,7 @@ router.patch(
   recordController.updateRecord,
 );
 
-router.get(
-  '/me/streak',
-  auth,
-  recordController.getMyStreak,
-);
+router.get('/me/streak', auth, recordController.getMyStreak);
 
 router.get(
   '/users/:userId/streak',

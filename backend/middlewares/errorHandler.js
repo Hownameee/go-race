@@ -21,7 +21,10 @@ export default function errorHandler(error, req, res, next) {
   }
 
   if (error?.type === 'entity.too.large') {
-    return res.badRequest(null, 'Request entity too large. Maximum allowed size is 50MB.');
+    return res.badRequest(
+      null,
+      'Request entity too large. Maximum allowed size is 50MB.',
+    );
   }
 
   if (error?.status === 400) {

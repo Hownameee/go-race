@@ -17,7 +17,9 @@ const upload = multer({
   },
   fileFilter: (req, file, cb) => {
     if (!allowedMimeTypes.has(file.mimetype)) {
-      const error = new Error('Only JPG, PNG, WEBP, HEIC, and HEIF images are allowed.');
+      const error = new Error(
+        'Only JPG, PNG, WEBP, HEIC, and HEIF images are allowed.',
+      );
       error.status = 400;
       return cb(error);
     }

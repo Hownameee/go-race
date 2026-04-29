@@ -21,7 +21,11 @@ import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.feature.search.R;
 import com.grouprace.feature.search.apdater.SearchAdapter;
 
+import com.grouprace.core.navigation.AppNavigator;
+
 import java.util.ArrayList;
+
+import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -30,6 +34,9 @@ public class SearchFragment extends Fragment {
 
     private SearchViewModel viewModel;
     private SearchAdapter adapter;
+
+    @Inject
+    AppNavigator navigator;
 
     private RecyclerView recyclerView;
     private EditText etSearch;
@@ -76,35 +83,56 @@ public class SearchFragment extends Fragment {
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        adapter = new SearchAdapter(new ArrayList<>(), (userId, isFollowing) -> {
-            boolean isFriendsTab = tabLayout.getSelectedTabPosition() == 0;
-            if (isFriendsTab) {
-                if (isFollowing) {
-                    viewModel.unfollowUser(userId).observe(getViewLifecycleOwner(), res -> {
-                        if (res instanceof Result.Success) {
-                            adapter.updateUserStatus(userId, false);
-                        }
-                    });
+        adapter = new SearchAdapter(new ArrayList<>(), new SearchAdapter.OnUserActionListener() {
+            @Override
+            public void onActionClick(int userId, boolean isFollowing) {
+                boolean isFriendsTab = tabLayout.getSelectedTabPosition() == 0;
+                if (isFriendsTab) {
+                    if (isFollowing) {
+                        viewModel.unfollowUser(userId).observe(getViewLifecycleOwner(), res -> {
+                            if (res instanceof Result.Success) {
+                                viewModel.updateItemStatus(userId, 0);
+                            }
+                        });
+                    } else {
+                        viewModel.followUser(userId).observe(getViewLifecycleOwner(), res -> {
+                            if (res instanceof Result.Success) {
+                                viewModel.updateItemStatus(userId, 1);
+                            }
+                        });
+                    }
                 } else {
-                    viewModel.followUser(userId).observe(getViewLifecycleOwner(), res -> {
-                        if (res instanceof Result.Success) {
-                            adapter.updateUserStatus(userId, true);
-                        }
-                    });
+                    if (isFollowing) {
+                        viewModel.leaveClub(userId).observe(getViewLifecycleOwner(), res -> {
+                            if (res instanceof Result.Success) {
+                                viewModel.updateItemStatus(userId, 0);
+                            }
+                        });
+                    } else {
+                        viewModel.joinClub(userId).observe(getViewLifecycleOwner(), res -> {
+                            if (res instanceof Result.Success) {
+                                String message = ((Result.Success<String>) res).data;
+                                if ("Joined".equalsIgnoreCase(message)) {
+                                    viewModel.updateItemStatus(userId, 1);
+                                } else if ("Request sent".equalsIgnoreCase(message)) {
+                                    viewModel.updateItemStatus(userId, 2);
+                                } else {
+                                    // Default fallback if message is unexpected
+                                    viewModel.updateItemStatus(userId, 1);
+                                }
+                            }
+                        });
+                    }
                 }
-            } else {
-                if (isFollowing) {
-                    viewModel.leaveClub(userId).observe(getViewLifecycleOwner(), res -> {
-                        if (res instanceof Result.Success) {
-                            adapter.updateUserStatus(userId, false);
-                        }
-                    });
+            }
+
+            @Override
+            public void onItemClick(int userId) {
+                boolean isFriendsTab = tabLayout.getSelectedTabPosition() == 0;
+                if (isFriendsTab) {
+                    navigator.openUserProfile(SearchFragment.this, userId);
                 } else {
-                    viewModel.joinClub(userId).observe(getViewLifecycleOwner(), res -> {
-                        if (res instanceof Result.Success) {
-                            adapter.updateUserStatus(userId, true);
-                        }
-                    });
+                    navigator.openClubDetail(SearchFragment.this, userId);
                 }
             }
         });
@@ -139,6 +167,13 @@ public class SearchFragment extends Fragment {
     }
 
     private void setupTabs() {
+        if (viewModel.isClubTab()) {
+            TabLayout.Tab tab = tabLayout.getTabAt(1);
+            if (tab != null) {
+                tab.select();
+            }
+        }
+
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {

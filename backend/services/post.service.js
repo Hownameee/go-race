@@ -34,7 +34,10 @@ const postService = {
         error.status = 404;
         throw error;
       }
-      const member = await clubRepo.findByIdAndUserId(payload.owner_id, payload.club_id);
+      const member = await clubRepo.findByIdAndUserId(
+        payload.owner_id,
+        payload.club_id,
+      );
       if (!member || member.status !== 'approved') {
         const error = new Error('You must be a member of this club to post.');
         error.status = 403;
@@ -56,15 +59,15 @@ const postService = {
       for (const follower of followers) {
         await notificationService.createAndSend({
           userId: follower.user_id,
-          type: "post",
+          type: 'post',
           actorId: payload.owner_id,
           activityId: newPost.post_id,
-          title: "New Post",
+          title: 'New Post',
           message: `${fullname} just published a new post`,
         });
       }
     } catch (err) {
-      console.error("[post][notification error]", err);
+      console.error('[post][notification error]', err);
     }
 
     return newPost;
@@ -88,7 +91,9 @@ const postService = {
     );
 
     const nextCursor =
-      posts.length === effectiveLimit ? posts[posts.length - 1].created_at : null;
+      posts.length === effectiveLimit
+        ? posts[posts.length - 1].created_at
+        : null;
 
     return { posts, nextCursor };
   },
@@ -115,7 +120,9 @@ const postService = {
     );
 
     const nextCursor =
-      posts.length === effectiveLimit ? posts[posts.length - 1].created_at : null;
+      posts.length === effectiveLimit
+        ? posts[posts.length - 1].created_at
+        : null;
 
     return { posts, nextCursor };
   },
@@ -142,7 +149,9 @@ const postService = {
     );
 
     const nextCursor =
-      posts.length === effectiveLimit ? posts[posts.length - 1].created_at : null;
+      posts.length === effectiveLimit
+        ? posts[posts.length - 1].created_at
+        : null;
 
     return { posts, nextCursor };
   },
@@ -155,8 +164,13 @@ const postService = {
       throw error;
     }
 
-    if (post.privacy_type === 'private' && post.membership_status !== 'approved') {
-      const error = new Error('You must be a member of this private club to perform this action.');
+    if (
+      post.privacy_type === 'private' &&
+      post.membership_status !== 'approved'
+    ) {
+      const error = new Error(
+        'You must be a member of this private club to perform this action.',
+      );
       error.status = 403;
       throw error;
     }
@@ -175,7 +189,9 @@ const postService = {
     if (club.privacy_type === 'private') {
       const member = await clubRepo.findByIdAndUserId(userId, clubId);
       if (!member || member.status !== 'approved') {
-        const error = new Error('You must be a member of this private club to see its posts.');
+        const error = new Error(
+          'You must be a member of this private club to see its posts.',
+        );
         error.status = 403;
         throw error;
       }
@@ -184,7 +200,11 @@ const postService = {
     const effectiveCursor = cursor || FAR_FUTURE;
     const effectiveLimit = Math.min(parseInt(limit) || DEFAULT_LIMIT, 100);
 
-    const rows = await postRepo.selectClubPosts(clubId, effectiveCursor, effectiveLimit);
+    const rows = await postRepo.selectClubPosts(
+      clubId,
+      effectiveCursor,
+      effectiveLimit,
+    );
 
     const posts = await Promise.all(
       rows.map(async (row) => {
@@ -211,14 +231,14 @@ const postService = {
     try {
       await notificationService.createAndSend({
         userId: owner_id.owner_id,
-        type: "post",
+        type: 'post',
         actorId: userId,
         activityId: postId,
-        title: "New Like Post",
+        title: 'New Like Post',
         message: `${fullname} just liked your post`,
       });
     } catch (err) {
-      console.error("[like post][notification error]", err);
+      console.error('[like post][notification error]', err);
     }
 
     return { liked: changes > 0 };
@@ -238,7 +258,12 @@ const postService = {
       throw error;
     }
 
-    const newComment = await postRepo.insertComment(postId, userId, content.trim(), parentId);
+    const newComment = await postRepo.insertComment(
+      postId,
+      userId,
+      content.trim(),
+      parentId,
+    );
     let owner_id;
     let message;
     if (parentId != null) {
@@ -254,14 +279,14 @@ const postService = {
     try {
       await notificationService.createAndSend({
         userId: owner_id,
-        type: "comment",
+        type: 'comment',
         actorId: userId,
         activityId: postId,
-        title: "New Comment",
+        title: 'New Comment',
         message: `${message}`,
       });
     } catch (err) {
-      console.error("[comment][notification error]", err);
+      console.error('[comment][notification error]', err);
     }
 
     return newComment;
@@ -276,14 +301,14 @@ const postService = {
     try {
       await notificationService.createAndSend({
         userId: owner_id.user_id,
-        type: "comment",
+        type: 'comment',
         actorId: userId,
         activityId: postId.post_id,
-        title: "New Like Comment",
+        title: 'New Like Comment',
         message: `${fullname} just liked your comment`,
       });
     } catch (err) {
-      console.error("[like comment][notification error]", err);
+      console.error('[like comment][notification error]', err);
     }
 
     return { liked: changes > 0 };
@@ -343,7 +368,9 @@ const postService = {
 
     const comments = await attachAvatarUrls(rows);
     const nextCursor =
-      comments.length === effectiveLimit ? comments[comments.length - 1].created_at : null;
+      comments.length === effectiveLimit
+        ? comments[comments.length - 1].created_at
+        : null;
 
     return { comments, nextCursor };
   },

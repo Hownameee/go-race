@@ -20,6 +20,9 @@ public class NetworkUserSearch {
     @SerializedName(value = "is_following", alternate = {"is_joined"})
     private int isFollowing;
 
+    @SerializedName("status")
+    private String status;
+
     public NetworkUserSearch() {}
 
     public int getUserId() { return userId; }
@@ -39,12 +42,22 @@ public class NetworkUserSearch {
 
     // Hàm chuyển đổi sang Model của UI (External Model)
     public UserSearchResult asExternalModel() {
+        int followStatus = isFollowing;
+        if (status != null) {
+            if ("approved".equals(status)) {
+                followStatus = 1;
+            } else if ("pending".equals(status)) {
+                followStatus = 2;
+            } else {
+                followStatus = 0;
+            }
+        }
         return new UserSearchResult(
                 userId,
                 fullname,
                 address,
                 avatarUrl,
-                isFollowing()
+                followStatus
         );
     }
 }

@@ -75,7 +75,6 @@ const followRepo = {
     const row = await db.prepare(sql).get(userId);
     return row.total;
   },
-
 };
 
 export default followRepo;

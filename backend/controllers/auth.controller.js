@@ -39,7 +39,9 @@ const authController = {
         return res.ok(buildTokenResponse(tokens), 'Google login successful');
       }
 
-      const existingUser = await userService.getUserByEmail(googlePayload.email);
+      const existingUser = await userService.getUserByEmail(
+        googlePayload.email,
+      );
       if (existingUser && !existingUser.google_sub) {
         return res.violate(
           null,
@@ -62,7 +64,8 @@ const authController = {
       }
 
       if (!existingUser) {
-        const hashedPassword = await authService.createOAuthPlaceholderPassword();
+        const hashedPassword =
+          await authService.createOAuthPlaceholderPassword();
         const newUserId = await userService.createGoogleUser({
           username,
           fullname: googlePayload.name || username,
@@ -79,7 +82,10 @@ const authController = {
       }
 
       const tokens = authService.generateTokens(buildAuthPayload(user));
-      return res.ok(buildTokenResponse(tokens), 'Google authentication successful');
+      return res.ok(
+        buildTokenResponse(tokens),
+        'Google authentication successful',
+      );
     } catch (error) {
       next(error);
     }

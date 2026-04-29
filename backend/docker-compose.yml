@@ -4,7 +4,7 @@ services:
     container_name: gorace-backend
     restart: unless-stopped
     ports:
-      - "5000:5000"
+      - '5000:5000'
     env_file:
       - .env
     volumes:

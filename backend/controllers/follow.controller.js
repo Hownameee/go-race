@@ -6,7 +6,11 @@ const followController = {
       const followerId = req.user.userId;
       const followingId = req.params.followingId;
       const followerName = req.user.fullname;
-      const newFollow = await followService.followUser(followerId, followingId, followerName);
+      const newFollow = await followService.followUser(
+        followerId,
+        followingId,
+        followerName,
+      );
       return res.created(newFollow, 'Followed successfully.');
     } catch (error) {
       if (error.status === 409) {

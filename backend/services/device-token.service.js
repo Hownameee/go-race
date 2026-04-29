@@ -17,7 +17,7 @@ const deviceTokenService = {
     const rows = await deviceTokenRepository.findAllTokens();
     return rows.map((item) => item.token).filter(Boolean);
   },
-  
+
   removeInvalidTokens: async function (invalidTokens) {
     if (!Array.isArray(invalidTokens) || invalidTokens.length === 0) return;
     await deviceTokenRepository.deleteByTokens(invalidTokens);

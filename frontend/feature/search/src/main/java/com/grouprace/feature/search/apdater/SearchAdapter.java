@@ -7,6 +7,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -23,6 +25,7 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
 
     public interface OnUserActionListener {
         void onActionClick(int userId, boolean isFollowing);
+        void onItemClick(int userId);
     }
 
     public SearchAdapter(List<UserSearchResult> users, OnUserActionListener listener) {
@@ -35,11 +38,11 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
         this.isClubTab = isClubTab;
         notifyDataSetChanged();
     }
-    public void updateUserStatus(int userId, boolean isFollowing) {
+    public void updateUserStatus(int userId, int status) {
         if (users == null) return;
         for (int i = 0; i < users.size(); i++) {
             if (users.get(i).getUserId() == userId) {
-                users.get(i).setFollowing(isFollowing);
+                users.get(i).setFollowStatus(status);
                 notifyItemChanged(i);
                 break;
             }
@@ -60,16 +63,24 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
         holder.tvUserName.setText(user.getFullname());
         holder.tvLocation.setText(user.getAddress());
 
+        Glide.with(holder.ivAvatar.getContext())
+                .load(user.getAvatarUrl())
+                .placeholder(com.grouprace.core.system.R.drawable.ic_default_avt)
+                .error(com.grouprace.core.system.R.drawable.ic_default_avt)
+                .into(holder.ivAvatar);
+
         if (isClubTab) {
             holder.btnFollow.setVisibility(View.VISIBLE);
-            if (user.isFollowing()) {
+            if (user.getFollowStatus() == 1) {
                 holder.btnFollow.setText("Joined");
+            } else if (user.getFollowStatus() == 2) {
+                holder.btnFollow.setText("Requested");
             } else {
                 holder.btnFollow.setText("Join");
             }
         } else {
             holder.btnFollow.setVisibility(View.VISIBLE);
-            if (user.isFollowing()) {
+            if (user.getFollowStatus() == 1) {
                 holder.btnFollow.setText("Following");
             } else {
                 holder.btnFollow.setText("Follow");
@@ -78,7 +89,13 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
 
         holder.btnFollow.setOnClickListener(v -> {
             if (listener != null) {
-                listener.onActionClick(user.getUserId(), user.isFollowing());
+                listener.onActionClick(user.getUserId(), user.getFollowStatus() == 1);
+            }
+        });
+
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onItemClick(user.getUserId());
             }
         });
     }

@@ -71,12 +71,12 @@ const notificationService = {
       message,
     };
 
-    console.log(notification)
+    console.log(notification);
 
     if (type === 'system') {
       await this.sendPushAllUsers(notification);
     } else {
-      console.log("send firebase");
+      console.log('send firebase');
       await this.sendPushByUserId(userId, notification);
     }
 
@@ -105,15 +105,19 @@ const notificationService = {
       data: buildPayload(data, userId),
     };
 
-    console.log("vao");
+    console.log('vao');
 
     try {
       const resp = await admin.messaging().sendEachForMulticast(message);
 
-      console.log('[fcm] success:', resp.successCount, 'fail:', resp.failureCount);
+      console.log(
+        '[fcm] success:',
+        resp.successCount,
+        'fail:',
+        resp.failureCount,
+      );
 
       await handleInvalidTokens(resp.responses, tokens);
-
     } catch (e) {
       console.warn('[fcm] send failed:', e?.message || e);
     }

@@ -40,7 +40,7 @@ public interface SearchRepository {
      */
     LiveData<Result<List<UserSearchResult>>> getSuggestedClubs();
 
-    LiveData<Result<Boolean>> joinClub(int clubId);
+    LiveData<Result<String>> joinClub(int clubId);
 
-    LiveData<Result<Boolean>> leaveClub(int clubId);
+    LiveData<Result<String>> leaveClub(int clubId);
 }

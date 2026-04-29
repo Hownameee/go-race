@@ -6,8 +6,7 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import com.grouprace.feature.posts.ui.CommentFragment;
-import com.grouprace.feature.posts.ui.PostFragment;
-import com.grouprace.feature.profile.ui.ProfileFragment;
+import com.grouprace.feature.profile.ui.main.ProfileFragment;
 import com.grouprace.feature.club.ui.ClubsFragment;
 import com.grouprace.gorace.R;
 import com.grouprace.core.navigation.AppNavigator;
@@ -263,10 +262,10 @@ public class AppNavigatorImpl implements AppNavigator {
         navigateTo(currentFragment, fragment);
     }
 
-    @Override
-    public void openUserProfile(Fragment currentFragment, int userId) {
-        ProfileFragment fragment = ProfileFragment.newInstance(userId);
-        navigateTo(currentFragment, fragment);
-    }
+//    @Override
+//    public void openUserProfile(Fragment currentFragment, int userId) {
+//        ProfileFragment fragment = ProfileFragment.newInstance(userId);
+//        navigateTo(currentFragment, fragment);
+//    }
 
 }

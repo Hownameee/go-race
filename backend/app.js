@@ -45,7 +45,6 @@ app.use('/api/device-tokens', deviceTokenRouter);
 app.use(followRoutes);
 app.use(postRoutes);
 app.use(userRoute);
-app.use(clubRoute);
 
 app.use(notFound);
 app.use(errorHandler);
