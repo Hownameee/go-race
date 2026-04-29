@@ -10,7 +10,15 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
+import android.graphics.drawable.Drawable;
+import android.widget.ProgressBar;
+
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 
 import com.grouprace.core.model.UserSearchResult;
 import com.grouprace.feature.search.R;
@@ -63,11 +71,30 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
         holder.tvUserName.setText(user.getFullname());
         holder.tvLocation.setText(user.getAddress());
 
-        Glide.with(holder.ivAvatar.getContext())
-                .load(user.getAvatarUrl())
-                .placeholder(com.grouprace.core.system.R.drawable.ic_default_avt)
-                .error(com.grouprace.core.system.R.drawable.ic_default_avt)
-                .into(holder.ivAvatar);
+        if (user.getAvatarUrl() == null || user.getAvatarUrl().trim().isEmpty()) {
+            holder.pbAvatarLoading.setVisibility(View.GONE);
+            holder.ivAvatar.setImageResource(com.grouprace.core.system.R.drawable.ic_default_avt);
+        } else {
+            holder.pbAvatarLoading.setVisibility(View.VISIBLE);
+            holder.ivAvatar.setImageDrawable(null);
+            Glide.with(holder.ivAvatar.getContext())
+                    .load(user.getAvatarUrl())
+                    .listener(new RequestListener<Drawable>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                            holder.pbAvatarLoading.setVisibility(View.GONE);
+                            holder.ivAvatar.setImageResource(com.grouprace.core.system.R.drawable.ic_default_avt);
+                            return false;
+                        }
+
+                        @Override
+                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                            holder.pbAvatarLoading.setVisibility(View.GONE);
+                            return false;
+                        }
+                    })
+                    .into(holder.ivAvatar);
+        }
 
         if (isClubTab) {
             holder.btnFollow.setVisibility(View.VISIBLE);
@@ -109,6 +136,7 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
         ImageView ivAvatar;
         TextView tvUserName, tvLocation;
         Button btnFollow;
+        ProgressBar pbAvatarLoading;
 
         public SearchViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -116,6 +144,7 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
             tvUserName = itemView.findViewById(R.id.tvUserName);
             tvLocation = itemView.findViewById(R.id.tvLocation);
             btnFollow = itemView.findViewById(R.id.btnFollow);
+            pbAvatarLoading = itemView.findViewById(R.id.pbAvatarLoading);
         }
     }
 }
