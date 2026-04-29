@@ -41,6 +41,9 @@ public interface AuthApiService {
     @POST("api/device-tokens")
     Call<ApiResponse<Object>> registerDeviceToken(@Body RegisterDeviceTokenRequest body);
 
+    @retrofit2.http.HTTP(method = "DELETE", path = "api/device-tokens", hasBody = true)
+    Call<ApiResponse<Object>> unregisterDeviceToken(@Body RegisterDeviceTokenRequest body);
+
     @POST("/api/auth/google")
     Call<ApiResponse<GoogleAuthResponse>> googleAuth(@Body GoogleAuthPayload payload);
 }

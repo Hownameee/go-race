@@ -30,4 +30,9 @@ public class TokenManager {
         SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         return prefs.getString(KEY_TOKEN, null);
     }
+
+    public static void clearRegistration(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putBoolean(KEY_REGISTERED, false).apply();
+    }
 }

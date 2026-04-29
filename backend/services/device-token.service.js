@@ -22,6 +22,13 @@ const deviceTokenService = {
     if (!Array.isArray(invalidTokens) || invalidTokens.length === 0) return;
     await deviceTokenRepository.deleteByTokens(invalidTokens);
   },
+
+  unregister: async function (userId, token) {
+    if (!userId || !token) {
+      throw new Error('userId and token are required');
+    }
+    await deviceTokenRepository.deleteByUserIdAndToken(userId, token);
+  },
 };
 
 export default deviceTokenService;
