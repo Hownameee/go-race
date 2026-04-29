@@ -120,6 +120,34 @@ const postService = {
     return { posts, nextCursor };
   },
 
+  async getUserPosts(ownerId, currentUserId, cursor, limit) {
+    const effectiveCursor = cursor || FAR_FUTURE;
+    const effectiveLimit = Math.min(parseInt(limit) || DEFAULT_LIMIT, 100);
+
+    const rows = await postRepo.selectUserPosts(
+      ownerId,
+      currentUserId,
+      effectiveCursor,
+      effectiveLimit,
+    );
+
+    const posts = await Promise.all(
+      rows.map(async (row) => {
+        const { s3_key, ...postWithoutS3Key } = row;
+        if (s3_key) {
+          const record_image_url = await getImageUrlS3(s3_key);
+          return { ...postWithoutS3Key, record_image_url };
+        }
+        return postWithoutS3Key;
+      }),
+    );
+
+    const nextCursor =
+      posts.length === effectiveLimit ? posts[posts.length - 1].created_at : null;
+
+    return { posts, nextCursor };
+  },
+
   async checkPostAccess(postId, userId) {
     const post = await postRepo.selectPostWithAccess(postId, userId);
     if (!post) {

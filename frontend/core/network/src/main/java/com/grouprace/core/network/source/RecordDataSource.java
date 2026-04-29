@@ -65,6 +65,7 @@ public class RecordDataSource {
     }
 
     public LiveData<Result<RecordWeeklySummaryResponse>> getUserWeeklySummary(int userId, String activityType, int weeks) {
+        // ===== Profile Section ====
         MutableLiveData<Result<RecordWeeklySummaryResponse>> liveData = new MutableLiveData<>();
         liveData.postValue(new Result.Loading<>());
 
@@ -124,6 +125,7 @@ public class RecordDataSource {
     }
 
     public LiveData<Result<RecordProfileStatisticsResponse>> getUserProfileStatistics(int userId, String activityType) {
+        // ===== Profile Section ====
         MutableLiveData<Result<RecordProfileStatisticsResponse>> liveData = new MutableLiveData<>();
         liveData.postValue(new Result.Loading<>());
 
@@ -165,6 +167,7 @@ public class RecordDataSource {
     }
 
     public LiveData<Result<RecordStreakResponse>> getUserStreak(int userId) {
+        // ===== Profile Section ====
         MutableLiveData<Result<RecordStreakResponse>> liveData = new MutableLiveData<>();
         liveData.postValue(new Result.Loading<>());
 

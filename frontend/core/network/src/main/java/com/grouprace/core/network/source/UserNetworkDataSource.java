@@ -28,12 +28,12 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class UserDataSource {
+public class UserNetworkDataSource {
     private static final int FOLLOW_LIST_LIMIT = 100;
     private final UserApiService apiService;
 
     @Inject
-    public UserDataSource(UserApiService apiService) {
+    public UserNetworkDataSource(UserApiService apiService) {
         this.apiService = apiService;
     }
 

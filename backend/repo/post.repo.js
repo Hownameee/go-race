@@ -107,6 +107,22 @@ const postRepo = {
     return stmt.all(userId, userId, cursor, limit);
   },
 
+  async selectUserPosts(ownerId, currentUserId, cursor, limit) {
+    const stmt = db.prepare(
+      `SELECT p.*, u.username, u.fullname, u.avatar_url,
+              CASE WHEN l.user_id IS NOT NULL THEN 1 ELSE 0 END as is_liked,
+              r.activity_type, r.duration_seconds, r.distance_km, r.speed, r.s3_key
+       FROM POST p
+       JOIN USERS u ON u.user_id = p.owner_id
+       LEFT JOIN LIKE l ON l.post_id = p.post_id AND l.user_id = ?
+       LEFT JOIN RECORD r ON r.record_id = p.record_id
+       WHERE p.owner_id = ? AND p.created_at < ?
+       ORDER BY p.created_at DESC
+       LIMIT ?`,
+    );
+    return stmt.all(currentUserId, ownerId, cursor, limit);
+  },
+
   updateLikeCount(postId, delta) {
     const stmt = db.prepare(
       `UPDATE POST SET like_count = like_count + ? WHERE post_id = ?`,

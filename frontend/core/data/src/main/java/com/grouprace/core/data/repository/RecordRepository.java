@@ -14,6 +14,9 @@ public interface RecordRepository {
     void getNetworkRecord(int recordId);
     LiveData<List<Record>> getLocalRecords(int limit);
     LiveData<Result<Boolean>> getNetworkRecords(int offset, int limit);
+    // ===== Profile Section ====
+    LiveData<List<Record>> getLocalUserRecords(int userId, int limit);
+    LiveData<Result<Boolean>> syncUserRecords(int userId, int offset, int limit);
     LiveData<List<Record>> getTodayRecords();
     LiveData<TodaySummary> getTodaySummary();
 }

@@ -3,7 +3,6 @@ package com.grouprace.gorace.navigation;
 import android.view.View;
 import android.view.ViewGroup;
 import androidx.fragment.app.Fragment;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import com.grouprace.feature.club.ui.ClubsFragment;
 import com.grouprace.gorace.R;
@@ -13,11 +12,12 @@ import com.grouprace.feature.notification.ui.NotificationFragment;
 import com.grouprace.feature.posts.ui.MyPostsFragment;
 import com.grouprace.feature.profile.ui.edit.EditProfileFragment;
 import com.grouprace.feature.profile.ui.follow.FollowListFragment;
-import com.grouprace.feature.profile.ui.main.achievements.ProfileAchievementsFragment;
-import com.grouprace.feature.profile.ui.main.activities.ProfileRecordsFragment;
+import com.grouprace.feature.profile.ui.achievements.ProfileAchievementsFragment;
+import com.grouprace.feature.profile.ui.activities.ProfileRecordsFragment;
 import com.grouprace.feature.profile.ui.main.ProfileComingSoonFragment;
 import com.grouprace.feature.profile.ui.main.UserProfileFragment;
-import com.grouprace.feature.profile.ui.main.statistics.ProfileStatisticsDetailFragment;
+import com.grouprace.feature.profile.ui.posts.ProfilePostsFragment;
+import com.grouprace.feature.profile.ui.statistics.ProfileStatisticsDetailFragment;
 import com.grouprace.feature.login.ui.LoginFragment;
 import com.grouprace.feature.profile.ui.settings.ProfileSettingsFragment;
 import com.grouprace.feature.profile.ui.settings.email.ChangeEmailFragment;
@@ -78,6 +78,21 @@ public class AppNavigatorImpl implements AppNavigator {
     @Override
     public void openProfileActivities(Fragment currentFragment, int userId, String profileName, boolean isSelf) {
       navigateTo(currentFragment, ProfileRecordsFragment.newInstance(userId, profileName, isSelf));
+    }
+
+    @Override
+    public void openProfilePosts(Fragment currentFragment, int userId, String profileName, boolean isSelf) {
+      navigateTo(currentFragment, ProfilePostsFragment.newInstance(userId, profileName, isSelf));
+    }
+
+    @Override
+    public void openProfileRoutes(Fragment currentFragment, int userId, String profileName, boolean isSelf) {
+      navigateTo(currentFragment, ProfileComingSoonFragment.newInstance("Routes"));
+    }
+
+    @Override
+    public void openProfileClubs(Fragment currentFragment, int userId, String profileName, boolean isSelf) {
+      navigateTo(currentFragment, ProfileComingSoonFragment.newInstance("Clubs"));
     }
 
     @Override
@@ -232,9 +247,10 @@ public class AppNavigatorImpl implements AppNavigator {
     }
 
     private void navigateTo(Fragment currentFragment, Fragment targetFragment) {
-        if (currentFragment != null && currentFragment.getView() != null && currentFragment.getView().getParent() != null) {
-            int containerId = ((ViewGroup) currentFragment.getView().getParent()).getId();
-            currentFragment.requireActivity().getSupportFragmentManager().beginTransaction()
+        Fragment hostFragment = findNavigationHostFragment(currentFragment);
+        if (hostFragment != null && hostFragment.getView() != null && hostFragment.getView().getParent() != null) {
+            int containerId = ((ViewGroup) hostFragment.getView().getParent()).getId();
+            hostFragment.requireActivity().getSupportFragmentManager().beginTransaction()
                     .replace(containerId, targetFragment)
                     .addToBackStack(null)
                     .commit();
@@ -242,9 +258,10 @@ public class AppNavigatorImpl implements AppNavigator {
     }
 
     private void navigateToRoot(Fragment currentFragment, Fragment targetFragment) {
-        if (currentFragment != null && currentFragment.getView() != null && currentFragment.getView().getParent() != null) {
-            int containerId = ((ViewGroup) currentFragment.getView().getParent()).getId();
-            androidx.fragment.app.FragmentManager fm = currentFragment.requireActivity().getSupportFragmentManager();
+        Fragment hostFragment = findNavigationHostFragment(currentFragment);
+        if (hostFragment != null && hostFragment.getView() != null && hostFragment.getView().getParent() != null) {
+            int containerId = ((ViewGroup) hostFragment.getView().getParent()).getId();
+            androidx.fragment.app.FragmentManager fm = hostFragment.requireActivity().getSupportFragmentManager();
             if (fm.getBackStackEntryCount() > 0) {
                 fm.popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE);
             }
@@ -252,5 +269,17 @@ public class AppNavigatorImpl implements AppNavigator {
                     .replace(containerId, targetFragment)
                     .commit();
         }
+    }
+
+    private Fragment findNavigationHostFragment(Fragment fragment) {
+        if (fragment == null) {
+            return null;
+        }
+
+        Fragment host = fragment;
+        while (host.getParentFragment() != null) {
+            host = host.getParentFragment();
+        }
+        return host;
     }
 }

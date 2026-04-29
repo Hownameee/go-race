@@ -1,4 +1,4 @@
-package com.grouprace.feature.profile.ui.main;
+package com.grouprace.feature.profile.ui.main.stats;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -16,6 +16,7 @@ import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.Profile.WeeklyRecordPoint;
 import com.grouprace.core.model.Profile.WeeklyRecordSummary;
 import com.grouprace.feature.profile.R;
+import com.grouprace.feature.profile.ui.main.ProfileViewModel;
 import com.grouprace.feature.profile.util.ProfileFormatUtils;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;

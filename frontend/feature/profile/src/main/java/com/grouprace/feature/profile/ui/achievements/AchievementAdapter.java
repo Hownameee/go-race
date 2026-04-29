@@ -1,4 +1,4 @@
-package com.grouprace.feature.profile.ui.main.achievements;
+package com.grouprace.feature.profile.ui.achievements;
 
 import android.view.LayoutInflater;
 import android.view.View;

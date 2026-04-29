@@ -1,4 +1,4 @@
-package com.grouprace.feature.profile.ui.main.activities;
+package com.grouprace.feature.profile.ui.activities;
 
 import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;

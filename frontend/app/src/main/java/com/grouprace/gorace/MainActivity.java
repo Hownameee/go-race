@@ -17,7 +17,6 @@ import com.grouprace.core.network.utils.SessionManager;
 import com.grouprace.core.system.ui.PlaceholderFragment;
 import com.grouprace.feature.login.ui.LoginViewModel;
 import com.grouprace.feature.club.ui.ClubsFragment;
-import com.grouprace.feature.profile.ui.ProfileFragment;
 import com.grouprace.feature.profile.ui.main.ProfileFragment;
 import com.grouprace.feature.login.ui.LoginFragment;
 import com.grouprace.feature.posts.ui.PostFragment;

@@ -16,6 +16,9 @@ public interface PostDao {
     @Query("SELECT * FROM posts WHERE clubId = :clubId ORDER BY createdAt DESC")
     LiveData<List<PostEntity>> getAllPostsByClubId(int clubId);
 
+    @Query("SELECT * FROM posts WHERE ownerId = :ownerId ORDER BY createdAt DESC LIMIT :limit")
+    LiveData<List<PostEntity>> getPostsByOwner(int ownerId, int limit);
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void upsert(PostEntity post);
 

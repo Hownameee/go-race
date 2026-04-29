@@ -64,6 +64,72 @@ public class PostRepositoryImpl implements PostRepository {
         });
     }
 
+    // ===== Profile Section ====
+    @Override
+    public LiveData<List<Post>> getLocalUserPosts(int userId, int limit) {
+        return Transformations.map(postDao.getPostsByOwner(userId, limit), entities ->
+                entities.stream()
+                        .map(PostEntity::asExternalModel)
+                        .collect(Collectors.toList())
+        );
+    }
+
+    // ===== Profile Section ====
+    @Override
+    public LiveData<Result<List<Post>>> getUserPosts(int userId, String cursor, int limit) {
+        return Transformations.map(postNetworkDataSource.getUserPosts(userId, cursor, limit), result -> {
+            if (result instanceof Result.Success) {
+                List<NetworkPost> networkPosts = ((Result.Success<List<NetworkPost>>) result).data;
+                List<Post> posts = (networkPosts == null ? java.util.Collections.<NetworkPost>emptyList() : networkPosts).stream()
+                        .map(NetworkPost::asExternalModel)
+                        .collect(Collectors.toList());
+                return new Result.Success<>(posts);
+            } else if (result instanceof Result.Error) {
+                Result.Error<List<NetworkPost>> error = (Result.Error<List<NetworkPost>>) result;
+                return new Result.Error<>(error.exception, error.message);
+            }
+            return new Result.Loading<>();
+        });
+    }
+
+    // ===== Profile Section ====
+    @Override
+    public LiveData<Result<Boolean>> syncUserPosts(int userId, String cursor, int limit) {
+        MutableLiveData<Result<Boolean>> resultData = new MutableLiveData<>();
+        resultData.postValue(new Result.Loading<>());
+
+        LiveData<Result<List<NetworkPost>>> networkCall = postNetworkDataSource.getUserPosts(userId, cursor, limit);
+
+        networkCall.observeForever(result -> {
+            if (result instanceof Result.Success) {
+                List<NetworkPost> networkPosts = ((Result.Success<List<NetworkPost>>) result).data;
+                List<PostEntity> entities = (networkPosts == null ? java.util.Collections.<NetworkPost>emptyList() : networkPosts).stream()
+                        .map(np -> {
+                            Post p = np.asExternalModel();
+                            return new PostEntity(
+                                    p.getPostId(), p.getRecordId(), p.getOwnerId(), p.getTitle(),
+                                    p.getDescription(), p.getPhotoUrl(), p.getLikeCount(),
+                                    p.getCommentCount(), p.getViewMode(), p.getCreatedAt(),
+                                    p.getUsername(), p.getFullName(), p.getProfilePictureUrl(),
+                                    p.getActivityType(), p.getDurationSeconds(), p.getDistanceKm(),
+                                    p.getSpeed(), p.getRecordImageUrl(), p.isLiked(), p.getClubId()
+                            );
+                        })
+                        .collect(Collectors.toList());
+
+                new Thread(() -> {
+                    postDao.upsertAll(entities);
+                    resultData.postValue(new Result.Success<>(true));
+                }).start();
+            } else if (result instanceof Result.Error) {
+                Result.Error<?> error = (Result.Error<?>) result;
+                resultData.postValue(new Result.Error<>(error.exception, error.message));
+            }
+        });
+
+        return resultData;
+    }
+
     @Override
     public LiveData<Result<Boolean>> syncPosts(String cursor, int limit) {
         return syncInternal(postNetworkDataSource.getPosts(cursor, limit));

@@ -96,6 +96,7 @@ public class RecordNetworkDataSource {
     }
 
     public LiveData<Result<List<NetworkRecord>>> getUserRecords(int userId, int offset, int limit) {
+        // ===== Profile Section ====
         MutableLiveData<Result<List<NetworkRecord>>> liveData = new MutableLiveData<>();
         liveData.setValue(new Result.Loading<>());
 

@@ -30,6 +30,9 @@ public interface RecordDao {
     @Query("SELECT * FROM record ORDER BY recordId DESC LIMIT :limit")
     LiveData<List<RecordEntity>> getRecords(int limit);
 
+    @Query("SELECT * FROM record WHERE ownerId = :ownerId ORDER BY recordId DESC LIMIT :limit")
+    LiveData<List<RecordEntity>> getRecordsByOwner(int ownerId, int limit);
+
     @Query("SELECT * FROM record WHERE startTime LIKE :todayPrefix || '%' ORDER BY recordId DESC")
     LiveData<List<RecordEntity>> getTodayRecords(String todayPrefix);
 

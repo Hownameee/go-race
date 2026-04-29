@@ -22,6 +22,14 @@ public interface PostApiService {
     @GET("api/posts/me")
     Call<ApiResponse<PostPayload>> getMyPosts(@Query("cursor") String cursor, @Query("limit") int limit);
 
+    // ===== Profile Section ====
+    @GET("api/posts/users/{userId}")
+    Call<ApiResponse<PostPayload>> getUserPosts(
+            @Path("userId") int userId,
+            @Query("cursor") String cursor,
+            @Query("limit") int limit
+    );
+
     @POST("api/posts")
     Call<ApiResponse<Void>> createPost(@Body CreatePostRequest request);
 

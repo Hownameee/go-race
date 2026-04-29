@@ -104,12 +104,69 @@ public class RecordRepositoryImpl implements RecordRepository {
         );
     }
 
+    // ===== Profile Section ====
+    @Override
+    public LiveData<List<Record>> getLocalUserRecords(int userId, int limit) {
+        return Transformations.map(
+                recordDao.getRecordsByOwner(userId, limit),
+                entities -> entities.stream()
+                        .map(RecordEntity::asExternalModel)
+                        .collect(Collectors.toList())
+        );
+    }
+
     @Override
     public LiveData<Result<Boolean>> getNetworkRecords(int offset, int limit) {
         MutableLiveData<Result<Boolean>> resultData = new MutableLiveData<>();
         resultData.postValue(new Result.Loading<>());
 
         LiveData<Result<List<NetworkRecord>>> networkCall = recordNetworkDataSource.getRecords(offset, limit);
+
+        networkCall.observeForever(result -> {
+            if (result instanceof Result.Success) {
+                List<NetworkRecord> networkRecords = ((Result.Success<List<NetworkRecord>>) result).data;
+
+                if (networkRecords != null) {
+                    List<RecordEntity> entities = networkRecords.stream()
+                            .map(n -> new RecordEntity(
+                                    n.getRecordId(),
+                                    n.getActivityType(),
+                                    n.getTitle(),
+                                    n.getStartTime(),
+                                    n.getEndTime(),
+                                    n.getOwnerId(),
+                                    n.getDuration(),
+                                    n.getDistance(),
+                                    n.getCalories(),
+                                    n.getHeartRate(),
+                                    n.getSpeed(),
+                                    n.getImageUrl()
+                            ))
+                            .collect(Collectors.toList());
+
+                    new Thread(() -> {
+                        recordDao.insertAll(entities);
+                        resultData.postValue(new Result.Success<>(true));
+                    }).start();
+                } else {
+                    resultData.postValue(new Result.Success<>(true));
+                }
+            } else if (result instanceof Result.Error) {
+                Result.Error<?> error = (Result.Error<?>) result;
+                resultData.postValue(new Result.Error<>(error.exception, error.message));
+            }
+        });
+
+        return resultData;
+    }
+
+    // ===== Profile Section ====
+    @Override
+    public LiveData<Result<Boolean>> syncUserRecords(int userId, int offset, int limit) {
+        MutableLiveData<Result<Boolean>> resultData = new MutableLiveData<>();
+        resultData.postValue(new Result.Loading<>());
+
+        LiveData<Result<List<NetworkRecord>>> networkCall = recordNetworkDataSource.getUserRecords(userId, offset, limit);
 
         networkCall.observeForever(result -> {
             if (result instanceof Result.Success) {

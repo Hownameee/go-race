@@ -11,7 +11,7 @@ import com.grouprace.core.network.model.user.FollowListResponse;
 import com.grouprace.core.network.model.user.FollowUserResponse;
 import com.grouprace.core.network.model.user.MyProfileInfoPayload;
 import com.grouprace.core.network.model.user.ProfileOverviewResponse;
-import com.grouprace.core.network.source.UserDataSource;
+import com.grouprace.core.network.source.UserNetworkDataSource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,16 +20,16 @@ import javax.inject.Inject;
 
 public class UserRepositoryImpl implements UserRepository {
 
-    private final UserDataSource userDataSource;
+    private final UserNetworkDataSource userNetworkDataSource;
 
     @Inject
-    public UserRepositoryImpl(UserDataSource userDataSource) {
-        this.userDataSource = userDataSource;
+    public UserRepositoryImpl(UserNetworkDataSource userNetworkDataSource) {
+        this.userNetworkDataSource = userNetworkDataSource;
     }
 
     @Override
     public LiveData<Result<ProfileOverview>> getMyOverview() {
-        LiveData<Result<ProfileOverviewResponse>> networkResult = userDataSource.getMyOverview();
+        LiveData<Result<ProfileOverviewResponse>> networkResult = userNetworkDataSource.getMyOverview();
 
         return Transformations.map(networkResult, result -> {
             if (result instanceof Result.Loading) {
@@ -46,7 +46,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public LiveData<Result<ProfileOverview>> getUserOverview(int userId) {
-        LiveData<Result<ProfileOverviewResponse>> networkResult = userDataSource.getUserOverview(userId);
+        LiveData<Result<ProfileOverviewResponse>> networkResult = userNetworkDataSource.getUserOverview(userId);
 
         return Transformations.map(networkResult, result -> {
             if (result instanceof Result.Loading) {
@@ -63,21 +63,21 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public LiveData<Result<List<FollowUser>>> getFollowers(int userId) {
-        LiveData<Result<FollowListResponse>> networkResult = userDataSource.getFollowers(userId);
+        LiveData<Result<FollowListResponse>> networkResult = userNetworkDataSource.getFollowers(userId);
 
         return Transformations.map(networkResult, result -> mapFollowListResult(result, true));
     }
 
     @Override
     public LiveData<Result<List<FollowUser>>> getFollowing(int userId) {
-        LiveData<Result<FollowListResponse>> networkResult = userDataSource.getFollowing(userId);
+        LiveData<Result<FollowListResponse>> networkResult = userNetworkDataSource.getFollowing(userId);
 
         return Transformations.map(networkResult, result -> mapFollowListResult(result, false));
     }
 
     @Override
     public LiveData<Result<MyProfileInfo>> getMyInfo() {
-        LiveData<Result<MyProfileInfoPayload>> networkResult = userDataSource.getMyInfo();
+        LiveData<Result<MyProfileInfoPayload>> networkResult = userNetworkDataSource.getMyInfo();
 
         return Transformations.map(networkResult, result -> {
             if (result instanceof Result.Loading) {
@@ -94,57 +94,57 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public LiveData<Result<Void>> requestEmailChangeOtp() {
-        return userDataSource.requestEmailChangeOtp();
+        return userNetworkDataSource.requestEmailChangeOtp();
     }
 
     @Override
     public LiveData<Result<Void>> verifyEmailChangeOtp(String otpCode) {
-        return userDataSource.verifyEmailChangeOtp(otpCode);
+        return userNetworkDataSource.verifyEmailChangeOtp(otpCode);
     }
 
     @Override
     public LiveData<Result<Void>> requestNewEmailChangeOtp(String newEmail) {
-        return userDataSource.requestNewEmailChangeOtp(newEmail);
+        return userNetworkDataSource.requestNewEmailChangeOtp(newEmail);
     }
 
     @Override
     public LiveData<Result<Void>> confirmEmailChange(String newEmail, String otpCode) {
-        return userDataSource.confirmEmailChange(newEmail, otpCode);
+        return userNetworkDataSource.confirmEmailChange(newEmail, otpCode);
     }
 
     @Override
     public LiveData<Result<Void>> verifyCurrentPassword(String oldPassword) {
-        return userDataSource.verifyCurrentPassword(oldPassword);
+        return userNetworkDataSource.verifyCurrentPassword(oldPassword);
     }
 
     @Override
     public LiveData<Result<Void>> changePassword(String oldPassword, String newPassword, String confirmNewPassword) {
-        return userDataSource.changePassword(oldPassword, newPassword, confirmNewPassword);
+        return userNetworkDataSource.changePassword(oldPassword, newPassword, confirmNewPassword);
     }
 
     @Override
     public LiveData<Result<Void>> requestPasswordResetOtp() {
-        return userDataSource.requestPasswordResetOtp();
+        return userNetworkDataSource.requestPasswordResetOtp();
     }
 
     @Override
     public LiveData<Result<Void>> resetPasswordWithOtp(String otpCode, String newPassword, String confirmNewPassword) {
-        return userDataSource.resetPasswordWithOtp(otpCode, newPassword, confirmNewPassword);
+        return userNetworkDataSource.resetPasswordWithOtp(otpCode, newPassword, confirmNewPassword);
     }
 
     @Override
     public LiveData<Result<Void>> deleteMyAccount() {
-        return userDataSource.deleteMyAccount();
+        return userNetworkDataSource.deleteMyAccount();
     }
 
     @Override
     public LiveData<Result<String>> uploadMyAvatar(byte[] avatarBytes, String fileName, String mimeType) {
-        return userDataSource.uploadMyAvatar(avatarBytes, fileName, mimeType);
+        return userNetworkDataSource.uploadMyAvatar(avatarBytes, fileName, mimeType);
     }
 
     @Override
     public LiveData<Result<Void>> updateMyInfo(MyProfileInfo myProfileInfo) {
-        return userDataSource.updateMyInfo(mapToMyProfileInfoPayload(myProfileInfo));
+        return userNetworkDataSource.updateMyInfo(mapToMyProfileInfoPayload(myProfileInfo));
     }
 
     private ProfileOverview mapToProfileOverview(ProfileOverviewResponse response) {

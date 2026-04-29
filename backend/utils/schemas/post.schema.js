@@ -25,6 +25,10 @@ export const postIdSchema = z.object({
   postId: z.string().regex(/^\d+$/, 'postId must be a numeric string'),
 });
 
+export const userPostsParamsSchema = z.object({
+  userId: z.string().regex(/^\d+$/, 'userId must be a numeric string'),
+});
+
 export const createCommentBodySchema = z.object({
   content: z
     .string()

@@ -11,18 +11,19 @@ import com.grouprace.core.network.model.auth.GoogleAuthResponse;
 import com.grouprace.core.network.model.auth.LoginPayload;
 import com.grouprace.core.network.model.auth.LoginResponse;
 import com.grouprace.core.network.model.auth.RegisterPayload;
-import com.grouprace.core.network.source.AuthDataSource;
+import com.grouprace.core.network.source.AuthNetworkDataSource;
+import com.grouprace.core.network.source.AuthNetworkDataSource;
 import com.grouprace.core.network.utils.SessionManager;
 
 import javax.inject.Inject;
 
 public class AuthRepositoryImpl implements AuthRepository {
 
-    private final AuthDataSource authNetworkDataSource;
+    private final AuthNetworkDataSource authNetworkDataSource;
     private final SessionManager sessionManager;
 
     @Inject
-    public AuthRepositoryImpl(AuthDataSource authNetworkDataSource, SessionManager sessionManager) {
+    public AuthRepositoryImpl(AuthNetworkDataSource authNetworkDataSource, SessionManager sessionManager) {
         this.authNetworkDataSource = authNetworkDataSource;
         this.sessionManager = sessionManager;
     }

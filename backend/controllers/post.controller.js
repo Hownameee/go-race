@@ -62,6 +62,22 @@ const postController = {
     }
   },
 
+  async getUserPosts(req, res, next) {
+    try {
+      const targetUserId = parseInt(req.params.userId);
+      const currentUserId = req.user.userId;
+      const { cursor, limit } = req.query;
+      const result = await postService.getUserPosts(targetUserId, currentUserId, cursor, limit);
+      return res.ok(result, 'User posts retrieved successfully.');
+    } catch (error) {
+      if (error.status === 409) {
+        console.error(error);
+        return res.violate(null, error.message);
+      }
+      return next(error);
+    }
+  },
+
   async likePost(req, res, next) {
     try {
       const postId = parseInt(req.params.postId);
