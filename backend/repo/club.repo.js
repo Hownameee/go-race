@@ -177,6 +177,15 @@ const clubRepo = {
     return db.prepare(sql).all(clubId);
   },
 
+  findApprovedMembers(clubId) {
+    const sql = `
+            SELECT user_id
+            FROM CLUB_MEMBERS
+            WHERE club_id = ? AND status = 'approved'
+        `;
+    return db.prepare(sql).all(clubId);
+  },
+
   updateMemberRole(clubId, userId, role) {
     const sql = `UPDATE CLUB_MEMBERS SET role = ? WHERE club_id = ? AND user_id = ?`;
     return db.prepare(sql).run(role, clubId, userId);

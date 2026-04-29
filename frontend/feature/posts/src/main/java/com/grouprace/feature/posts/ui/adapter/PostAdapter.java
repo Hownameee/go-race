@@ -30,7 +30,10 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
         void onCommentClicked(Post post);
 
         void onShareClicked(Post post);
+
         void onReportClicked(Post post);
+
+        void onPostClicked(Post post);
     }
 
     private OnPostActionListener listener;
@@ -131,6 +134,12 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
             });
             popup.show();
         });
+
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onPostClicked(post);
+            }
+        });
     }
 
     public String getLastPostCreatedAt() {
@@ -140,7 +149,7 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
         return null;
     }
 
-    static class PostViewHolder extends RecyclerView.ViewHolder {
+    public static class PostViewHolder extends RecyclerView.ViewHolder {
         private final TextView tvUsername;
         private final TextView tvTime;
         private final TextView tvTitle;

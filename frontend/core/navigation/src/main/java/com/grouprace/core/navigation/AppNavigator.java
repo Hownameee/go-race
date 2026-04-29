@@ -2,6 +2,8 @@ package com.grouprace.core.navigation;
 
 import androidx.fragment.app.Fragment;
 
+
+
 public interface AppNavigator {
     void navigateToNotification(Fragment currentFragment);
     void navigateToSearch(Fragment currentFragment);
@@ -40,4 +42,5 @@ public interface AppNavigator {
     void openClubStats(Fragment currentFragment, int clubId);
     void openEditClub(Fragment currentFragment, int clubId);
     void openClubDetail(Fragment currentFragment, int clubId);
+    void openPostDetail(Fragment currentFragment, int postId);
 }

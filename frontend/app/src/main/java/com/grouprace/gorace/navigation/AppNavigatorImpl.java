@@ -39,6 +39,7 @@ import com.grouprace.feature.club.ui.detail.tabs.ClubEventsFragment;
 import com.grouprace.feature.club.ui.detail.tabs.ClubStatisticsFragment;
 import com.grouprace.feature.club.ui.detail.tabs.EditClubFragment;
 import com.grouprace.feature.club.ui.detail.ClubDetailFragment;
+import com.grouprace.feature.posts.ui.PostDetailFragment;
 
 import javax.inject.Inject;
 
@@ -231,6 +232,11 @@ public class AppNavigatorImpl implements AppNavigator {
     @Override
     public void openClubDetail(Fragment currentFragment, int clubId) {
         navigateTo(currentFragment, ClubDetailFragment.newInstance(clubId));
+    }
+
+    @Override
+    public void openPostDetail(Fragment currentFragment, int postId) {
+        navigateTo(currentFragment, PostDetailFragment.newInstance(postId));
     }
 
     private void navigateTo(Fragment currentFragment, Fragment targetFragment) {

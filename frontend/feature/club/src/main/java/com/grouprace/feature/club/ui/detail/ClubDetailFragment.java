@@ -215,6 +215,13 @@ public class ClubDetailFragment extends Fragment {
             public void onReportClicked(Post post) {
 
             }
+
+            @Override
+            public void onPostClicked(Post post) {
+                if (appNavigator != null) {
+                    appNavigator.openPostDetail(ClubDetailFragment.this, post.getPostId());
+                }
+            }
         });
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());

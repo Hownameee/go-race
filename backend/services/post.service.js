@@ -48,22 +48,39 @@ const postService = {
     const newPost = await postRepo.insertPost(payload);
     try {
       const fullname = payload.fullname;
-      const effectiveCursor = FAR_FUTURE;
+      const ownerId = payload.owner_id;
+      const clubId = payload.club_id;
 
-      const followers = await followRepo.selectFollowers(
-        payload.owner_id,
-        effectiveCursor,
-        null,
-      );
+      let targets = [];
+      let notificationMessage = '';
 
-      for (const follower of followers) {
+      if (clubId) {
+        const club = await clubRepo.findById(clubId);
+        const members = await clubRepo.findApprovedMembers(clubId);
+        // Notify all approved members except the author
+        targets = members
+          .filter((m) => m.user_id !== ownerId)
+          .map((m) => m.user_id);
+        notificationMessage = `${fullname} just published a new post in ${club.name}`;
+      } else {
+        const effectiveCursor = FAR_FUTURE;
+        const followers = await followRepo.selectFollowers(
+          ownerId,
+          effectiveCursor,
+          null,
+        );
+        targets = followers.map((f) => f.user_id);
+        notificationMessage = `${fullname} just published a new post`;
+      }
+
+      for (const targetId of targets) {
         await notificationService.createAndSend({
-          userId: follower.user_id,
+          userId: targetId,
           type: 'post',
-          actorId: payload.owner_id,
+          actorId: ownerId,
           activityId: newPost.post_id,
           title: 'New Post',
-          message: `${fullname} just published a new post`,
+          message: notificationMessage,
         });
       }
     } catch (err) {

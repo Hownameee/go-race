@@ -126,6 +126,13 @@ public class PostFragment extends Fragment {
             public void onReportClicked(Post post) {
                 Toast.makeText(requireContext(), "Post reported", Toast.LENGTH_SHORT).show();
             }
+
+            @Override
+            public void onPostClicked(Post post) {
+                if (appNavigator != null) {
+                    appNavigator.openPostDetail(PostFragment.this, post.getPostId());
+                }
+            }
         });
         rvPosts.setAdapter(postAdapter);
 

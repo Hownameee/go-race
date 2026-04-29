@@ -12,6 +12,7 @@ public interface PostRepository {
      */
     LiveData<List<Post>> getPosts();
     LiveData<List<Post>> getPostsByClubId(int clubId);
+    LiveData<Post> getPostById(int postId);
     LiveData<Result<List<Post>>> getMyPosts(String cursor, int limit);
 
     /**

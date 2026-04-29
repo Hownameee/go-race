@@ -49,6 +49,13 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
+    public LiveData<Post> getPostById(int postId) {
+        return Transformations.map(postDao.getPostById(postId), entity ->
+                entity != null ? entity.asExternalModel() : null
+        );
+    }
+
+    @Override
     public LiveData<Result<List<Post>>> getMyPosts(String cursor, int limit) {
         return Transformations.map(postNetworkDataSource.getMyPosts(cursor, limit), result -> {
             if (result instanceof Result.Success) {
