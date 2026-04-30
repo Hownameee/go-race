@@ -355,24 +355,6 @@ const postService = {
   },
 
   async getReplies(commentId, userId, cursor, limit) {
-    // Ideally check post access here too
-    const effectiveCursor = cursor || FAR_FUTURE;
-    const effectiveLimit = Math.min(parseInt(limit) || DEFAULT_LIMIT, 100);
-
-    const rows = await postRepo.selectReplies(
-      commentId,
-      userId,
-      effectiveCursor,
-      effectiveLimit,
-    );
-
-    const nextCursor =
-      rows.length === effectiveLimit ? rows[rows.length - 1].created_at : null;
-
-    return { comments: rows, nextCursor };
-  },
-
-  async getReplies(commentId, userId, cursor, limit) {
     const effectiveCursor = cursor || FAR_FUTURE;
     const effectiveLimit = Math.min(parseInt(limit) || DEFAULT_LIMIT, 100);
 
