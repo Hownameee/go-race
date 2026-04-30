@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -55,6 +56,7 @@ public class ActivitySummaryFragment extends Fragment {
         TextView tvTime = view.findViewById(R.id.tv_time);
         TextView tvPace = view.findViewById(R.id.tv_pace);
         EditText etTitle = view.findViewById(R.id.et_title);
+        CheckBox cbSaveAsRoute = view.findViewById(R.id.cb_save_as_route);
         Button btnSave = view.findViewById(R.id.btn_save);
 
         viewModel = new ViewModelProvider(this).get(ActivityDetailViewModel.class);
@@ -78,6 +80,12 @@ public class ActivitySummaryFragment extends Fragment {
             }
         });
 
+        viewModel.getRouteSavedMessage().observe(getViewLifecycleOwner(), msg -> {
+            if (msg == null) return;
+            viewModel.clearRouteSavedMessage();
+            Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
+        });
+
         viewModel.getSaveResult().observe(getViewLifecycleOwner(), result -> {
             if (result instanceof Result.Loading) {
                 btnSave.setEnabled(false);
@@ -97,9 +105,8 @@ public class ActivitySummaryFragment extends Fragment {
 
         btnSave.setOnClickListener(v -> {
             String title = etTitle.getText().toString().trim();
-            if (title.isEmpty()) {
-                title = "Activity";
-            }
+            if (title.isEmpty()) title = "Activity";
+            if (cbSaveAsRoute.isChecked()) viewModel.saveAsRoute(title);
             viewModel.saveTitle(title);
         });
     }

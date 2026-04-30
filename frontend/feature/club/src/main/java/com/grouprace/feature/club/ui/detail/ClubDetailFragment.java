@@ -192,6 +192,11 @@ public class ClubDetailFragment extends Fragment {
             }
 
             @Override
+            public void onReportClicked(Post post) {
+                // TODO: implement report
+            }
+
+            @Override
             public void onShareClicked(Post post) {
                 double distance = post.getDistanceKm() != null ? post.getDistanceKm() : 0.0;
                 int seconds = post.getDurationSeconds() != null ? post.getDurationSeconds() : 0;
