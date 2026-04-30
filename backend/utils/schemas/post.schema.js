@@ -11,7 +11,6 @@ export const createPostSchema = z.object({
     .string()
     .max(2000, 'description must be at most 2000 characters')
     .optional(),
-  photo_url: z.string().optional(),
   view_mode: z.enum(['Everyone', 'Followers', 'Self']).default('Everyone'),
   club_id: z.number().int().positive().optional().nullable(),
 });

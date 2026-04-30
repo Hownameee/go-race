@@ -7,7 +7,7 @@ const postController = {
       const newPost = await postService.createPost({
         ...req.body,
         owner_id: userId,
-      });
+      }, req.files);
       return res.created(newPost, 'Post created successfully.');
     } catch (error) {
       if (error.status === 409) {

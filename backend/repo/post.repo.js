@@ -6,13 +6,12 @@ const postRepo = {
     record_id,
     title,
     description,
-    photo_url,
     view_mode,
     club_id,
   }) {
     const stmt = db.prepare(
-      `INSERT INTO POST (owner_id, record_id, title, description, photo_url, view_mode, club_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?)
+      `INSERT INTO POST (owner_id, record_id, title, description, view_mode, club_id)
+       VALUES (?, ?, ?, ?, ?, ?)
        RETURNING *`,
     );
     return stmt.get(
@@ -20,16 +19,28 @@ const postRepo = {
       record_id ?? null,
       title ?? null,
       description ?? null,
-      photo_url ?? null,
       view_mode,
       club_id ?? null,
     );
   },
 
+  async insertPostImage(postId, s3Key) {
+    const stmt = db.prepare(
+      `INSERT INTO POST_IMAGES (post_id, s3_key) VALUES (?, ?)`,
+    );
+    return stmt.run(postId, s3Key);
+  },
+
+  async selectPostImagesByPostId(postId) {
+    const stmt = db.prepare(`SELECT s3_key FROM POST_IMAGES WHERE post_id = ?`);
+    return stmt.all(postId);
+  },
+
   async selectClubPosts(clubId, cursor, limit) {
     const stmt = db.prepare(
       `SELECT p.*, u.username, u.fullname, u.avatar_url,
-              r.activity_type, r.duration_seconds, r.distance_km, r.speed, r.s3_key
+              r.activity_type, r.duration_seconds, r.distance_km, r.speed, r.s3_key as record_s3_key,
+              (SELECT GROUP_CONCAT(s3_key) FROM POST_IMAGES WHERE post_id = p.post_id) as photos
        FROM POST p
        JOIN USERS u ON u.user_id = p.owner_id
        LEFT JOIN RECORD r ON r.record_id = p.record_id
@@ -63,7 +74,8 @@ const postRepo = {
   async selectFeed(cursor, limit) {
     const stmt = db.prepare(
       `SELECT p.*, u.username, u.fullname, u.avatar_url,
-              r.activity_type, r.duration_seconds, r.distance_km, r.speed, r.s3_key
+              r.activity_type, r.duration_seconds, r.distance_km, r.speed, r.s3_key as record_s3_key,
+              (SELECT GROUP_CONCAT(s3_key) FROM POST_IMAGES WHERE post_id = p.post_id) as photos
        FROM POST p
        JOIN USERS u ON u.user_id = p.owner_id
        LEFT JOIN RECORD r ON r.record_id = p.record_id
@@ -78,7 +90,8 @@ const postRepo = {
     const stmt = db.prepare(
       `SELECT p.*, u.username, u.fullname, u.avatar_url,
               CASE WHEN l.user_id IS NOT NULL THEN 1 ELSE 0 END as is_liked,
-              r.activity_type, r.duration_seconds, r.distance_km, r.speed, r.s3_key
+              r.activity_type, r.duration_seconds, r.distance_km, r.speed, r.s3_key as record_s3_key,
+              (SELECT GROUP_CONCAT(s3_key) FROM POST_IMAGES WHERE post_id = p.post_id) as photos
        FROM POST p
        JOIN FOLLOW f ON f.following_id = p.owner_id
        JOIN USERS u ON u.user_id = p.owner_id
@@ -95,7 +108,8 @@ const postRepo = {
     const stmt = db.prepare(
       `SELECT p.*, u.username, u.fullname, u.avatar_url,
               CASE WHEN l.user_id IS NOT NULL THEN 1 ELSE 0 END as is_liked,
-              r.activity_type, r.duration_seconds, r.distance_km, r.speed, r.s3_key
+              r.activity_type, r.duration_seconds, r.distance_km, r.speed, r.s3_key as record_s3_key,
+              (SELECT GROUP_CONCAT(s3_key) FROM POST_IMAGES WHERE post_id = p.post_id) as photos
        FROM POST p
        JOIN USERS u ON u.user_id = p.owner_id
        LEFT JOIN LIKE l ON l.post_id = p.post_id AND l.user_id = ?

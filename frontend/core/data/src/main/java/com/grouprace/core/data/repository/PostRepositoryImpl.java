@@ -93,7 +93,7 @@ public class PostRepositoryImpl implements PostRepository {
                         Post p = np.asExternalModel();
                         return new PostEntity(
                             p.getPostId(), p.getRecordId(), p.getOwnerId(), p.getTitle(),
-                            p.getDescription(), p.getPhotoUrl(), p.getLikeCount(),
+                            p.getDescription(), p.getPhotoUrls(), p.getLikeCount(),
                             p.getCommentCount(), p.getViewMode(), p.getCreatedAt(),
                             p.getUsername(), p.getFullName(), p.getProfilePictureUrl(),
                             p.getActivityType(), p.getDurationSeconds(), p.getDistanceKm(),
@@ -184,7 +184,7 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public LiveData<Result<Boolean>> createPost(String title, String description, Integer recordId, Integer clubId) {
+    public LiveData<Result<Boolean>> createPost(String title, String description, Integer recordId, Integer clubId, List<String> photoUrls) {
         MutableLiveData<Result<Boolean>> resultData = new MutableLiveData<>();
         resultData.postValue(new Result.Loading<>());
 
@@ -195,8 +195,8 @@ public class PostRepositoryImpl implements PostRepository {
         String currentTime = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US).format(new java.util.Date());
         
         PostEntity offlineEntity = new PostEntity(
-                offlineId, recordId, sessionManager.getUserId(), title, description, null,
-                0, 0, "PUBLIC", currentTime, null, null, null,
+                offlineId, recordId, sessionManager.getUserId(), title, description, photoUrls,
+                0, 0, "Everyone", currentTime, null, null, null,
                 null, null, null, null, null, false, clubId,
                 true // pendingSync = true
         );

@@ -39,3 +39,32 @@ export function uploadAvatar(req, res, next) {
     next();
   });
 }
+
+const postUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB
+    files: 10, // max 10 photos
+  },
+  fileFilter: (req, file, cb) => {
+    if (!allowedMimeTypes.has(file.mimetype)) {
+      const error = new Error('Only JPG, PNG, WEBP, HEIC, and HEIF images are allowed.');
+      error.status = 400;
+      return cb(error);
+    }
+    cb(null, true);
+  },
+}).array('photos', 10);
+
+export function uploadPhotos(req, res, next) {
+  postUpload(req, res, (error) => {
+    if (error) {
+      if (error.code === 'LIMIT_FILE_COUNT') {
+        error.message = 'You can upload up to 10 photos per post.';
+        error.status = 400;
+      }
+      return next(error);
+    }
+    next();
+  });
+}

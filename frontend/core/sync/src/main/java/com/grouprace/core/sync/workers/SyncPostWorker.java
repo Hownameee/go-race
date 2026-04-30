@@ -57,16 +57,23 @@ public class SyncPostWorker extends Worker {
                 continue;
             }
 
-            CreatePostRequest request = new CreatePostRequest(0, post.title, post.description);
-            request.setRecordId(post.recordId);
-            request.setClubId(post.clubId);
+            CreatePostRequest request = new CreatePostRequest(
+                    post.recordId,
+                    post.title,
+                    post.description,
+                    post.viewMode,
+                    post.clubId
+            );
 
-            com.grouprace.core.common.result.Result<Boolean> result = postNetworkDataSource.createPostSync(request);
+            com.grouprace.core.common.result.Result<Boolean> result = postNetworkDataSource.createPostSync(
+                    request,
+                    post.photoUrls
+            );
             
             if (result instanceof com.grouprace.core.common.result.Result.Success) {
                 Log.d(TAG, "Successfully synced post: " + post.title);
                 post.pendingSync = false;
-                postDao.upsert(post);
+                postDao.deleteById(post.postId);
             } else if (result instanceof com.grouprace.core.common.result.Result.Error) {
                 com.grouprace.core.common.result.Result.Error<Boolean> error = (com.grouprace.core.common.result.Result.Error<Boolean>) result;
                 Log.e(TAG, "Failed to sync post " + post.postId + ": " + error.message);
