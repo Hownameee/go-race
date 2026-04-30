@@ -9,6 +9,7 @@ import com.grouprace.core.network.api.NotificationApiService;
 import com.grouprace.core.network.api.RecordApiService;
 import com.grouprace.core.network.api.SearchBoxApiService;
 import com.grouprace.core.network.api.UserApiService;
+import com.grouprace.core.network.api.AIApiService;
 
 import dagger.Module;
 import dagger.Provides;
@@ -26,7 +27,8 @@ import com.grouprace.core.network.utils.SessionManager;
 @Module
 @InstallIn(SingletonComponent.class)
 public class NetworkModule {
-    private static final String BASE_URL = "http://172.104.190.228:5000/";
+    // private static final String BASE_URL = "http://172.104.190.228:5000/";
+    private static final String BASE_URL = "http://10.0.2.2:5000/";
 
     @Provides
     @Singleton
@@ -96,6 +98,12 @@ public class NetworkModule {
     @Singleton
     public UserApiService provideUserApiService(Retrofit retrofit) {
         return retrofit.create(UserApiService.class);
+    }
+
+    @Provides
+    @Singleton
+    public AIApiService provideAIApiService(Retrofit retrofit) {
+        return retrofit.create(AIApiService.class);
     }
 
     // Mapbox REST APIs (no auth interceptor — token passed as query param)

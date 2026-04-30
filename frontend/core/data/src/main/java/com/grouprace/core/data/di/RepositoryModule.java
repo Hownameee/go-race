@@ -18,6 +18,8 @@ import com.grouprace.core.data.repository.UserRepository;
 import com.grouprace.core.data.repository.UserRepositoryImpl;
 import com.grouprace.core.data.repository.UserRouteRepository;
 import com.grouprace.core.data.repository.UserRouteRepositoryImpl;
+import com.grouprace.core.data.repository.AIRepository;
+import com.grouprace.core.data.repository.AIRepositoryImpl;
 
 import dagger.Binds;
 import dagger.Module;
@@ -54,4 +56,7 @@ public abstract class RepositoryModule {
 
     @Binds
     public abstract UserRouteRepository bindUserRouteRepository(UserRouteRepositoryImpl impl);
+
+    @Binds
+    public abstract AIRepository bindAIRepository(AIRepositoryImpl impl);
 }

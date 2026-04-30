@@ -1,9 +1,10 @@
 package com.grouprace.feature.map.ui;
 
+import com.mapbox.geojson.Point;
+
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -68,6 +69,8 @@ public class RouteEditorFragment extends Fragment {
     private ImageButton btnBack;
     private Button btnUndo, btnClear, btnSave;
     private ProgressBar progressBar;
+    private View btnAiChat;
+    private Point currentPoint;
 
     private View cardControls, cardPreviewActions;
     private TextView tvPreviewName, tvPreviewStats;
@@ -76,6 +79,7 @@ public class RouteEditorFragment extends Fragment {
 
     private boolean locationCaptured = false;
     private final OnIndicatorPositionChangedListener positionListener = point -> {
+        currentPoint = point;
         if (!locationCaptured) {
             locationCaptured = true;
             mapView.getMapboxMap().setCamera(new com.mapbox.maps.CameraOptions.Builder()
@@ -127,6 +131,7 @@ public class RouteEditorFragment extends Fragment {
         btnEditRoute = view.findViewById(R.id.btn_edit_route);
         btnUseRoute = view.findViewById(R.id.btn_use_route);
         btnMore = view.findViewById(R.id.btn_more);
+        btnAiChat = view.findViewById(R.id.btn_ai_chat);
     }
 
     private void setupMap() {
@@ -148,6 +153,13 @@ public class RouteEditorFragment extends Fragment {
             });
 
             requestLocationPermission();
+
+            // If a route was already set before the style loaded, draw it now
+            UserRoute pending = viewModel.previewedRoute.getValue();
+            if (pending != null) {
+                mapHelper.drawResolvedRoute(style, pending.routeCoordinates);
+                mapHelper.zoomToFit(mapView, pending.waypoints);
+            }
         });
     }
 
@@ -180,7 +192,9 @@ public class RouteEditorFragment extends Fragment {
 
         viewModel.waypoints.observe(getViewLifecycleOwner(), waypoints -> {
             tvWaypoints.setText(getString(R.string.waypoint_count, waypoints.size()));
-            updateMarkers(waypoints);
+            if (viewModel.screenMode.getValue() == DrawRouteViewModel.ScreenMode.DRAWING) {
+                updateMarkers(waypoints);
+            }
         });
 
         viewModel.routeResult.observe(getViewLifecycleOwner(), result -> {
@@ -210,7 +224,6 @@ public class RouteEditorFragment extends Fragment {
                 if (mapStyle != null) {
                     mapHelper.drawResolvedRoute(mapStyle, route.routeCoordinates);
                     mapHelper.zoomToFit(mapView, route.waypoints);
-                    updateMarkers(route.waypoints);
                 }
             }
         });
@@ -238,6 +251,19 @@ public class RouteEditorFragment extends Fragment {
                 return false;
             });
             popup.show();
+        });
+
+        btnAiChat.setOnClickListener(v -> {
+            double lat = currentPoint != null ? currentPoint.latitude() : 0.0;
+            double lng = currentPoint != null ? currentPoint.longitude() : 0.0;
+            
+            String token = MapboxOptions.INSTANCE.getAccessToken();
+            List<double[]> waypoints = viewModel.waypoints.getValue();
+            AIChatBottomSheet chatSheet = AIChatBottomSheet.newInstance(lat, lng, token, waypoints);
+            chatSheet.setOnRouteGeneratedListener(aiResult -> {
+                viewModel.handleAIRoutingResult(aiResult);
+            });
+            chatSheet.show(getChildFragmentManager(), "AI_CHAT");
         });
     }
 

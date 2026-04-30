@@ -29,6 +29,9 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    buildFeatures {
+        viewBinding = true
+    }
 }
 
 dependencies {
@@ -45,6 +48,7 @@ dependencies {
     implementation(project(":core:model"))
     implementation(project(":core:map"))
     implementation(project(":core:system"))
+    implementation(project(":core:navigation"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

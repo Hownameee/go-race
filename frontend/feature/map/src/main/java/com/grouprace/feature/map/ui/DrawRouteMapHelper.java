@@ -32,6 +32,12 @@ final class DrawRouteMapHelper {
         updateSource(style, SOURCE_RESOLVED, toPoints(coordinates));
     }
 
+    void drawRouteFromGeoJson(Style style, String geoJson) {
+        if (style == null || geoJson == null) return;
+        Expected<String, Value> data = Value.fromJson(geoJson);
+        if (data.isValue()) style.setStyleSourceProperty(SOURCE_RESOLVED, "data", data.getValue());
+    }
+
     void clearAll(Style style) {
         if (style == null) return;
         clearSource(style, SOURCE_RESOLVED);
