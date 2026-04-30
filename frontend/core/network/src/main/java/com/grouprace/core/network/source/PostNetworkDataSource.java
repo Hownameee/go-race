@@ -341,6 +341,20 @@ public class PostNetworkDataSource {
         return liveData;
     }
 
+    public Result<Boolean> createPostSync(CreatePostRequest request) {
+        try {
+            Response<ApiResponse<Void>> response = apiService.createPost(request).execute();
+            if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                return new Result.Success<>(true);
+            } else {
+                String msg = response.body() != null ? response.body().getMessage() : "HTTP " + response.code();
+                return new Result.Error<>(new Exception(msg), msg);
+            }
+        } catch (java.io.IOException e) {
+            return new Result.Error<>(e, e.getMessage());
+        }
+    }
+
     public LiveData<Result<List<NetworkPost>>> getClubPosts(int clubId, String cursor, int limit) {
         MutableLiveData<Result<List<NetworkPost>>> liveData = new MutableLiveData<>();
         liveData.postValue(new Result.Loading<>());

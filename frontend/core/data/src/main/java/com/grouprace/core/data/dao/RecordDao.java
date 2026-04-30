@@ -38,4 +38,10 @@ public interface RecordDao {
            "COALESCE(SUM(distance), 0) as totalDistanceKm " +
            "FROM record WHERE startTime LIKE :todayPrefix || '%'")
     LiveData<TodaySummaryEntity> getTodaySummary(String todayPrefix);
+
+    @Query("SELECT * FROM record WHERE pendingSync = 1")
+    List<RecordEntity> getPendingRecords();
+
+    @Query("DELETE FROM record WHERE recordId = :id")
+    void deleteById(int id);
 }

@@ -104,7 +104,8 @@ public class TrackingRepositoryImpl implements TrackingRepository {
                                         nr.getCalories(),
                                         nr.getHeartRate(),
                                         nr.getSpeed(),
-                                        nr.getImageUrl()
+                                        nr.getImageUrl(),
+                                        false
                                 );
                                 recordDao.insert(entity);
                                 routePointDao.assignUnassignedPointsToActivity(nr.getRecordId());
@@ -129,11 +130,11 @@ public class TrackingRepositoryImpl implements TrackingRepository {
     public LiveData<Result<Void>> updateRecord(Record record) {
         MutableLiveData<Result<Void>> resultLiveData = new MutableLiveData<>();
         resultLiveData.setValue(new Result.Loading<>());
- 
+
         java.util.Map<String, Object> updateData = new java.util.HashMap<>();
         updateData.put("title", record.getTitle());
         // Add other fields if needed
- 
+
         mainHandler.post(() -> {
             LiveData<Result<Void>> updateCall = networkDataSource.updateRecord(record.getRecordId(), updateData);
             updateCall.observeForever(new Observer<Result<Void>>() {
@@ -150,10 +151,10 @@ public class TrackingRepositoryImpl implements TrackingRepository {
                 }
             });
         });
- 
+
         return resultLiveData;
     }
- 
+
     @Override
     public void updateRecordLocal(Record record) {
         executor.execute(() -> {
@@ -169,7 +170,8 @@ public class TrackingRepositoryImpl implements TrackingRepository {
                     record.getCalories(),
                     record.getHeartRate(),
                     record.getSpeed(),
-                    record.getImageUrl()
+                    record.getImageUrl(),
+                    false
             );
             recordDao.update(entity);
         });
@@ -180,7 +182,8 @@ public class TrackingRepositoryImpl implements TrackingRepository {
         try {
             Future<Record> future = executor.submit(() -> {
                 RecordEntity entity = recordDao.getById((int) id);
-                if (entity == null) return null;
+                if (entity == null)
+                    return null;
                 return entity.asExternalModel();
             });
             return future.get();
@@ -200,8 +203,7 @@ public class TrackingRepositoryImpl implements TrackingRepository {
                     for (com.grouprace.core.data.model.RoutePoint rp : entities) {
                         models.add(new RoutePoint(
                                 rp.activityId, rp.latitude, rp.longitude,
-                                rp.altitude, rp.timestamp, rp.accuracy
-                        ));
+                                rp.altitude, rp.timestamp, rp.accuracy));
                     }
                 }
                 return models;
