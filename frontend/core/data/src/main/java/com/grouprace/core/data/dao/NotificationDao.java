@@ -23,4 +23,7 @@ public interface NotificationDao {
 
     @Query("UPDATE notifications SET read = 1 WHERE id = :notificationId")
     void markAsRead(int notificationId);
+
+    @Query("DELETE FROM notifications WHERE id NOT IN (SELECT id FROM notifications ORDER BY id DESC LIMIT 10)")
+    void deleteOldNotifications();
 }

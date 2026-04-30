@@ -22,6 +22,9 @@ public interface PostDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void upsertAll(List<PostEntity> posts);
 
+    @Query("DELETE FROM posts WHERE postId NOT IN (SELECT postId FROM posts ORDER BY createdAt DESC LIMIT 10)")
+    void deleteOldPosts();
+
     @Query("DELETE FROM posts")
     void deleteAll();
 }

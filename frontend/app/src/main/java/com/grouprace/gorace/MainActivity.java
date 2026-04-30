@@ -138,6 +138,14 @@ public class MainActivity extends AppCompatActivity {
         retryRegisterFcmToken();
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (viewModel != null) {
+            viewModel.performGarbageCollection();
+        }
+    }
+
     private void requestNotificationPermissionIfNeeded() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                 ContextCompat.checkSelfPermission(this,

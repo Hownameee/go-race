@@ -38,4 +38,7 @@ public interface RecordDao {
            "COALESCE(SUM(distance), 0) as totalDistanceKm " +
            "FROM record WHERE startTime LIKE :todayPrefix || '%'")
     LiveData<TodaySummaryEntity> getTodaySummary(String todayPrefix);
+
+    @Query("DELETE FROM record WHERE recordId NOT IN (SELECT recordId FROM record ORDER BY startTime DESC LIMIT 10)")
+    void deleteOldRecords();
 }
