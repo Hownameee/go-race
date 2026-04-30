@@ -9,6 +9,7 @@ import validation from '../middlewares/validation.js';
 const router = express.Router();
 
 router.get('/', notificationController.getList);
+router.get('/unread-count', notificationController.getUnreadCount);
 
 router.post(
   '/',

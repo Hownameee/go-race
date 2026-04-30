@@ -49,6 +49,17 @@ const notificationController = {
       return res.error(null, err.message);
     }
   },
+
+  async getUnreadCount(req, res) {
+    try {
+      const userId = req.user.userId;
+      const count = await notificationService.getUnreadCount(userId);
+      return res.ok({ count });
+    } catch (err) {
+      console.error('[Notification][getUnreadCount]', err);
+      return res.error(null, err.message);
+    }
+  },
 };
 
 export default notificationController;

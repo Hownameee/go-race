@@ -45,6 +45,12 @@ const notificationRepository = {
     const info = await db.prepare(sql).run(userId);
     return info.changes;
   },
+
+  countUnreadByUserId: async function (userId) {
+    const sql = `SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND \`read\` = 0`;
+    const row = await db.prepare(sql).get(userId);
+    return row.count;
+  },
 };
 
 export default notificationRepository;

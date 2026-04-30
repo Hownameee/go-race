@@ -91,6 +91,10 @@ const notificationService = {
     await notificationRepository.markAsRead(id);
   },
 
+  async getUnreadCount(userId) {
+    return await notificationRepository.countUnreadByUserId(userId);
+  },
+
   async sendPushByUserId(userId, data) {
     const admin = getFirebaseAdmin();
     if (!admin) return;
