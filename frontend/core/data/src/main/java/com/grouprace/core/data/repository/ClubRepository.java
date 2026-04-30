@@ -30,7 +30,7 @@ public interface ClubRepository {
 
     LiveData<List<ClubEvent>> getLocalEvents(int clubId);
     LiveData<Result<String>> syncEvents(int clubId);
-    LiveData<Result<String>> createEvent(int clubId, String title, String description, double targetDistance, int targetDurationSeconds, String startTime, String endTime);
+    LiveData<Result<String>> createEvent(int clubId, String title, String description, double targetDistance, String startTime, String endTime);
     LiveData<Result<String>> joinEvent(int clubId, int eventId);
     LiveData<Result<com.grouprace.core.model.EventStats>> syncEventStats(int clubId, int eventId);
 

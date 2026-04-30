@@ -306,7 +306,7 @@ public class ClubRepositoryImpl implements ClubRepository {
     public LiveData<List<com.grouprace.core.model.ClubEvent>> getLocalEvents(int clubId) {
         return Transformations.map(eventDao.getEventsByClubId(clubId), entities -> 
             entities.stream().map(e -> new com.grouprace.core.model.ClubEvent(
-                e.eventId, e.clubId, e.title, e.description, e.targetDistance, e.targetDurationSeconds, e.startTime, e.endTime, e.isJoined, e.currentDistance, e.currentDurationSeconds, e.participantsCount, e.globalDistance, e.globalDurationSeconds
+                e.eventId, e.clubId, e.title, e.description, e.targetDistance, e.startTime, e.endTime, e.isJoined, e.currentDistance, e.participantsCount, e.globalDistance
             )).collect(Collectors.toList())
         );
     }
@@ -322,7 +322,7 @@ public class ClubRepositoryImpl implements ClubRepository {
                 
                 List<com.grouprace.core.data.model.EventEntity> entities = data.stream().map(n -> 
                     new com.grouprace.core.data.model.EventEntity(
-                        n.eventId, n.clubId, n.title, n.description, n.targetDistance, n.targetDurationSeconds, n.startTime, n.endTime, n.isJoined == 1, n.currentDistance, n.currentDurationSeconds, n.participantsCount, n.globalDistance, n.globalDurationSeconds
+                        n.eventId, n.clubId, n.title, n.description, n.targetDistance, n.startTime, n.endTime, n.isJoined == 1, n.currentDistance, n.participantsCount, n.globalDistance
                     )
                 ).collect(Collectors.toList());
 
@@ -341,8 +341,8 @@ public class ClubRepositoryImpl implements ClubRepository {
     }
 
     @Override
-    public LiveData<Result<String>> createEvent(int clubId, String title, String description, double targetDistance, int targetDurationSeconds, String startTime, String endTime) {
-        com.grouprace.core.network.model.club.CreateClubEventRequest request = new com.grouprace.core.network.model.club.CreateClubEventRequest(title, description, targetDistance, targetDurationSeconds, startTime, endTime);
+    public LiveData<Result<String>> createEvent(int clubId, String title, String description, double targetDistance, String startTime, String endTime) {
+        com.grouprace.core.network.model.club.CreateClubEventRequest request = new com.grouprace.core.network.model.club.CreateClubEventRequest(title, description, targetDistance, startTime, endTime);
         return networkDataSource.createEvent(clubId, request);
     }
 
@@ -365,14 +365,13 @@ public class ClubRepositoryImpl implements ClubRepository {
                     com.grouprace.core.data.model.EventEntity existing = eventDao.getEventByIdSync(data.eventId);
                     boolean isJoined = existing != null && existing.isJoined;
                     double currentDistance = existing != null ? existing.currentDistance : 0.0;
-                    int currentDuration = existing != null ? existing.currentDurationSeconds : 0;
 
                     com.grouprace.core.data.model.EventEntity entity = new com.grouprace.core.data.model.EventEntity(
                         data.eventId, data.clubId, data.title, data.description, 
-                        data.targetDistance, data.targetDurationSeconds, 
+                        data.targetDistance, 
                         data.startTime, data.endTime, 
-                        isJoined, currentDistance, currentDuration, 
-                        data.participantsCount, data.totalDistance, data.totalDurationSeconds
+                        isJoined, currentDistance, 
+                        data.participantsCount, data.totalDistance
                     );
                     eventDao.insertEvent(entity);
                 }).start();
@@ -389,12 +388,10 @@ public class ClubRepositoryImpl implements ClubRepository {
                     data.title,
                     data.description,
                     data.targetDistance,
-                    data.targetDurationSeconds,
                     data.startTime,
                     data.endTime,
                     data.participantsCount,
                     data.totalDistance,
-                    data.totalDurationSeconds,
                     leaderboard
                 );
 

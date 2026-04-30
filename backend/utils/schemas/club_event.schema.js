@@ -11,15 +11,7 @@ export const createClubEventSchema = z
   .object({
     title: z.string().min(1, 'Title is required'),
     description: z.string().optional(),
-    target_distance: z
-      .number()
-      .nonnegative('Distance must be non-negative')
-      .optional(),
-    target_duration_seconds: z
-      .number()
-      .int()
-      .nonnegative('Duration must be non-negative')
-      .optional(),
+    target_distance: z.number().positive('Distance must be greater than 0'),
     start_time: z
       .string()
       .datetime({ message: 'Invalid datetime string! Must be UTC.' }),
@@ -38,18 +30,5 @@ export const createClubEventSchema = z
     {
       message: 'End time must be after start time',
       path: ['end_time'],
-    },
-  )
-  .refine(
-    (data) => {
-      return (
-        (data.target_distance !== undefined && data.target_distance > 0) ||
-        (data.target_duration_seconds !== undefined &&
-          data.target_duration_seconds > 0)
-      );
-    },
-    {
-      message: 'Event must have a distance or duration target greater than 0',
-      path: ['target_distance'],
     },
   );

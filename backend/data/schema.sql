@@ -228,12 +228,10 @@ CREATE TABLE IF NOT EXISTS CLUB_EVENTS (
     title TEXT NOT NULL,
     description TEXT,
     target_distance REAL DEFAULT 0,
-    target_duration_seconds INTEGER DEFAULT 0,
     start_time DATETIME NOT NULL,
     end_time DATETIME,
     participants_count INTEGER DEFAULT 0,
     total_distance REAL DEFAULT 0,
-    total_duration_seconds INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     
     FOREIGN KEY (club_id) REFERENCES CLUBS(club_id) ON DELETE CASCADE,
@@ -244,7 +242,6 @@ CREATE TABLE IF NOT EXISTS CLUB_EVENT_PARTICIPANTS (
     event_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     current_distance REAL DEFAULT 0,
-    current_duration_seconds INTEGER DEFAULT 0,
     joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     
     PRIMARY KEY (event_id, user_id),
@@ -339,8 +336,7 @@ AFTER INSERT ON RECORD
 BEGIN
     -- 1. Cập nhật tiến độ cá nhân (chỉ rows user đã join + event đang diễn ra)
     UPDATE CLUB_EVENT_PARTICIPANTS
-    SET current_distance         = current_distance         + COALESCE(NEW.distance_km, 0),
-        current_duration_seconds = current_duration_seconds + COALESCE(NEW.duration_seconds, 0)
+    SET current_distance         = current_distance         + COALESCE(NEW.distance_km, 0)
     WHERE user_id = NEW.owner_id
       AND event_id IN (
           SELECT e.event_id
@@ -351,8 +347,7 @@ BEGIN
 
     -- 2. Cập nhật global progress (chỉ event mà user ĐÃ join)
     UPDATE CLUB_EVENTS
-    SET total_distance         = total_distance         + COALESCE(NEW.distance_km, 0),
-        total_duration_seconds = total_duration_seconds + COALESCE(NEW.duration_seconds, 0)
+    SET total_distance         = total_distance         + COALESCE(NEW.distance_km, 0)
     WHERE event_id IN (
           SELECT ep.event_id
           FROM CLUB_EVENT_PARTICIPANTS ep
@@ -385,8 +380,7 @@ CREATE TRIGGER trigger_record_delete_update_event_progress
 AFTER DELETE ON RECORD
 BEGIN
     UPDATE CLUB_EVENT_PARTICIPANTS
-    SET current_distance         = MAX(0, current_distance         - COALESCE(OLD.distance_km, 0)),
-        current_duration_seconds = MAX(0, current_duration_seconds - COALESCE(OLD.duration_seconds, 0))
+    SET current_distance         = MAX(0, current_distance         - COALESCE(OLD.distance_km, 0))
     WHERE user_id = OLD.owner_id
       AND event_id IN (
           SELECT e.event_id
@@ -396,8 +390,7 @@ BEGIN
       );
 
     UPDATE CLUB_EVENTS
-    SET total_distance         = MAX(0, total_distance         - COALESCE(OLD.distance_km, 0)),
-        total_duration_seconds = MAX(0, total_duration_seconds - COALESCE(OLD.duration_seconds, 0))
+    SET total_distance         = MAX(0, total_distance         - COALESCE(OLD.distance_km, 0))
     WHERE event_id IN (
           SELECT ep.event_id
           FROM CLUB_EVENT_PARTICIPANTS ep

@@ -123,8 +123,6 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
             double progress = 0;
             if (event.getTargetDistance() > 0) {
                 progress = (event.getGlobalDistance() / event.getTargetDistance()) * 100;
-            } else if (event.getTargetDurationSeconds() > 0) {
-                progress = ((double) event.getGlobalDurationSeconds() / event.getTargetDurationSeconds()) * 100;
             }
             boolean isCompleted = progress >= 100;
 

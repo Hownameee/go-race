@@ -9,7 +9,6 @@ const clubEventService = {
       title,
       description,
       target_distance,
-      target_duration_seconds,
       start_time,
       end_time,
     },
@@ -26,8 +25,7 @@ const clubEventService = {
       userId,
       title,
       description,
-      target_distance || 0,
-      target_duration_seconds || 0,
+      target_distance,
       start_time,
       end_time,
     );

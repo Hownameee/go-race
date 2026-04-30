@@ -19,9 +19,6 @@ public class NetworkEventStats {
     @SerializedName("target_distance")
     public double targetDistance;
 
-    @SerializedName("target_duration_seconds")
-    public int targetDurationSeconds;
-
     @SerializedName("start_time")
     public String startTime;
 
@@ -33,9 +30,6 @@ public class NetworkEventStats {
 
     @SerializedName("total_distance")
     public double totalDistance;
-
-    @SerializedName("total_duration_seconds")
-    public int totalDurationSeconds;
 
     // maybe separate network call for leaderboard?
     @SerializedName("leaderboard")
@@ -53,8 +47,5 @@ public class NetworkEventStats {
 
         @SerializedName("distance")
         public double distance;
-
-        @SerializedName("duration")
-        public int duration;
     }
 }

@@ -7,13 +7,12 @@ const clubEventRepo = {
     title,
     description,
     targetDistance,
-    targetDurationSeconds,
     startTime,
     endTime,
   ) {
     const sql = `
-            INSERT INTO CLUB_EVENTS (club_id, created_by, title, description, target_distance, target_duration_seconds, start_time, end_time)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO CLUB_EVENTS (club_id, created_by, title, description, target_distance, start_time, end_time)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         `;
     const info = db
       .prepare(sql)
@@ -23,7 +22,6 @@ const clubEventRepo = {
         title,
         description,
         targetDistance,
-        targetDurationSeconds,
         startTime,
         endTime,
       );
@@ -38,15 +36,12 @@ const clubEventRepo = {
                 e.title,
                 e.description,
                 e.target_distance,
-                e.target_duration_seconds,
                 e.start_time,
                 e.end_time,
                 CASE WHEN ep.user_id IS NOT NULL THEN 1 ELSE 0 END AS is_joined,
                 COALESCE(ep.current_distance, 0) AS current_distance,
-                COALESCE(ep.current_duration_seconds, 0) AS current_duration_seconds,
                 e.participants_count,
-                e.total_distance AS global_distance,
-                e.total_duration_seconds AS global_duration_seconds
+                e.total_distance AS global_distance
             FROM CLUB_EVENTS e
             LEFT JOIN CLUB_EVENT_PARTICIPANTS ep ON e.event_id = ep.event_id AND ep.user_id = ?
             WHERE e.club_id = ?
@@ -79,12 +74,11 @@ const clubEventRepo = {
                 u.user_id as member_id,
                 u.fullname as member_name,
                 u.avatar_url,
-                ep.current_distance as distance,
-                ep.current_duration_seconds as duration
+                ep.current_distance as distance
             FROM CLUB_EVENT_PARTICIPANTS ep
             JOIN USERS u ON ep.user_id = u.user_id
             WHERE ep.event_id = ?
-            ORDER BY ep.current_distance DESC, ep.current_duration_seconds DESC
+            ORDER BY ep.current_distance DESC
             LIMIT 10
         `;
     const leaderboard = db.prepare(participantsSql).all(eventId);
@@ -95,12 +89,10 @@ const clubEventRepo = {
       title: event.title,
       description: event.description,
       target_distance: event.target_distance,
-      target_duration_seconds: event.target_duration_seconds,
       start_time: event.start_time,
       end_time: event.end_time,
       participants_count: event.participants_count,
       total_distance: event.total_distance,
-      total_duration_seconds: event.total_duration_seconds,
       leaderboard: leaderboard,
     };
   },
