@@ -89,8 +89,22 @@ const clubRepo = {
   },
 
   removeMember(clubId, userId) {
-    const sql = `UPDATE CLUB_MEMBERS SET status = 'left' WHERE club_id = ? AND user_id = ?;`;
+    const sql = `DELETE FROM CLUB_MEMBERS WHERE club_id = ? AND user_id = ?;`;
     return db.prepare(sql).run(clubId, userId);
+  },
+
+  cleanupOngoingEvents(clubId, userId) {
+    const sql = `
+        DELETE FROM CLUB_EVENT_PARTICIPANTS
+        WHERE user_id = ? 
+          AND event_id IN (
+              SELECT event_id FROM CLUB_EVENTS 
+              WHERE club_id = ? 
+                AND (end_time IS NULL OR datetime('now') <= datetime(end_time))
+                AND (target_distance <= 0 OR total_distance < target_distance)
+          );
+    `;
+    return db.prepare(sql).run(userId, clubId);
   },
 
   createClub(name, description, privacyType, leaderId) {

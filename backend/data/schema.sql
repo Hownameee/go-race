@@ -282,6 +282,26 @@ BEGIN
       AND NEW.status != 'approved';
 END;
 
+DROP TRIGGER IF EXISTS trigger_club_member_delete;
+CREATE TRIGGER trigger_club_member_delete
+AFTER DELETE ON CLUB_MEMBERS
+BEGIN
+    UPDATE CLUBS 
+    SET total_distance = MAX(0, total_distance - COALESCE(OLD.total_distance, 0)),
+        member_count = member_count - 1,
+        club_record_distance = CASE 
+            WHEN club_record_distance = OLD.total_distance THEN 
+                COALESCE((SELECT MAX(total_distance) FROM CLUB_MEMBERS WHERE club_id = OLD.club_id AND status = 'approved'), 0)
+            ELSE club_record_distance 
+        END,
+        club_record_duration = CASE 
+            WHEN club_record_duration = OLD.total_duration THEN 
+                COALESCE((SELECT MAX(total_duration) FROM CLUB_MEMBERS WHERE club_id = OLD.club_id AND status = 'approved'), 0)
+            ELSE club_record_duration 
+        END
+    WHERE club_id = OLD.club_id;
+END;
+
 -- ==========================================
 -- TRIGGERS CHO POST_COUNT (Bảng POST)
 -- ==========================================
@@ -432,7 +452,13 @@ CREATE TRIGGER trigger_club_event_participant_delete
 AFTER DELETE ON CLUB_EVENT_PARTICIPANTS
 BEGIN
     UPDATE CLUB_EVENTS
-    SET participants_count = MAX(0, participants_count - 1)
+    SET participants_count = MAX(0, participants_count - 1),
+        total_distance = CASE 
+            WHEN (end_time IS NULL OR datetime('now') <= datetime(end_time)) 
+                 AND (target_distance <= 0 OR total_distance < target_distance)
+            THEN MAX(0, total_distance - COALESCE(OLD.current_distance, 0))
+            ELSE total_distance 
+        END
     WHERE event_id = OLD.event_id;
 END;
 

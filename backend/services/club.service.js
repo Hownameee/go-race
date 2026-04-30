@@ -74,7 +74,8 @@ const clubService = {
       throw error;
     }
 
-    await clubRepo.removeMember(clubId, userId);
+    clubRepo.cleanupOngoingEvents(clubId, userId);
+    clubRepo.removeMember(clubId, userId);
     return { message: 'Left' };
   },
 
@@ -344,7 +345,12 @@ const clubService = {
       throw Object.assign(new Error('Invalid status update'), { status: 400 });
     }
 
-    await clubRepo.updateMemberStatus(clubId, targetUserId, newStatus);
+    if (newStatus === 'left') {
+      clubRepo.cleanupOngoingEvents(clubId, targetUserId);
+      clubRepo.removeMember(clubId, targetUserId);
+    } else {
+      await clubRepo.updateMemberStatus(clubId, targetUserId, newStatus);
+    }
     return { message: `Member status updated to ${newStatus}` };
   },
 
