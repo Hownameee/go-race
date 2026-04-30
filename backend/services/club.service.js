@@ -65,8 +65,56 @@ const clubService = {
     if (!club) {
       throw new Error('Club not found');
     }
+
+    if (club.leader_id === userId) {
+      const error = new Error(
+        'Club leader cannot leave the club. Please transfer leadership to another member first.',
+      );
+      error.status = 400;
+      throw error;
+    }
+
     await clubRepo.removeMember(clubId, userId);
     return { message: 'Left' };
+  },
+
+  async transferLeadership(clubId, currentLeaderId, newLeaderId) {
+    const club = await clubRepo.findById(clubId);
+    const newLeaderMemberPromise = clubRepo.findMemberStatus(clubId, newLeaderId);
+    if (!club) {
+      const error = new Error('Club not found');
+      error.status = 404;
+      throw error;
+    }
+
+    if (club.leader_id !== currentLeaderId) {
+      const error = new Error('Only the current leader can transfer leadership');
+      error.status = 403;
+      throw error;
+    }
+
+    if (currentLeaderId === newLeaderId) {
+      const error = new Error('You are already the leader');
+      error.status = 400;
+      throw error;
+    }
+
+    const newLeaderMember = await newLeaderMemberPromise;
+    if (!newLeaderMember || newLeaderMember.status !== 'approved') {
+      const error = new Error(
+        'The new leader must be an approved member of the club',
+      );
+      error.status = 400;
+      throw error;
+    }
+
+    await Promise.all([
+      clubRepo.updateLeader(clubId, newLeaderId),
+      clubRepo.updateMemberRole(clubId, newLeaderId, 'admin'),
+      clubRepo.updateMemberRole(clubId, currentLeaderId, 'member'),
+    ]);
+
+    return { message: 'Leadership transferred successfully' };
   },
 
   async createClub(name, description, privacyType, leaderId) {

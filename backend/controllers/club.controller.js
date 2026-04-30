@@ -203,6 +203,26 @@ const clubController = {
     }
   },
 
+  transferLeadership: async (req, res) => {
+    try {
+      const currentLeaderId = req.user.userId;
+      const clubId = parseInt(req.params.clubId);
+      const { new_leader_id } = req.body;
+      const result = await clubService.transferLeadership(
+        clubId,
+        currentLeaderId,
+        parseInt(new_leader_id),
+      );
+      res.ok(result);
+    } catch (error) {
+      const status = error.status || 500;
+      if (status === 403) return res.violate(null, error.message);
+      if (status === 400) return res.badRequest(null, error.message);
+      if (status === 404) return res.notFound(null, error.message);
+      res.error(null, error.message);
+    }
+  },
+
   getSuggestedClubs: async function (req, res, next) {
     try {
       const currentUserId = req.user.userId;

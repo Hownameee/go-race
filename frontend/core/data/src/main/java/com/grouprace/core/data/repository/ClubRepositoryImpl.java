@@ -440,4 +440,9 @@ public class ClubRepositoryImpl implements ClubRepository {
     private <T> List<T> safeList(List<T> list) {
         return list != null ? list : Collections.emptyList();
     }
+
+    @Override
+    public LiveData<Result<String>> transferLeadership(int clubId, int newLeaderId) {
+        return networkDataSource.transferLeadership(clubId, newLeaderId);
+    }
 }

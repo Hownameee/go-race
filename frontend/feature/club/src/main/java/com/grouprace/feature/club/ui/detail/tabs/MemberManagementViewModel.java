@@ -68,4 +68,14 @@ public class MemberManagementViewModel extends ViewModel {
             }
         });
     }
+    public void transferLeadership(int userId) {
+        if (clubId.getValue() == null) return;
+        actionResult.postValue(new Result.Loading<>());
+        clubRepository.transferLeadership(clubId.getValue(), userId).observeForever(result -> {
+            actionResult.postValue(result);
+            if (result instanceof Result.Success) {
+                loadMembers();
+            }
+        });
+    }
 }

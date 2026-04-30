@@ -35,3 +35,10 @@ export const updateMemberRoleSchema = z.object({
     errorMap: () => ({ message: "Role must be 'admin' or 'member'" }),
   }),
 });
+
+export const transferLeadershipSchema = z.object({
+  new_leader_id: z.coerce
+    .number()
+    .int()
+    .positive('new_leader_id must be a positive number'),
+});

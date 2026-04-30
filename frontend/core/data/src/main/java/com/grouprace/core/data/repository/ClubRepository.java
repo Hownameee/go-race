@@ -37,4 +37,5 @@ public interface ClubRepository {
     LiveData<Result<List<com.grouprace.core.model.ClubMember>>> getMembers(int clubId);
     LiveData<Result<String>> updateMemberStatus(int clubId, int userId, String status);
     LiveData<Result<String>> updateMemberRole(int clubId, int userId, String role);
+    LiveData<Result<String>> transferLeadership(int clubId, int newLeaderId);
 }

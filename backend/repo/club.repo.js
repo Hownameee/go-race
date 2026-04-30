@@ -138,6 +138,11 @@ const clubRepo = {
     return !!db.prepare(sql).get(clubId, userId);
   },
 
+  updateLeader(clubId, newLeaderId) {
+    const sql = `UPDATE CLUBS SET leader_id = ? WHERE club_id = ?`;
+    return db.prepare(sql).run(newLeaderId, clubId);
+  },
+
   findAllMembers(clubId) {
     const sql = `
             SELECT 

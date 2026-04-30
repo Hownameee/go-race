@@ -8,6 +8,7 @@ import {
   memberIdSchema,
   updateMemberStatusSchema,
   updateMemberRoleSchema,
+  transferLeadershipSchema,
 } from '../utils/schemas/club.schema.js';
 import {
   eventIdSchema,
@@ -37,6 +38,12 @@ clubRouter.post(
   '/:clubId/leave',
   validation(clubIdSchema, 'params'),
   clubController.leaveClub,
+);
+clubRouter.post(
+  '/:clubId/transfer-leadership',
+  validation(clubIdSchema, 'params'),
+  validation(transferLeadershipSchema),
+  clubController.transferLeadership,
 );
 clubRouter.get(
   '/:clubId/posts',

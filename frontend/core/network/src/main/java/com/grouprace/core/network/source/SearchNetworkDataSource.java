@@ -120,9 +120,11 @@ public class SearchNetworkDataSource {
 
         apiService.joinClub(clubId).enqueue(new Callback<ApiResponse<ClubActionResultResponse>>() {
             @Override
-            public void onResponse(Call<ApiResponse<ClubActionResultResponse>> call, Response<ApiResponse<ClubActionResultResponse>> response) {
+            public void onResponse(Call<ApiResponse<ClubActionResultResponse>> call,
+                    Response<ApiResponse<ClubActionResultResponse>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                    String resultText = response.body().getData() != null ? response.body().getData().getResult() : response.body().getMessage();
+                    String resultText = response.body().getData() != null ? response.body().getData().getResult()
+                            : response.body().getMessage();
                     liveData.postValue(new Result.Success<>(resultText));
                 } else {
                     String msg = response.body() != null ? response.body().getMessage() : "HTTP " + response.code();
@@ -144,9 +146,11 @@ public class SearchNetworkDataSource {
 
         apiService.leaveClub(clubId).enqueue(new Callback<ApiResponse<ClubActionResultResponse>>() {
             @Override
-            public void onResponse(Call<ApiResponse<ClubActionResultResponse>> call, Response<ApiResponse<ClubActionResultResponse>> response) {
+            public void onResponse(Call<ApiResponse<ClubActionResultResponse>> call,
+                    Response<ApiResponse<ClubActionResultResponse>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                    String resultText = response.body().getData() != null ? response.body().getData().getResult() : response.body().getMessage();
+                    String resultText = response.body().getData() != null ? response.body().getData().getResult()
+                            : response.body().getMessage();
                     liveData.postValue(new Result.Success<>(resultText));
                 } else {
                     String msg = response.body() != null ? response.body().getMessage() : "HTTP " + response.code();
@@ -163,7 +167,8 @@ public class SearchNetworkDataSource {
     }
 
     /**
-     * Helper class để tái sử dụng logic xử lý Callback cho danh sách kết quả (User/Club).
+     * Helper class để tái sử dụng logic xử lý Callback cho danh sách kết quả
+     * (User/Club).
      */
     private static class ListCallback implements Callback<ApiResponse<List<NetworkUserSearch>>> {
         private final MutableLiveData<Result<List<NetworkUserSearch>>> liveData;
@@ -175,7 +180,8 @@ public class SearchNetworkDataSource {
         }
 
         @Override
-        public void onResponse(Call<ApiResponse<List<NetworkUserSearch>>> call, Response<ApiResponse<List<NetworkUserSearch>>> response) {
+        public void onResponse(Call<ApiResponse<List<NetworkUserSearch>>> call,
+                Response<ApiResponse<List<NetworkUserSearch>>> response) {
             if (response.isSuccessful() && response.body() != null) {
                 ApiResponse<List<NetworkUserSearch>> apiResponse = response.body();
                 if (apiResponse.isSuccess() && apiResponse.getData() != null) {
@@ -183,7 +189,8 @@ public class SearchNetworkDataSource {
                     liveData.postValue(new Result.Success<>(apiResponse.getData()));
                 } else {
                     Log.e(TAG, methodName + " API Error: " + apiResponse.getMessage());
-                    liveData.postValue(new Result.Error<>(new Exception(apiResponse.getMessage()), apiResponse.getMessage()));
+                    liveData.postValue(
+                            new Result.Error<>(new Exception(apiResponse.getMessage()), apiResponse.getMessage()));
                 }
             } else {
                 String error = "HTTP Error: " + response.code();
