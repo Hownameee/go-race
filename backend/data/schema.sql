@@ -334,20 +334,35 @@ DROP TRIGGER IF EXISTS trigger_record_insert_update_event_progress;
 CREATE TRIGGER trigger_record_insert_update_event_progress
 AFTER INSERT ON RECORD
 BEGIN
-    -- 1. Cập nhật tiến độ cá nhân (chỉ rows user đã join + event đang diễn ra)
+    -- 1. Cập nhật tiến độ cá nhân (chỉ rows user đã join + event đang diễn ra + chưa hoàn thành)
     UPDATE CLUB_EVENT_PARTICIPANTS
-    SET current_distance         = current_distance         + COALESCE(NEW.distance_km, 0)
+    SET current_distance = current_distance + (
+        SELECT CASE 
+            WHEN e.target_distance > 0 THEN 
+                MIN(COALESCE(NEW.distance_km, 0), MAX(0, e.target_distance - e.total_distance))
+            ELSE 
+                COALESCE(NEW.distance_km, 0)
+            END
+        FROM CLUB_EVENTS e
+        WHERE e.event_id = CLUB_EVENT_PARTICIPANTS.event_id
+    )
     WHERE user_id = NEW.owner_id
       AND event_id IN (
           SELECT e.event_id
           FROM CLUB_EVENTS e
           WHERE datetime(NEW.start_time) >= datetime(e.start_time)
             AND (e.end_time IS NULL OR datetime(NEW.start_time) <= datetime(e.end_time))
+            AND (e.target_distance <= 0 OR e.total_distance < e.target_distance)
       );
 
-    -- 2. Cập nhật global progress (chỉ event mà user ĐÃ join)
+    -- 2. Cập nhật global progress (chỉ event mà user ĐÃ join + đang diễn ra + chưa hoàn thành)
     UPDATE CLUB_EVENTS
-    SET total_distance         = total_distance         + COALESCE(NEW.distance_km, 0)
+    SET total_distance = CASE 
+        WHEN target_distance > 0 THEN 
+            MIN(target_distance, total_distance + COALESCE(NEW.distance_km, 0))
+        ELSE 
+            total_distance + COALESCE(NEW.distance_km, 0)
+        END
     WHERE event_id IN (
           SELECT ep.event_id
           FROM CLUB_EVENT_PARTICIPANTS ep
@@ -355,6 +370,7 @@ BEGIN
           WHERE ep.user_id = NEW.owner_id
             AND datetime(NEW.start_time) >= datetime(e.start_time)
             AND (e.end_time IS NULL OR datetime(NEW.start_time) <= datetime(e.end_time))
+            AND (e.target_distance <= 0 OR e.total_distance < e.target_distance)
       );
 END;
 
@@ -387,6 +403,7 @@ BEGIN
           FROM CLUB_EVENTS e
           WHERE datetime(OLD.start_time) >= datetime(e.start_time)
             AND (e.end_time IS NULL OR datetime(OLD.start_time) <= datetime(e.end_time))
+            AND (e.target_distance <= 0 OR e.total_distance < e.target_distance)
       );
 
     UPDATE CLUB_EVENTS
@@ -398,6 +415,7 @@ BEGIN
           WHERE ep.user_id = OLD.owner_id
             AND datetime(OLD.start_time) >= datetime(e.start_time)
             AND (e.end_time IS NULL OR datetime(OLD.start_time) <= datetime(e.end_time))
+            AND (e.target_distance <= 0 OR e.total_distance < e.target_distance)
       );
 END;
 

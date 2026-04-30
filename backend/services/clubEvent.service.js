@@ -61,6 +61,19 @@ const clubEventService = {
       throw error;
     }
 
+    // Check if event is completed
+    const now = new Date();
+    const endTime = event.end_time ? new Date(event.end_time) : null;
+    const isCompleted =
+      (endTime && now > endTime) ||
+      (event.target_distance > 0 && event.total_distance >= event.target_distance);
+
+    if (isCompleted) {
+      const error = new Error('Cannot join a completed event');
+      error.status = 400;
+      throw error;
+    }
+
     try {
       clubEventRepo.joinEvent(eventId, userId);
     } catch (err) {

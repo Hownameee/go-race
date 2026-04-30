@@ -94,7 +94,7 @@ public class EventDetailFragment extends Fragment {
                     layoutProgress.setVisibility(View.VISIBLE);
                     int percent = (int) Math.min((current / target) * 100, 100);
                     tvProgressPercent.setText(percent + "%");
-                    tvProgressSummary.setText(String.format("%.2f / %.2f km", current, target));
+                    tvProgressSummary.setText(String.format("%.2f / %.2f km", Math.min(current, target), target));
                     pbProgress.setProgress(percent);
                 }
 
@@ -134,7 +134,7 @@ public class EventDetailFragment extends Fragment {
                     layoutProgress.setVisibility(View.VISIBLE);
                     int livePercent = (int) Math.min((liveGlobal / liveTarget) * 100, 100);
                     tvProgressPercent.setText(livePercent + "%");
-                    tvProgressSummary.setText(String.format("%.2f / %.2f km", liveGlobal, liveTarget));
+                    tvProgressSummary.setText(String.format("%.2f / %.2f km", Math.min(liveGlobal, liveTarget), liveTarget));
                     pbProgress.setProgress(livePercent);
                 }
 
