@@ -24,4 +24,13 @@ public interface PostDao {
 
     @Query("DELETE FROM posts")
     void deleteAll();
+
+    @Query("SELECT * FROM posts WHERE pendingSync = 1")
+    List<PostEntity> getPendingPosts();
+
+    @Query("UPDATE posts SET recordId = :realId WHERE recordId = :offlineId")
+    void updatePendingPostRecordIds(int offlineId, int realId);
+
+    @Query("DELETE FROM posts WHERE postId = :oldId")
+    void deleteById(int oldId);
 }

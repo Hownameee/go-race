@@ -33,14 +33,24 @@ public class TrackingRepositoryImpl implements TrackingRepository {
     private final RoutePointDao routePointDao;
     private final RecordDao recordDao;
     private final RecordNetworkDataSource networkDataSource;
+    private final com.grouprace.core.data.SyncManager syncManager;
+    private final com.grouprace.core.network.utils.SessionManager sessionManager;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     @Inject
-    public TrackingRepositoryImpl(RoutePointDao routePointDao, RecordDao recordDao, RecordNetworkDataSource networkDataSource) {
+    public TrackingRepositoryImpl(
+            RoutePointDao routePointDao,
+            RecordDao recordDao,
+            RecordNetworkDataSource networkDataSource,
+            com.grouprace.core.data.SyncManager syncManager,
+            com.grouprace.core.network.utils.SessionManager sessionManager
+    ) {
         this.routePointDao = routePointDao;
         this.recordDao = recordDao;
         this.networkDataSource = networkDataSource;
+        this.syncManager = syncManager;
+        this.sessionManager = sessionManager;
     }
 
     @Override
@@ -60,65 +70,49 @@ public class TrackingRepositoryImpl implements TrackingRepository {
      * the local records with the real ID returned by the server.
      */
     @Override
-    public LiveData<Result<Long>> createRecord(Record record) {
+    public LiveData<Result<Long>> createRecord(Record record, List<RoutePoint> points) {
         MutableLiveData<Result<Long>> resultLiveData = new MutableLiveData<>();
         resultLiveData.setValue(new Result.Loading<>());
 
         executor.execute(() -> {
             try {
-                // Get points captured during session (they all have activityId = 0 initially)
-                List<com.grouprace.core.data.model.RoutePoint> localPoints = routePointDao.getByActivityId(0);
-                List<NetworkRoutePoint> networkPoints = localPoints.stream()
-                        .map(p -> new NetworkRoutePoint(p.latitude, p.longitude, p.altitude, p.timestamp, p.accuracy))
-                        .collect(Collectors.toList());
-
-                CreateRecordRequest request = new CreateRecordRequest(
+                // Generate a negative ID for offline creation
+                int offlineId = -(new java.util.Random().nextInt(1000000) + 1);
+                
+                // 1. Save Record offline
+                RecordEntity recordEntity = new RecordEntity(
+                        offlineId,
                         record.getActivityType(),
                         record.getTitle(),
                         record.getStartTime(),
                         record.getEndTime(),
+                        sessionManager.getUserId(),
                         record.getDuration(),
                         record.getDistance(),
                         record.getCalories(),
                         record.getHeartRate(),
                         record.getSpeed(),
                         record.getImageUrl(),
-                        networkPoints
+                        true // pendingSync = true
                 );
+                recordDao.insert(recordEntity);
 
-                mainHandler.post(() -> {
-                    LiveData<Result<NetworkRecord>> networkCall = networkDataSource.createRecord(request);
-                    networkCall.observeForever(networkResult -> {
-                        if (networkResult instanceof Result.Success) {
-                            NetworkRecord nr = ((Result.Success<NetworkRecord>) networkResult).data;
-                            executor.execute(() -> {
-                                RecordEntity entity = new RecordEntity(
-                                        nr.getRecordId(),
-                                        nr.getActivityType(),
-                                        nr.getTitle(),
-                                        nr.getStartTime(),
-                                        nr.getEndTime(),
-                                        nr.getOwnerId(),
-                                        nr.getDuration(),
-                                        nr.getDistance(),
-                                        nr.getCalories(),
-                                        nr.getHeartRate(),
-                                        nr.getSpeed(),
-                                        nr.getImageUrl()
-                                );
-                                recordDao.insert(entity);
-                                routePointDao.assignUnassignedPointsToActivity(nr.getRecordId());
-                                resultLiveData.postValue(new Result.Success<>((long) nr.getRecordId()));
-                            });
-                        } else if (networkResult instanceof Result.Error) {
-                            Result.Error<NetworkRecord> error = (Result.Error<NetworkRecord>) networkResult;
-                            resultLiveData.postValue(new Result.Error<>(error.exception, error.message));
-                        }
-                    });
-                });
+                // 2. Save RoutePoints offline
+                List<com.grouprace.core.data.model.RoutePoint> pointEntities = points.stream()
+                        .map(p -> new com.grouprace.core.data.model.RoutePoint(
+                                offlineId, p.latitude, p.longitude,
+                                p.altitude, p.timestamp, p.accuracy
+                        ))
+                        .collect(Collectors.toList());
+                routePointDao.insertAll(pointEntities);
+
+                // 3. Schedule Sync
+                syncManager.scheduleRecordSync();
+
+                resultLiveData.postValue(new Result.Success<>((long) offlineId));
             } catch (Exception e) {
-                Log.e(TAG, "Exception during remote record creation prep", e);
-                resultLiveData.postValue(new Result.Error<>(e, e.getMessage()));
+                Log.e(TAG, "Failed to create offline record", e);
+                resultLiveData.postValue(new Result.Error<>(e, "Offline save failed"));
             }
         });
 
@@ -129,31 +123,40 @@ public class TrackingRepositoryImpl implements TrackingRepository {
     public LiveData<Result<Void>> updateRecord(Record record) {
         MutableLiveData<Result<Void>> resultLiveData = new MutableLiveData<>();
         resultLiveData.setValue(new Result.Loading<>());
- 
-        java.util.Map<String, Object> updateData = new java.util.HashMap<>();
-        updateData.put("title", record.getTitle());
-        // Add other fields if needed
- 
-        mainHandler.post(() -> {
-            LiveData<Result<Void>> updateCall = networkDataSource.updateRecord(record.getRecordId(), updateData);
-            updateCall.observeForever(new Observer<Result<Void>>() {
-                @Override
-                public void onChanged(Result<Void> result) {
-                    if (result instanceof Result.Success) {
-                        updateRecordLocal(record);
-                        resultLiveData.postValue(new Result.Success<>(null));
-                        updateCall.removeObserver(this);
-                    } else if (result instanceof Result.Error) {
-                        resultLiveData.postValue(result);
-                        updateCall.removeObserver(this);
-                    }
-                }
-            });
+
+        executor.execute(() -> {
+            try {
+                // 1. Update local DB immediately
+                RecordEntity entity = new RecordEntity(
+                        record.getRecordId(),
+                        record.getActivityType(),
+                        record.getTitle(),
+                        record.getStartTime(),
+                        record.getEndTime(),
+                        record.getOwnerId(),
+                        record.getDuration(),
+                        record.getDistance(),
+                        record.getCalories(),
+                        record.getHeartRate(),
+                        record.getSpeed(),
+                        record.getImageUrl(),
+                        true // pendingSync = true
+                );
+                recordDao.update(entity);
+
+                // 2. Schedule Sync
+                syncManager.scheduleRecordSync();
+
+                resultLiveData.postValue(new Result.Success<>(null));
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to update record offline", e);
+                resultLiveData.postValue(new Result.Error<>(e, "Offline update failed"));
+            }
         });
- 
+
         return resultLiveData;
     }
- 
+
     @Override
     public void updateRecordLocal(Record record) {
         executor.execute(() -> {
@@ -169,7 +172,8 @@ public class TrackingRepositoryImpl implements TrackingRepository {
                     record.getCalories(),
                     record.getHeartRate(),
                     record.getSpeed(),
-                    record.getImageUrl()
+                    record.getImageUrl(),
+                    false
             );
             recordDao.update(entity);
         });
@@ -180,7 +184,8 @@ public class TrackingRepositoryImpl implements TrackingRepository {
         try {
             Future<Record> future = executor.submit(() -> {
                 RecordEntity entity = recordDao.getById((int) id);
-                if (entity == null) return null;
+                if (entity == null)
+                    return null;
                 return entity.asExternalModel();
             });
             return future.get();
@@ -200,8 +205,7 @@ public class TrackingRepositoryImpl implements TrackingRepository {
                     for (com.grouprace.core.data.model.RoutePoint rp : entities) {
                         models.add(new RoutePoint(
                                 rp.activityId, rp.latitude, rp.longitude,
-                                rp.altitude, rp.timestamp, rp.accuracy
-                        ));
+                                rp.altitude, rp.timestamp, rp.accuracy));
                     }
                 }
                 return models;

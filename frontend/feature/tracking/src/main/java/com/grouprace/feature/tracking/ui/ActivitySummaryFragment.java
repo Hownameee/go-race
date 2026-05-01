@@ -17,8 +17,12 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.grouprace.core.common.result.Result;
 import com.grouprace.feature.tracking.R;
+import com.mapbox.geojson.Point;
 import com.mapbox.maps.MapView;
 import com.mapbox.maps.Style;
+
+import java.util.List;
+import java.util.Locale;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -28,7 +32,9 @@ public class ActivitySummaryFragment extends Fragment {
     private static final String ARG_ACTIVITY_ID = "activityId";
 
     private MapView mapView;
-    private ActivityDetailViewModel viewModel;
+    private ActivityDetailViewModel detailViewModel;
+    private TrackingViewModel trackingViewModel;
+    private long activityId;
 
     public static ActivitySummaryFragment newInstance(long activityId) {
         ActivitySummaryFragment fragment = new ActivitySummaryFragment();
@@ -36,6 +42,14 @@ public class ActivitySummaryFragment extends Fragment {
         args.putLong(ARG_ACTIVITY_ID, activityId);
         fragment.setArguments(args);
         return fragment;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            activityId = getArguments().getLong(ARG_ACTIVITY_ID);
+        }
     }
 
     @Nullable
@@ -57,50 +71,94 @@ public class ActivitySummaryFragment extends Fragment {
         EditText etTitle = view.findViewById(R.id.et_title);
         Button btnSave = view.findViewById(R.id.btn_save);
 
-        viewModel = new ViewModelProvider(this).get(ActivityDetailViewModel.class);
+        trackingViewModel = new ViewModelProvider(requireActivity()).get(TrackingViewModel.class);
+        detailViewModel = new ViewModelProvider(this).get(ActivityDetailViewModel.class);
 
         mapView.getMapboxMap().loadStyle(Style.DARK, style -> {
             RouteMapHelper.setupRouteLayer(style);
 
-            viewModel.getRoutePoints().observe(getViewLifecycleOwner(), points -> {
+            if (activityId == -1) {
+                // Fresh run: display points from trackingViewModel
+                List<Point> points = trackingViewModel.getFinalPolylinePoints();
                 RouteMapHelper.drawRoute(style, points);
                 RouteMapHelper.zoomToFitRoute(mapView, points);
+            } else {
+                // Existing record: display points from detailViewModel
+                detailViewModel.getRoutePoints().observe(getViewLifecycleOwner(), points -> {
+                    RouteMapHelper.drawRoute(style, points);
+                    RouteMapHelper.zoomToFitRoute(mapView, points);
+                });
+            }
+        });
+
+        if (activityId == -1) {
+            // Fresh run: setup UI from tracking metrics
+            tvDistance.setText(String.format(Locale.US, "%.2f", trackingViewModel.getFinalDistKm()));
+            
+            long elapsed = trackingViewModel.getFinalElapsed();
+            long totalSeconds = elapsed / 1000;
+            long minutes = totalSeconds / 60;
+            long seconds = totalSeconds % 60;
+            tvTime.setText(String.format(Locale.US, "%02d:%02d", minutes, seconds));
+
+            if (trackingViewModel.getFinalDistKm() > 0 && elapsed > 0) {
+                double speedKmH = trackingViewModel.getFinalDistKm() / (elapsed / 3600000.0);
+                tvPace.setText(String.format(Locale.US, "%.1f", speedKmH));
+            } else {
+                tvPace.setText("0.0");
+            }
+
+            etTitle.setText("New Activity");
+
+            // Handle save result via trackingViewModel
+            trackingViewModel.getFinishedActivityId().observe(getViewLifecycleOwner(), newId -> {
+                if (newId != null) {
+                    Toast.makeText(requireContext(), "Activity saved!", Toast.LENGTH_SHORT).show();
+                    trackingViewModel.resetFinishedActivityId();
+                    requireActivity().getSupportFragmentManager()
+                            .popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                }
             });
-        });
+        } else {
+            // Existing record: setup UI from detailViewModel
+            detailViewModel.getFormattedDistance().observe(getViewLifecycleOwner(), tvDistance::setText);
+            detailViewModel.getFormattedTime().observe(getViewLifecycleOwner(), tvTime::setText);
+            detailViewModel.getFormattedPace().observe(getViewLifecycleOwner(), tvPace::setText);
 
-        viewModel.getFormattedDistance().observe(getViewLifecycleOwner(), tvDistance::setText);
-        viewModel.getFormattedTime().observe(getViewLifecycleOwner(), tvTime::setText);
-        viewModel.getFormattedPace().observe(getViewLifecycleOwner(), tvPace::setText);
+            detailViewModel.getRecord().observe(getViewLifecycleOwner(), record -> {
+                if (record != null && etTitle.getText().toString().isEmpty()) {
+                    etTitle.setText(record.getTitle());
+                }
+            });
 
-        viewModel.getRecord().observe(getViewLifecycleOwner(), record -> {
-            if (record != null && etTitle.getText().toString().isEmpty()) {
-                etTitle.setText(record.getTitle());
-            }
-        });
-
-        viewModel.getSaveResult().observe(getViewLifecycleOwner(), result -> {
-            if (result instanceof Result.Loading) {
-                btnSave.setEnabled(false);
-                btnSave.setText("Saving...");
-            } else if (result instanceof Result.Success) {
-                Toast.makeText(requireContext(), "Activity saved!", Toast.LENGTH_SHORT).show();
-                // Pop all back stack (TrackingFragment + this) to return to NearbyRouteFragment
-                requireActivity().getSupportFragmentManager()
-                        .popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-            } else if (result instanceof Result.Error) {
-                btnSave.setEnabled(true);
-                btnSave.setText("Save");
-                String error = ((Result.Error<Void>) result).message;
-                Toast.makeText(requireContext(), "Error: " + error, Toast.LENGTH_LONG).show();
-            }
-        });
+            detailViewModel.getSaveResult().observe(getViewLifecycleOwner(), result -> {
+                if (result instanceof Result.Loading) {
+                    btnSave.setEnabled(false);
+                    btnSave.setText("Saving...");
+                } else if (result instanceof Result.Success) {
+                    Toast.makeText(requireContext(), "Activity updated!", Toast.LENGTH_SHORT).show();
+                    requireActivity().getSupportFragmentManager().popBackStack();
+                } else if (result instanceof Result.Error) {
+                    btnSave.setEnabled(true);
+                    btnSave.setText("Save");
+                    Toast.makeText(requireContext(), "Error: " + ((Result.Error<Void>) result).message, Toast.LENGTH_LONG).show();
+                }
+            });
+        }
 
         btnSave.setOnClickListener(v -> {
             String title = etTitle.getText().toString().trim();
             if (title.isEmpty()) {
                 title = "Activity";
             }
-            viewModel.saveTitle(title);
+            
+            if (activityId == -1) {
+                btnSave.setEnabled(false);
+                btnSave.setText("Saving...");
+                trackingViewModel.confirmSave(title);
+            } else {
+                detailViewModel.saveTitle(title);
+            }
         });
     }
 
