@@ -45,6 +45,7 @@ public class PostFragment extends Fragment {
     private View layoutFabActivity;
     private ImageView fabMain;
     private boolean isFabExpanded = false;
+    private Integer lastTopPostId = null;
 
     public PostFragment() {
         super(R.layout.fragment_post);
@@ -138,7 +139,21 @@ public class PostFragment extends Fragment {
     private void observeViewModel() {
         viewModel.getPosts().observe(getViewLifecycleOwner(), posts -> {
             if (posts != null) {
-                postAdapter.submitList(posts);
+                boolean firstPostChanged = false;
+                if (!posts.isEmpty()) {
+                    int currentTopId = posts.get(0).getPostId();
+                    if (lastTopPostId != null && lastTopPostId != currentTopId) {
+                        firstPostChanged = true;
+                    }
+                    lastTopPostId = currentTopId;
+                }
+
+                final boolean shouldScroll = firstPostChanged;
+                postAdapter.submitList(posts, () -> {
+                    if (shouldScroll) {
+                        rvPosts.scrollToPosition(0);
+                    }
+                });
                 if (!posts.isEmpty()) {
                     progressBar.setVisibility(View.GONE);
                     rvPosts.setVisibility(View.VISIBLE);

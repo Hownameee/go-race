@@ -18,6 +18,7 @@ import com.grouprace.core.model.RoutePoint;
 import com.grouprace.core.service.LocationTrackingService;
 import com.grouprace.feature.tracking.domain.FinishActivityUseCase;
 import com.grouprace.feature.tracking.domain.SavePointUseCase;
+import com.grouprace.feature.tracking.domain.SaveAsRouteUseCase;
 import com.mapbox.geojson.Point;
 
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ public class TrackingViewModel extends AndroidViewModel {
 
     private final SavePointUseCase savePointUseCase;
     private final FinishActivityUseCase finishActivityUseCase;
+    private final SaveAsRouteUseCase saveAsRouteUseCase;
 
     private final MutableLiveData<TrackingState> trackingState = new MutableLiveData<>(TrackingState.IDLE);
     private final MutableLiveData<List<Point>> polylinePoints = new MutableLiveData<>(new ArrayList<>());
@@ -83,10 +85,12 @@ public class TrackingViewModel extends AndroidViewModel {
     @Inject
     public TrackingViewModel(@NonNull Application application,
             SavePointUseCase savePointUseCase,
-            FinishActivityUseCase finishActivityUseCase) {
+            FinishActivityUseCase finishActivityUseCase,
+            SaveAsRouteUseCase saveAsRouteUseCase) {
         super(application);
         this.savePointUseCase = savePointUseCase;
         this.finishActivityUseCase = finishActivityUseCase;
+        this.saveAsRouteUseCase = saveAsRouteUseCase;
     }
 
     // --- Getters for Fragment to observe ---
@@ -214,7 +218,7 @@ public class TrackingViewModel extends AndroidViewModel {
      * Phase 5: Confirm Save.
      * Actually creates the record in DB with the final title.
      */
-    public void confirmSave(String title) {
+    public void confirmSave(String title, boolean saveAsRoute) {
 
         timerHandler.post(() -> {
             LiveData<Result<Long>> resultLiveData = finishActivityUseCase.execute(
@@ -224,8 +228,23 @@ public class TrackingViewModel extends AndroidViewModel {
                 @Override
                 public void onChanged(Result<Long> result) {
                     if (result instanceof Result.Success) {
-                        finishedActivityId.setValue(((Result.Success<Long>) result).data);
-                        trackingState.setValue(TrackingState.IDLE);
+                        if (saveAsRoute) {
+                            List<Point> points = getFinalPolylinePoints();
+                            LiveData<Result<Long>> saveRouteCall = saveAsRouteUseCase.execute(
+                                    title, points, finalDistKm, (int) (finalElapsed / 1000));
+                            saveRouteCall.observeForever(new Observer<Result<Long>>() {
+                                @Override
+                                public void onChanged(Result<Long> routeResult) {
+                                    if (routeResult instanceof Result.Loading) return;
+                                    saveRouteCall.removeObserver(this);
+                                    finishedActivityId.setValue(((Result.Success<Long>) result).data);
+                                    trackingState.setValue(TrackingState.IDLE);
+                                }
+                            });
+                        } else {
+                            finishedActivityId.setValue(((Result.Success<Long>) result).data);
+                            trackingState.setValue(TrackingState.IDLE);
+                        }
                         resultLiveData.removeObserver(this);
                     } else if (result instanceof Result.Error) {
                         Log.e("TrackingViewModel", "Failed to finish record: " + ((Result.Error<Long>) result).message);

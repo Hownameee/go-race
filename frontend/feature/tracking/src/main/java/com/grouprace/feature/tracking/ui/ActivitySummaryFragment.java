@@ -56,8 +56,8 @@ public class ActivitySummaryFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
-                             @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+            @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_activity_summary, container, false);
     }
 
@@ -96,7 +96,7 @@ public class ActivitySummaryFragment extends Fragment {
         if (activityId == -1) {
             // Fresh run: setup UI from tracking metrics
             tvDistance.setText(String.format(Locale.US, "%.2f", trackingViewModel.getFinalDistKm()));
-            
+
             long elapsed = trackingViewModel.getFinalElapsed();
             long totalSeconds = elapsed / 1000;
             long minutes = totalSeconds / 60;
@@ -134,7 +134,8 @@ public class ActivitySummaryFragment extends Fragment {
             });
 
             detailViewModel.getRouteSavedMessage().observe(getViewLifecycleOwner(), msg -> {
-                if (msg == null) return;
+                if (msg == null)
+                    return;
                 detailViewModel.clearRouteSavedMessage();
                 Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
             });
@@ -149,21 +150,24 @@ public class ActivitySummaryFragment extends Fragment {
                 } else if (result instanceof Result.Error) {
                     btnSave.setEnabled(true);
                     btnSave.setText("Save");
-                    Toast.makeText(requireContext(), "Error: " + ((Result.Error<Void>) result).message, Toast.LENGTH_LONG).show();
+                    Toast.makeText(requireContext(), "Error: " + ((Result.Error<Void>) result).message,
+                            Toast.LENGTH_LONG).show();
                 }
             });
         }
 
         btnSave.setOnClickListener(v -> {
             String title = etTitle.getText().toString().trim();
-            if (title.isEmpty()) title = "Activity";
-            if (cbSaveAsRoute.isChecked()) detailViewModel.saveAsRoute(title);
-            
+            if (title.isEmpty())
+                title = "Activity";
+
             if (activityId == -1) {
                 btnSave.setEnabled(false);
                 btnSave.setText("Saving...");
-                trackingViewModel.confirmSave(title);
+                trackingViewModel.confirmSave(title, cbSaveAsRoute.isChecked());
             } else {
+                if (cbSaveAsRoute.isChecked())
+                    detailViewModel.saveAsRoute(title);
                 detailViewModel.saveTitle(title);
             }
         });
