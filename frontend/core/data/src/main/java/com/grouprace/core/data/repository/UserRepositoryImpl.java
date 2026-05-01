@@ -21,10 +21,12 @@ import javax.inject.Inject;
 public class UserRepositoryImpl implements UserRepository {
 
     private final UserDataSource userDataSource;
+    private final com.grouprace.core.network.utils.SessionManager sessionManager;
 
     @Inject
-    public UserRepositoryImpl(UserDataSource userDataSource) {
+    public UserRepositoryImpl(UserDataSource userDataSource, com.grouprace.core.network.utils.SessionManager sessionManager) {
         this.userDataSource = userDataSource;
+        this.sessionManager = sessionManager;
     }
 
     @Override
@@ -36,6 +38,13 @@ public class UserRepositoryImpl implements UserRepository {
                 return new Result.Loading<>();
             } else if (result instanceof Result.Success) {
                 ProfileOverviewResponse response = ((Result.Success<ProfileOverviewResponse>) result).data;
+                if (response != null) {
+                    sessionManager.saveSession(
+                        sessionManager.getAccessToken(),
+                        sessionManager.getRefreshToken(),
+                        response.getUserId()
+                    );
+                }
                 return new Result.Success<>(mapToProfileOverview(response));
             } else {
                 Result.Error<ProfileOverviewResponse> error = (Result.Error<ProfileOverviewResponse>) result;

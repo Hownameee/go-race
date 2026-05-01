@@ -215,6 +215,11 @@ public class ClubDetailFragment extends Fragment {
 
                 ShareActivityFragment.newInstance(post.getTitle(), String.format(Locale.getDefault(), "%.2f km", distance), pace, TimeUtils.formatDuration(seconds), post.getFullName(), post.getRecordImageUrl(), speedStr).show(getChildFragmentManager(), "ShareBottomSheet");
             }
+
+            @Override
+            public void onReportClicked(Post post) {
+
+            }
         });
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
