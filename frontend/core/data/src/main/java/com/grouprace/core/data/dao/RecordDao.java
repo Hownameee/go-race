@@ -27,10 +27,10 @@ public interface RecordDao {
     @Query("SELECT * FROM record WHERE recordId = :id")
     RecordEntity getById(int id);
 
-    @Query("SELECT * FROM record ORDER BY recordId DESC LIMIT :limit")
+    @Query("SELECT * FROM record ORDER BY startTime DESC LIMIT :limit")
     LiveData<List<RecordEntity>> getRecords(int limit);
 
-    @Query("SELECT * FROM record WHERE startTime LIKE :todayPrefix || '%' ORDER BY recordId DESC")
+    @Query("SELECT * FROM record WHERE startTime LIKE :todayPrefix || '%' ORDER BY startTime DESC")
     LiveData<List<RecordEntity>> getTodayRecords(String todayPrefix);
 
     @Query("SELECT COUNT(*) as activityCount, " +

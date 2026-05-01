@@ -147,7 +147,7 @@ public class RecordRepositoryImpl implements RecordRepository {
 
     @Override
     public LiveData<List<Record>> getTodayRecords() {
-        String todayPrefix = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        String todayPrefix = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
         return Transformations.map(
                 recordDao.getTodayRecords(todayPrefix),
                 entities -> entities.stream()
@@ -157,7 +157,7 @@ public class RecordRepositoryImpl implements RecordRepository {
 
     @Override
     public LiveData<TodaySummary> getTodaySummary() {
-        String todayPrefix = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        String todayPrefix = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
         return Transformations.map(
                 recordDao.getTodaySummary(todayPrefix),
                 entity -> entity != null ? entity.asExternalModel()

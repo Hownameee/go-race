@@ -35,14 +35,14 @@ public class SyncManagerImpl implements SyncManager {
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build();
 
-        OneTimeWorkRequest workRequest = new OneTimeWorkRequest.Builder(SyncRecordWorker.class)
+        OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(SyncRecordWorker.class)
                 .setConstraints(constraints)
                 .build();
 
         workManager.enqueueUniqueWork(
-                "sync_records",
+                "global_sync_queue",
                 ExistingWorkPolicy.APPEND_OR_REPLACE,
-                workRequest
+                request
         );
     }
 
@@ -52,14 +52,14 @@ public class SyncManagerImpl implements SyncManager {
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build();
 
-        OneTimeWorkRequest workRequest = new OneTimeWorkRequest.Builder(SyncPostWorker.class)
+        OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(SyncPostWorker.class)
                 .setConstraints(constraints)
                 .build();
 
         workManager.enqueueUniqueWork(
-                "sync_posts",
+                "global_sync_queue",
                 ExistingWorkPolicy.APPEND_OR_REPLACE,
-                workRequest
+                request
         );
     }
 }
