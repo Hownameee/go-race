@@ -192,6 +192,11 @@ public class ClubDetailFragment extends Fragment {
             }
 
             @Override
+            public void onReportClicked(Post post) {
+                // TODO: implement report
+            }
+
+            @Override
             public void onShareClicked(Post post) {
                 double distance = post.getDistanceKm() != null ? post.getDistanceKm() : 0.0;
                 int seconds = post.getDurationSeconds() != null ? post.getDurationSeconds() : 0;
@@ -209,11 +214,6 @@ public class ClubDetailFragment extends Fragment {
                 String speedStr = String.format(Locale.getDefault(), "%.1f km/h", speedVal);
 
                 ShareActivityFragment.newInstance(post.getTitle(), String.format(Locale.getDefault(), "%.2f km", distance), pace, TimeUtils.formatDuration(seconds), post.getFullName(), post.getRecordImageUrl(), speedStr).show(getChildFragmentManager(), "ShareBottomSheet");
-            }
-
-            @Override
-            public void onReportClicked(Post post) {
-
             }
         });
 

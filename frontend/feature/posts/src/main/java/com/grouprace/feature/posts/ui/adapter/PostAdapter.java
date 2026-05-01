@@ -230,28 +230,28 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
                     ivActivityType.setVisibility(View.GONE);
                 }
 
-                // Record Image
-                if (post.getRecordImageUrl() != null && !post.getRecordImageUrl().isEmpty()) {
-                    ivMedia.setVisibility(View.VISIBLE);
-                    Glide.with(itemView.getContext())
-                            .load(post.getRecordImageUrl())
-                            .centerCrop()
-                            .into(ivMedia);
-                } else {
-                    ivMedia.setVisibility(View.GONE);
-                }
+                // TODO: Delete this ivMedia block entirely later
+                ivMedia.setVisibility(View.GONE);
             } else {
                 llStats.setVisibility(View.GONE);
                 ivMedia.setVisibility(View.GONE);
                 ivActivityType.setVisibility(View.GONE);
             }
 
-            // Post Photos
+            // Post Photos & Record Image
+            java.util.List<String> combinedMedia = new java.util.ArrayList<>();
+            if (post.getRecordImageUrl() != null && !post.getRecordImageUrl().isEmpty()) {
+                combinedMedia.add(post.getRecordImageUrl());
+            }
             if (post.getPhotoUrls() != null && !post.getPhotoUrls().isEmpty()) {
+                combinedMedia.addAll(post.getPhotoUrls());
+            }
+
+            if (!combinedMedia.isEmpty()) {
                 rvMedia.setVisibility(View.VISIBLE);
                 PostMediaAdapter mediaAdapter = new PostMediaAdapter();
                 rvMedia.setAdapter(mediaAdapter);
-                mediaAdapter.submitList(post.getPhotoUrls());
+                mediaAdapter.submitList(combinedMedia);
             } else {
                 rvMedia.setVisibility(View.GONE);
             }

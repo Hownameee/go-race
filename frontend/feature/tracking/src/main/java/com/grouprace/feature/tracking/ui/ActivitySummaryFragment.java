@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -55,8 +56,8 @@ public class ActivitySummaryFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
-                             @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+            @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_activity_summary, container, false);
     }
 
@@ -69,6 +70,7 @@ public class ActivitySummaryFragment extends Fragment {
         TextView tvTime = view.findViewById(R.id.tv_time);
         TextView tvPace = view.findViewById(R.id.tv_pace);
         EditText etTitle = view.findViewById(R.id.et_title);
+        CheckBox cbSaveAsRoute = view.findViewById(R.id.cb_save_as_route);
         Button btnSave = view.findViewById(R.id.btn_save);
 
         trackingViewModel = new ViewModelProvider(requireActivity()).get(TrackingViewModel.class);
@@ -94,7 +96,7 @@ public class ActivitySummaryFragment extends Fragment {
         if (activityId == -1) {
             // Fresh run: setup UI from tracking metrics
             tvDistance.setText(String.format(Locale.US, "%.2f", trackingViewModel.getFinalDistKm()));
-            
+
             long elapsed = trackingViewModel.getFinalElapsed();
             long totalSeconds = elapsed / 1000;
             long minutes = totalSeconds / 60;
@@ -131,6 +133,13 @@ public class ActivitySummaryFragment extends Fragment {
                 }
             });
 
+            detailViewModel.getRouteSavedMessage().observe(getViewLifecycleOwner(), msg -> {
+                if (msg == null)
+                    return;
+                detailViewModel.clearRouteSavedMessage();
+                Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
+            });
+
             detailViewModel.getSaveResult().observe(getViewLifecycleOwner(), result -> {
                 if (result instanceof Result.Loading) {
                     btnSave.setEnabled(false);
@@ -141,22 +150,24 @@ public class ActivitySummaryFragment extends Fragment {
                 } else if (result instanceof Result.Error) {
                     btnSave.setEnabled(true);
                     btnSave.setText("Save");
-                    Toast.makeText(requireContext(), "Error: " + ((Result.Error<Void>) result).message, Toast.LENGTH_LONG).show();
+                    Toast.makeText(requireContext(), "Error: " + ((Result.Error<Void>) result).message,
+                            Toast.LENGTH_LONG).show();
                 }
             });
         }
 
         btnSave.setOnClickListener(v -> {
             String title = etTitle.getText().toString().trim();
-            if (title.isEmpty()) {
+            if (title.isEmpty())
                 title = "Activity";
-            }
-            
+
             if (activityId == -1) {
                 btnSave.setEnabled(false);
                 btnSave.setText("Saving...");
-                trackingViewModel.confirmSave(title);
+                trackingViewModel.confirmSave(title, cbSaveAsRoute.isChecked());
             } else {
+                if (cbSaveAsRoute.isChecked())
+                    detailViewModel.saveAsRoute(title);
                 detailViewModel.saveTitle(title);
             }
         });

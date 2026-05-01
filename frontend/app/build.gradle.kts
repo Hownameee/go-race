@@ -74,6 +74,7 @@ dependencies {
     implementation(project(":core:notification"))
     implementation(project(":core:common"))
     implementation(project(":core:navigation"))
+    implementation(project(":core:model"))
     implementation(project(":feature:search"))
     implementation(libs.hilt.android)
     implementation(libs.androidx.work.runtime)
