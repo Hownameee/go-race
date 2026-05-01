@@ -58,6 +58,10 @@ dependencies {
     implementation(project(":core:map"))
     implementation(project(":core:system"))
     implementation(project(":core:navigation"))
+    implementation(project(":feature:posts"))
+    implementation(project(":feature:club"))
+    implementation(project(":feature:records"))
+    implementation(project(":feature:map"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

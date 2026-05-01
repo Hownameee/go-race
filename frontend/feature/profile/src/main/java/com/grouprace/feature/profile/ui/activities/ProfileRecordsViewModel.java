@@ -25,22 +25,28 @@ public class ProfileRecordsViewModel extends ViewModel {
     private final LiveData<List<Record>> records;
     private int userId = -1;
     private int limit = PAGE_SIZE;
+    private boolean self;
 
     @Inject
     public ProfileRecordsViewModel(RecordRepository recordRepository) {
         this.recordRepository = recordRepository;
-        this.records = Transformations.switchMap(limitLiveData, currentLimit ->
-                userId > 0
-                        ? recordRepository.getLocalUserRecords(userId, currentLimit)
-                        : new MutableLiveData<>()
-        );
+        this.records = Transformations.switchMap(limitLiveData, currentLimit -> {
+            if (self) {
+                return recordRepository.getLocalRecords(currentLimit);
+            }
+            if (userId > 0) {
+                return recordRepository.getLocalUserRecords(userId, currentLimit);
+            }
+            return new MutableLiveData<>();
+        });
     }
 
-    public void initialize(int userId) {
-        if (this.userId == userId) {
+    public void initialize(int userId, boolean self) {
+        if (this.userId == userId && this.self == self) {
             return;
         }
         this.userId = userId;
+        this.self = self;
         limitLiveData.setValue(limit);
     }
 
@@ -53,7 +59,7 @@ public class ProfileRecordsViewModel extends ViewModel {
     }
 
     public void sync() {
-        fetchRecords(false);
+        fetchRecords();
     }
 
     public void loadMore(int currentListSize) {
@@ -62,14 +68,19 @@ public class ProfileRecordsViewModel extends ViewModel {
         }
         limit += PAGE_SIZE;
         limitLiveData.setValue(limit);
-        fetchRecords(true);
+        fetchRecords();
     }
 
-    private void fetchRecords(boolean appendWindow) {
-        if (userId <= 0) {
+    private void fetchRecords() {
+        LiveData<Result<Boolean>> source;
+        if (self) {
+            source = recordRepository.getNetworkRecords(0, limit);
+        } else if (userId > 0) {
+            source = recordRepository.syncUserRecords(userId, 0, limit);
+        } else {
             return;
         }
-        LiveData<Result<Boolean>> source = recordRepository.syncUserRecords(userId, 0, limit);
+
         source.observeForever(result -> {
             if (result instanceof Result.Loading) {
                 syncStatus.setValue(new Result.Loading<>());

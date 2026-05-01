@@ -18,7 +18,7 @@ import com.grouprace.core.common.result.Result;
 import com.grouprace.core.network.model.record.RecordProfileStatisticsResponse;
 import com.grouprace.core.network.model.record.RecordStatisticsBucketResponse;
 import com.grouprace.feature.profile.R;
-import com.grouprace.feature.profile.ui.main.ProfileViewModel;
+import com.grouprace.feature.profile.ui.main.ProfileActivityType;
 import com.grouprace.feature.profile.util.ProfileFormatUtils;
 
 import dagger.hilt.android.AndroidEntryPoint;
@@ -90,8 +90,8 @@ public class ProfileStatisticsDetailFragment extends Fragment {
         allTimeDistanceValue = view.findViewById(R.id.profile_statistics_all_time_distance_value);
 
         backButton.setOnClickListener(v -> requireActivity().getOnBackPressedDispatcher().onBackPressed());
-        runButton.setOnClickListener(v -> viewModel.selectActivityType(ProfileViewModel.ACTIVITY_RUNNING));
-        walkButton.setOnClickListener(v -> viewModel.selectActivityType(ProfileViewModel.ACTIVITY_WALKING));
+        runButton.setOnClickListener(v -> viewModel.selectActivityType(ProfileActivityType.RUNNING));
+        walkButton.setOnClickListener(v -> viewModel.selectActivityType(ProfileActivityType.WALKING));
 
         observeActivityType();
         observeStatistics();
@@ -99,7 +99,7 @@ public class ProfileStatisticsDetailFragment extends Fragment {
 
     private void observeActivityType() {
         viewModel.getSelectedActivityType().observe(getViewLifecycleOwner(), activityType -> {
-            boolean isRunning = ProfileViewModel.ACTIVITY_RUNNING.equals(activityType);
+            boolean isRunning = ProfileActivityType.RUNNING.equals(activityType);
             updateActivityButtonState(runButton, isRunning);
             updateActivityButtonState(walkButton, !isRunning);
             String plural = isRunning ? "runs" : "walks";
@@ -168,5 +168,4 @@ public class ProfileStatisticsDetailFragment extends Fragment {
         button.setEnabled(!isSelected);
         button.setAlpha(1f);
     }
-
 }

@@ -10,13 +10,14 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.grouprace.core.common.TimeUtils;
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.Profile.WeeklyRecordPoint;
 import com.grouprace.core.model.Profile.WeeklyRecordSummary;
 import com.grouprace.feature.profile.R;
-import com.grouprace.feature.profile.ui.main.ProfileViewModel;
+import com.grouprace.feature.profile.ui.main.ProfileActivityType;
 import com.grouprace.feature.profile.util.ProfileFormatUtils;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
@@ -31,8 +32,14 @@ import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import java.util.ArrayList;
 import java.util.List;
 
+import dagger.hilt.android.AndroidEntryPoint;
+
+@AndroidEntryPoint
 public class ProfileStatsFragment extends Fragment {
-    private ProfileStatsOwner statsOwner;
+    private static final String ARG_USER_ID = "arg_user_id";
+    private static final String ARG_IS_SELF = "arg_is_self";
+
+    private ProfileStatsViewModel viewModel;
     private Button runStatsButton;
     private Button walkStatsButton;
     private TextView recordPeriod;
@@ -41,8 +48,13 @@ public class ProfileStatsFragment extends Fragment {
     private LineChart recordChart;
     private WeeklyRecordSummary currentWeeklySummary;
 
-    public static ProfileStatsFragment newInstance() {
-        return new ProfileStatsFragment();
+    public static ProfileStatsFragment newInstance(int userId, boolean isSelf) {
+        ProfileStatsFragment fragment = new ProfileStatsFragment();
+        Bundle args = new Bundle();
+        args.putInt(ARG_USER_ID, userId);
+        args.putBoolean(ARG_IS_SELF, isSelf);
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Override
@@ -55,11 +67,10 @@ public class ProfileStatsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        Fragment parentFragment = requireParentFragment();
-        if (!(parentFragment instanceof ProfileStatsOwner)) {
-            throw new IllegalStateException("Parent fragment must implement ProfileStatsOwner");
-        }
-        statsOwner = (ProfileStatsOwner) parentFragment;
+        int userId = getArguments() != null ? getArguments().getInt(ARG_USER_ID, -1) : -1;
+        boolean isSelf = getArguments() == null || getArguments().getBoolean(ARG_IS_SELF, true);
+        viewModel = new ViewModelProvider(this).get(ProfileStatsViewModel.class);
+        viewModel.initialize(userId, isSelf);
 
         runStatsButton = view.findViewById(R.id.profile_run_stats_button);
         walkStatsButton = view.findViewById(R.id.profile_walk_stats_button);
@@ -68,8 +79,8 @@ public class ProfileStatsFragment extends Fragment {
         recordDuration = view.findViewById(R.id.profile_record_duration);
         recordChart = view.findViewById(R.id.profile_record_chart);
 
-        runStatsButton.setOnClickListener(v -> statsOwner.onSelectActivityType(ProfileViewModel.ACTIVITY_RUNNING));
-        walkStatsButton.setOnClickListener(v -> statsOwner.onSelectActivityType(ProfileViewModel.ACTIVITY_WALKING));
+        runStatsButton.setOnClickListener(v -> viewModel.selectActivityType(ProfileActivityType.RUNNING));
+        walkStatsButton.setOnClickListener(v -> viewModel.selectActivityType(ProfileActivityType.WALKING));
 
         setupRecordChart();
         observeWeeklySummary();
@@ -77,7 +88,7 @@ public class ProfileStatsFragment extends Fragment {
     }
 
     private void observeWeeklySummary() {
-        statsOwner.getWeeklySummaryLiveData().observe(getViewLifecycleOwner(), result -> {
+        viewModel.getWeeklySummary().observe(getViewLifecycleOwner(), result -> {
             if (result instanceof Result.Success) {
                 currentWeeklySummary = ((Result.Success<WeeklyRecordSummary>) result).data;
                 bindWeeklySummary(currentWeeklySummary);
@@ -88,8 +99,8 @@ public class ProfileStatsFragment extends Fragment {
     }
 
     private void observeActivitySelection() {
-        statsOwner.getSelectedActivityTypeLiveData().observe(getViewLifecycleOwner(), activityType -> {
-            boolean isRunning = ProfileViewModel.ACTIVITY_RUNNING.equals(activityType);
+        viewModel.getSelectedActivityType().observe(getViewLifecycleOwner(), activityType -> {
+            boolean isRunning = ProfileActivityType.RUNNING.equals(activityType);
             updateActivityButtonState(runStatsButton, isRunning);
             updateActivityButtonState(walkStatsButton, !isRunning);
         });
@@ -116,9 +127,11 @@ public class ProfileStatsFragment extends Fragment {
 
         recordChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
-            public void onValueSelected(Entry e, Highlight h) {
-                if (currentWeeklySummary == null || currentWeeklySummary.getPoints() == null) return;
-                int index = Math.round(e.getX());
+            public void onValueSelected(Entry entry, Highlight highlight) {
+                if (currentWeeklySummary == null || currentWeeklySummary.getPoints() == null) {
+                    return;
+                }
+                int index = Math.round(entry.getX());
                 if (index >= 0 && index < currentWeeklySummary.getPoints().size()) {
                     bindSelectedRecordPoint(currentWeeklySummary.getPoints().get(index));
                 }
@@ -158,7 +171,9 @@ public class ProfileStatsFragment extends Fragment {
             @Override
             public String getFormattedValue(float value) {
                 int index = Math.round(value);
-                if (index < 0 || index >= points.size()) return "";
+                if (index < 0 || index >= points.size()) {
+                    return "";
+                }
                 return ProfileFormatUtils.formatShortDate(points.get(index).getWeekStart());
             }
         });
@@ -186,8 +201,7 @@ public class ProfileStatsFragment extends Fragment {
     private int findLatestNonZeroPointIndex(@NonNull List<WeeklyRecordPoint> points) {
         for (int index = points.size() - 1; index >= 0; index--) {
             WeeklyRecordPoint point = points.get(index);
-            if (point.getTotalDistanceKm() > 0
-                    || point.getTotalDurationSeconds() > 0) {
+            if (point.getTotalDistanceKm() > 0 || point.getTotalDurationSeconds() > 0) {
                 return index;
             }
         }

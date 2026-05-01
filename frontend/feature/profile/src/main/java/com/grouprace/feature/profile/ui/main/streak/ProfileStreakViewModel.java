@@ -6,8 +6,8 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.data.repository.RecordRepository;
 import com.grouprace.core.network.model.record.RecordStreakResponse;
-import com.grouprace.core.network.source.RecordDataSource;
 
 import javax.inject.Inject;
 
@@ -15,7 +15,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 
 @HiltViewModel
 public class ProfileStreakViewModel extends ViewModel {
-    private final RecordDataSource recordDataSource;
+    private final RecordRepository recordRepository;
     private final MutableLiveData<Result<RecordStreakResponse>> streak = new MutableLiveData<>();
     private LiveData<Result<RecordStreakResponse>> streakSource;
     private Observer<Result<RecordStreakResponse>> streakObserver;
@@ -23,8 +23,8 @@ public class ProfileStreakViewModel extends ViewModel {
     private boolean self = true;
 
     @Inject
-    public ProfileStreakViewModel(RecordDataSource recordDataSource) {
-        this.recordDataSource = recordDataSource;
+    public ProfileStreakViewModel(RecordRepository recordRepository) {
+        this.recordRepository = recordRepository;
     }
 
     public LiveData<Result<RecordStreakResponse>> getStreak() {
@@ -44,7 +44,7 @@ public class ProfileStreakViewModel extends ViewModel {
             streakSource.removeObserver(streakObserver);
         }
 
-        streakSource = self ? recordDataSource.getMyStreak() : recordDataSource.getUserStreak(userId);
+        streakSource = self ? recordRepository.getMyStreak() : recordRepository.getUserStreak(userId);
         streakObserver = result -> streak.setValue(result);
         streakSource.observeForever(streakObserver);
     }

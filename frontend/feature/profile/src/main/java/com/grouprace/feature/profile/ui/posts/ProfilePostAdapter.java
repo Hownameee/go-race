@@ -13,7 +13,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.grouprace.core.common.TimeUtils;
 import com.grouprace.core.model.Post;
-import com.grouprace.feature.profile.R;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,14 +29,11 @@ public class ProfilePostAdapter extends RecyclerView.Adapter<ProfilePostAdapter.
         notifyDataSetChanged();
     }
 
-    public boolean isEmpty() {
-        return posts.isEmpty();
-    }
-
     @NonNull
     @Override
     public PostViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_profile_post, parent, false);
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(com.grouprace.feature.posts.R.layout.item_post, parent, false);
         return new PostViewHolder(view);
     }
 
@@ -52,67 +48,105 @@ public class ProfilePostAdapter extends RecyclerView.Adapter<ProfilePostAdapter.
     }
 
     static class PostViewHolder extends RecyclerView.ViewHolder {
-        private final TextView author;
-        private final TextView time;
-        private final TextView title;
-        private final TextView description;
-        private final View stats;
-        private final TextView distance;
-        private final TextView duration;
-        private final TextView speed;
-        private final ImageView media;
-        private final TextView likes;
-        private final TextView comments;
+        private final TextView tvUsername;
+        private final TextView tvTime;
+        private final TextView tvTitle;
+        private final TextView tvDistance;
+        private final TextView tvPace;
+        private final TextView tvDuration;
+        private final View llStats;
+        private final ImageView ivMedia;
+        private final ImageView ivActivityType;
+        private final TextView tvLikes;
+        private final TextView tvComments;
+        private final ImageView ivLike;
+        private final ImageView ivComment;
+        private final ImageView ivShare;
+        private final ImageView ivMore;
 
         PostViewHolder(@NonNull View itemView) {
             super(itemView);
-            author = itemView.findViewById(R.id.profile_post_author);
-            time = itemView.findViewById(R.id.profile_post_time);
-            title = itemView.findViewById(R.id.profile_post_title);
-            description = itemView.findViewById(R.id.profile_post_description);
-            stats = itemView.findViewById(R.id.profile_post_stats);
-            distance = itemView.findViewById(R.id.profile_post_distance);
-            duration = itemView.findViewById(R.id.profile_post_duration);
-            speed = itemView.findViewById(R.id.profile_post_speed);
-            media = itemView.findViewById(R.id.profile_post_media);
-            likes = itemView.findViewById(R.id.profile_post_likes);
-            comments = itemView.findViewById(R.id.profile_post_comments);
+            tvUsername = itemView.findViewById(com.grouprace.feature.posts.R.id.tv_username);
+            tvTime = itemView.findViewById(com.grouprace.feature.posts.R.id.tv_time);
+            tvTitle = itemView.findViewById(com.grouprace.feature.posts.R.id.tv_title);
+            tvDistance = itemView.findViewById(com.grouprace.feature.posts.R.id.tv_distance);
+            tvPace = itemView.findViewById(com.grouprace.feature.posts.R.id.tv_pace);
+            tvDuration = itemView.findViewById(com.grouprace.feature.posts.R.id.tv_duration);
+            llStats = itemView.findViewById(com.grouprace.feature.posts.R.id.ll_stats);
+            ivMedia = itemView.findViewById(com.grouprace.feature.posts.R.id.iv_media);
+            ivActivityType = itemView.findViewById(com.grouprace.feature.posts.R.id.iv_activity_type);
+            tvLikes = itemView.findViewById(com.grouprace.feature.posts.R.id.tv_likes);
+            tvComments = itemView.findViewById(com.grouprace.feature.posts.R.id.tv_comments);
+            ivLike = itemView.findViewById(com.grouprace.feature.posts.R.id.iv_like);
+            ivComment = itemView.findViewById(com.grouprace.feature.posts.R.id.iv_comment);
+            ivShare = itemView.findViewById(com.grouprace.feature.posts.R.id.iv_share);
+            ivMore = itemView.findViewById(com.grouprace.feature.posts.R.id.iv_more);
         }
 
         void bind(Post post) {
-            author.setText(post.getFullName() != null ? post.getFullName() : "Unknown");
-            time.setText(post.getCreatedAt() != null ? post.getCreatedAt() : "");
-            title.setText(post.getTitle() != null ? post.getTitle() : "Untitled Activity");
-
-            if (post.getDescription() != null && !post.getDescription().trim().isEmpty()) {
-                description.setVisibility(View.VISIBLE);
-                description.setText(post.getDescription());
-            } else {
-                description.setVisibility(View.GONE);
-            }
+            tvUsername.setText(post.getFullName() != null ? post.getFullName() : "Unknown");
+            tvTitle.setText(post.getTitle() != null ? post.getTitle() : "Untitled Activity");
+            tvTime.setText(post.getCreatedAt() != null ? post.getCreatedAt() : "");
 
             if (post.getRecordId() != null) {
-                stats.setVisibility(View.VISIBLE);
-                double distanceKm = post.getDistanceKm() != null ? post.getDistanceKm() : 0.0;
+                llStats.setVisibility(View.VISIBLE);
+
+                double distance = post.getDistanceKm() != null ? post.getDistanceKm() : 0.0;
+                tvDistance.setText(String.format(Locale.getDefault(), "%.2f km", distance));
+
                 int seconds = post.getDurationSeconds() != null ? post.getDurationSeconds() : 0;
-                double speedValue = post.getSpeed() != null ? post.getSpeed() : 0.0;
-                distance.setText(String.format(Locale.getDefault(), "%.2f km", distanceKm));
-                duration.setText(TimeUtils.formatDuration(seconds));
-                speed.setText(String.format(Locale.getDefault(), "%.1f km/h", speedValue));
+                tvDuration.setText(TimeUtils.formatDuration(seconds));
+
+                if (distance > 0 && seconds > 0) {
+                    double paceMinKm = (seconds / 60.0) / distance;
+                    int paceMin = (int) paceMinKm;
+                    int paceSec = (int) ((paceMinKm - paceMin) * 60);
+                    tvPace.setText(String.format(Locale.getDefault(), "%d:%02d /km", paceMin, paceSec));
+                } else {
+                    tvPace.setText("--:--");
+                }
+
+                if (post.getActivityType() != null) {
+                    ivActivityType.setVisibility(View.VISIBLE);
+                    if ("Running".equalsIgnoreCase(post.getActivityType())) {
+                        ivActivityType.setImageResource(com.grouprace.core.system.R.drawable.ic_run);
+                    } else if ("Walking".equalsIgnoreCase(post.getActivityType())) {
+                        ivActivityType.setImageResource(com.grouprace.core.system.R.drawable.ic_walk);
+                    } else {
+                        ivActivityType.setVisibility(View.GONE);
+                    }
+                } else {
+                    ivActivityType.setVisibility(View.GONE);
+                }
+
+                if (post.getRecordImageUrl() != null && !post.getRecordImageUrl().isEmpty()) {
+                    ivMedia.setVisibility(View.VISIBLE);
+                    Glide.with(itemView.getContext())
+                            .load(post.getRecordImageUrl())
+                            .centerCrop()
+                            .into(ivMedia);
+                } else {
+                    ivMedia.setVisibility(View.GONE);
+                }
             } else {
-                stats.setVisibility(View.GONE);
+                llStats.setVisibility(View.GONE);
+                ivMedia.setVisibility(View.GONE);
+                ivActivityType.setVisibility(View.GONE);
             }
 
-            String imageUrl = post.getRecordImageUrl();
-            if (imageUrl != null && !imageUrl.isEmpty()) {
-                media.setVisibility(View.VISIBLE);
-                Glide.with(itemView.getContext()).load(imageUrl).centerCrop().into(media);
-            } else {
-                media.setVisibility(View.GONE);
-            }
+            tvLikes.setText(String.valueOf(post.getLikeCount()));
+            tvComments.setText(String.valueOf(post.getCommentCount()));
 
-            likes.setText(post.getLikeCount() + " likes");
-            comments.setText(post.getCommentCount() + " comments");
+            ivLike.setImageResource(
+                    post.isLiked()
+                            ? com.grouprace.core.system.R.drawable.ic_like_selected
+                            : com.grouprace.core.system.R.drawable.ic_like
+            );
+
+            ivLike.setEnabled(false);
+            ivComment.setEnabled(false);
+            ivShare.setEnabled(false);
+            ivMore.setEnabled(false);
         }
     }
 }

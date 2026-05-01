@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.data.repository.FollowRepository;
 import com.grouprace.core.data.repository.SearchRepository;
 import com.grouprace.core.model.UserSearchResult;
 
@@ -17,14 +18,15 @@ import jakarta.inject.Inject;
 public class SearchViewModel extends ViewModel {
 
     private final SearchRepository repository;
-
+    private final FollowRepository followRepository;
     private final MutableLiveData<SearchUiState> uiState = new MutableLiveData<>();
 
     private boolean isClubTab = false;
 
     @Inject
-    public SearchViewModel(SearchRepository repository) {
+    public SearchViewModel(SearchRepository repository, FollowRepository followRepository) {
         this.repository = repository;
+        this.followRepository = followRepository;
         loadSuggested();
     }
 
@@ -32,19 +34,17 @@ public class SearchViewModel extends ViewModel {
         return uiState;
     }
 
-    // --- Tab ---
     public void switchTab(boolean isClub) {
         this.isClubTab = isClub;
         loadSuggested();
     }
 
-    // --- Suggested ---
     private void loadSuggested() {
         uiState.setValue(new SearchUiState(null, true, null, false));
 
-        LiveData<Result<List<UserSearchResult>>> source =
-                isClubTab ? repository.getSuggestedClubs()
-                        : repository.getSuggestedUsers();
+        LiveData<Result<List<UserSearchResult>>> source = isClubTab
+                ? repository.getSuggestedClubs()
+                : repository.getSuggestedUsers();
 
         source.observeForever(result -> {
             if (result instanceof Result.Success) {
@@ -65,7 +65,6 @@ public class SearchViewModel extends ViewModel {
         });
     }
 
-    // --- Search ---
     public void search(String query) {
         if (query == null || query.trim().isEmpty()) {
             loadSuggested();
@@ -74,9 +73,9 @@ public class SearchViewModel extends ViewModel {
 
         uiState.setValue(new SearchUiState(null, true, null, true));
 
-        LiveData<Result<List<UserSearchResult>>> source =
-                isClubTab ? repository.searchClubs(query)
-                        : repository.searchUsers(query);
+        LiveData<Result<List<UserSearchResult>>> source = isClubTab
+                ? repository.searchClubs(query)
+                : repository.searchUsers(query);
 
         source.observeForever(result -> {
             if (result instanceof Result.Success) {
@@ -97,12 +96,11 @@ public class SearchViewModel extends ViewModel {
         });
     }
 
-    // --- Follow ---
     public LiveData<Result<Boolean>> followUser(int id) {
-        return repository.followUser(id);
+        return followRepository.followUser(id);
     }
 
     public LiveData<Result<Boolean>> unfollowUser(int id) {
-        return repository.unfollowUser(id);
+        return followRepository.unfollowUser(id);
     }
 }

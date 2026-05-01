@@ -6,7 +6,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 
 import com.grouprace.core.common.result.Result;
-import com.grouprace.core.data.repository.SearchRepository;
+import com.grouprace.core.data.repository.FollowRepository;
 import com.grouprace.core.data.repository.UserRepository;
 import com.grouprace.core.model.Profile.ProfileOverview;
 
@@ -17,7 +17,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 @HiltViewModel
 public class ProfileOverviewViewModel extends ViewModel {
     private final UserRepository userRepository;
-    private final SearchRepository searchRepository;
+    private final FollowRepository followRepository;
     private final MutableLiveData<Result<ProfileOverview>> overview = new MutableLiveData<>();
     private LiveData<Result<ProfileOverview>> overviewSource;
     private Observer<Result<ProfileOverview>> overviewObserver;
@@ -25,9 +25,9 @@ public class ProfileOverviewViewModel extends ViewModel {
     private boolean self = true;
 
     @Inject
-    public ProfileOverviewViewModel(UserRepository userRepository, SearchRepository searchRepository) {
+    public ProfileOverviewViewModel(UserRepository userRepository, FollowRepository followRepository) {
         this.userRepository = userRepository;
-        this.searchRepository = searchRepository;
+        this.followRepository = followRepository;
     }
 
     public LiveData<Result<ProfileOverview>> getOverview() {
@@ -53,11 +53,11 @@ public class ProfileOverviewViewModel extends ViewModel {
     }
 
     public LiveData<Result<Boolean>> followUser() {
-        return searchRepository.followUser(userId);
+        return followRepository.followUser(userId);
     }
 
     public LiveData<Result<Boolean>> unfollowUser() {
-        return searchRepository.unfollowUser(userId);
+        return followRepository.unfollowUser(userId);
     }
 
     public void applyFollowingState(boolean isFollowing) {

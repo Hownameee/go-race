@@ -1,4 +1,4 @@
-package com.grouprace.feature.profile.ui.main.clubs_preview;
+package com.grouprace.feature.profile.ui.clubs;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -17,11 +17,11 @@ import javax.inject.Inject;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 
 @HiltViewModel
-public class ProfileClubsPreviewViewModel extends ViewModel {
-    private static final int PREVIEW_LIMIT = 2;
+public class ProfileClubsViewModel extends ViewModel {
+    private static final int PAGE_SIZE = 10;
 
     private final ClubRepository clubRepository;
-    private final MutableLiveData<Integer> limitLiveData = new MutableLiveData<>(PREVIEW_LIMIT);
+    private final MutableLiveData<Integer> limitLiveData = new MutableLiveData<>(PAGE_SIZE);
     private final MutableLiveData<Integer> syncTrigger = new MutableLiveData<>();
     private final LiveData<Result<String>> syncStatus;
     private LiveData<List<Club>> clubs = new MutableLiveData<>(Collections.emptyList());
@@ -29,15 +29,15 @@ public class ProfileClubsPreviewViewModel extends ViewModel {
     private boolean initialized;
 
     @Inject
-    public ProfileClubsPreviewViewModel(ClubRepository clubRepository) {
+    public ProfileClubsViewModel(ClubRepository clubRepository) {
         this.clubRepository = clubRepository;
-        this.syncStatus = Transformations.switchMap(syncTrigger, trigger -> {
+        this.syncStatus = Transformations.switchMap(syncTrigger, offset -> {
             if (!self) {
                 MutableLiveData<Result<String>> result = new MutableLiveData<>();
                 result.setValue(new Result.Success<>("unsupported"));
                 return result;
             }
-            return clubRepository.syncClubs(0, PREVIEW_LIMIT);
+            return clubRepository.syncClubs(offset, PAGE_SIZE);
         });
     }
 
@@ -61,6 +61,19 @@ public class ProfileClubsPreviewViewModel extends ViewModel {
     }
 
     public void sync() {
-        syncTrigger.setValue(PREVIEW_LIMIT);
+        int limit = limitLiveData.getValue() != null ? limitLiveData.getValue() : PAGE_SIZE;
+        syncTrigger.setValue(Math.max(0, limit - PAGE_SIZE));
+    }
+
+    public void loadMore(int currentListSize) {
+        if (!self) {
+            return;
+        }
+        int currentLimit = limitLiveData.getValue() != null ? limitLiveData.getValue() : PAGE_SIZE;
+        if (currentListSize < currentLimit) {
+            return;
+        }
+        limitLiveData.setValue(currentLimit + PAGE_SIZE);
+        sync();
     }
 }

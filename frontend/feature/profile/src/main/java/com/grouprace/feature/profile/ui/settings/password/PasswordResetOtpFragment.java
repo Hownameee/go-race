@@ -18,6 +18,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.common.validation.FormValidator;
 import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.feature.profile.R;
 
@@ -69,12 +70,13 @@ public class PasswordResetOtpFragment extends Fragment {
 
         Runnable submitOtpAction = () -> {
             String otpCode = otpInput.getText().toString();
-            if (viewModel.isProfileOtpFlow()) {
-                if (otpCode == null || otpCode.trim().isEmpty()) {
-                    Toast.makeText(requireContext(), "Please enter OTP.", Toast.LENGTH_SHORT).show();
-                    return;
-                }
+            String otpError = FormValidator.getOtpError(otpCode);
+            if (otpError != null) {
+                Toast.makeText(requireContext(), otpError, Toast.LENGTH_SHORT).show();
+                return;
+            }
 
+            if (viewModel.isProfileOtpFlow()) {
                 viewModel.setVerifiedResetOtp(otpCode);
                 navigator.openSetNewPassword(this);
                 return;

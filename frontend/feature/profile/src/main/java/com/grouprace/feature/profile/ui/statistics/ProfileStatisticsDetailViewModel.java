@@ -6,9 +6,9 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.data.repository.RecordRepository;
 import com.grouprace.core.network.model.record.RecordProfileStatisticsResponse;
-import com.grouprace.core.network.source.RecordDataSource;
-import com.grouprace.feature.profile.ui.main.ProfileViewModel;
+import com.grouprace.feature.profile.ui.main.ProfileActivityType;
 
 import javax.inject.Inject;
 
@@ -16,9 +16,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 
 @HiltViewModel
 public class ProfileStatisticsDetailViewModel extends ViewModel {
-    private final RecordDataSource recordDataSource;
+    private final RecordRepository recordRepository;
     private final MutableLiveData<Result<RecordProfileStatisticsResponse>> statistics = new MutableLiveData<>();
-    private final MutableLiveData<String> selectedActivityType = new MutableLiveData<>(ProfileViewModel.ACTIVITY_RUNNING);
+    private final MutableLiveData<String> selectedActivityType = new MutableLiveData<>(ProfileActivityType.RUNNING);
     private LiveData<Result<RecordProfileStatisticsResponse>> currentStatisticsSource;
     private Observer<Result<RecordProfileStatisticsResponse>> currentStatisticsObserver;
     private boolean isSelf;
@@ -26,8 +26,8 @@ public class ProfileStatisticsDetailViewModel extends ViewModel {
     private boolean initialized;
 
     @Inject
-    public ProfileStatisticsDetailViewModel(RecordDataSource recordDataSource) {
-        this.recordDataSource = recordDataSource;
+    public ProfileStatisticsDetailViewModel(RecordRepository recordRepository) {
+        this.recordRepository = recordRepository;
     }
 
     public void initialize(boolean isSelf, int userId) {
@@ -65,8 +65,8 @@ public class ProfileStatisticsDetailViewModel extends ViewModel {
         }
 
         currentStatisticsSource = isSelf
-                ? recordDataSource.getMyProfileStatistics(activityType)
-                : recordDataSource.getUserProfileStatistics(userId, activityType);
+                ? recordRepository.getMyProfileStatistics(activityType)
+                : recordRepository.getUserProfileStatistics(userId, activityType);
         currentStatisticsObserver = result -> statistics.setValue(result);
         currentStatisticsSource.observeForever(currentStatisticsObserver);
     }

@@ -6,8 +6,8 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.data.repository.RecordRepository;
 import com.grouprace.core.network.model.record.RecordProfileStatisticsResponse;
-import com.grouprace.core.network.source.RecordDataSource;
 
 import javax.inject.Inject;
 
@@ -15,7 +15,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 
 @HiltViewModel
 public class ProfileAchievementsViewModel extends ViewModel {
-    private final RecordDataSource recordDataSource;
+    private final RecordRepository recordRepository;
     private final MutableLiveData<Result<RecordProfileStatisticsResponse>> achievementSummary = new MutableLiveData<>();
     private LiveData<Result<RecordProfileStatisticsResponse>> currentSource;
     private Observer<Result<RecordProfileStatisticsResponse>> currentObserver;
@@ -24,8 +24,8 @@ public class ProfileAchievementsViewModel extends ViewModel {
     private boolean initialized;
 
     @Inject
-    public ProfileAchievementsViewModel(RecordDataSource recordDataSource) {
-        this.recordDataSource = recordDataSource;
+    public ProfileAchievementsViewModel(RecordRepository recordRepository) {
+        this.recordRepository = recordRepository;
     }
 
     public void initialize(boolean isSelf, int userId) {
@@ -51,8 +51,8 @@ public class ProfileAchievementsViewModel extends ViewModel {
         }
 
         currentSource = isSelf
-                ? recordDataSource.getMyProfileStatistics(null)
-                : recordDataSource.getUserProfileStatistics(userId, null);
+                ? recordRepository.getMyProfileStatistics(null)
+                : recordRepository.getUserProfileStatistics(userId, null);
         currentObserver = result -> achievementSummary.setValue(result);
         currentSource.observeForever(currentObserver);
     }

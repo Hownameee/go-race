@@ -16,8 +16,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.Record;
 import com.grouprace.feature.profile.R;
+import com.grouprace.feature.records.detail.ui.RecordDetailFragment;
 
 import java.util.List;
+import java.util.Locale;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -60,7 +62,7 @@ public class ProfileRecordsFragment extends Fragment {
         String profileName = getArguments() != null ? getArguments().getString(ARG_PROFILE_NAME) : null;
 
         viewModel = new ViewModelProvider(this).get(ProfileRecordsViewModel.class);
-        viewModel.initialize(userId);
+        viewModel.initialize(userId, isSelf);
 
         ImageButton backButton = view.findViewById(R.id.profile_records_back_button);
         TextView titleView = view.findViewById(R.id.profile_records_title);
@@ -75,7 +77,7 @@ public class ProfileRecordsFragment extends Fragment {
         backButton.setOnClickListener(v -> requireActivity().getOnBackPressedDispatcher().onBackPressed());
         retryButton.setOnClickListener(v -> viewModel.sync());
 
-        adapter = new ProfileRecordAdapter();
+        adapter = new ProfileRecordAdapter(this::openRecordDetail);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerView.setAdapter(adapter);
 
@@ -144,5 +146,34 @@ public class ProfileRecordsFragment extends Fragment {
                 }
             }
         });
+    }
+
+    private void openRecordDetail(@NonNull Record record) {
+        RecordDetailFragment detailFragment = RecordDetailFragment.newInstance(
+                record.getTitle(),
+                record.getActivityType(),
+                record.getStartTime(),
+                String.format(Locale.getDefault(), "%.2f km", record.getDistance()),
+                String.format(Locale.getDefault(), "%.1f km/h", record.getSpeed()),
+                String.format(Locale.getDefault(), "%.0f bpm", record.getHeartRate()),
+                String.format(Locale.getDefault(), "%.0f kcal", record.getCalories()),
+                record.getDuration(),
+                record.getImageUrl()
+        );
+
+        View parent = (View) requireView().getParent();
+        int containerId = parent != null ? parent.getId() : getId();
+
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .setCustomAnimations(
+                        com.grouprace.feature.records.R.anim.slide_in_right,
+                        android.R.anim.fade_out,
+                        android.R.anim.fade_in,
+                        android.R.anim.slide_out_right
+                )
+                .replace(containerId, detailFragment)
+                .addToBackStack(null)
+                .commit();
     }
 }

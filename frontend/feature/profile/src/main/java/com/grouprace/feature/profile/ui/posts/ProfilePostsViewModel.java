@@ -2,6 +2,7 @@ package com.grouprace.feature.profile.ui.posts;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 
 import com.grouprace.core.common.result.Result;
@@ -19,8 +20,9 @@ public class ProfilePostsViewModel extends ViewModel {
     private static final int LIMIT = 20;
 
     private final PostRepository postRepository;
-    private final MutableLiveData<Result<Boolean>> syncStatus = new MutableLiveData<>();
-    private LiveData<List<Post>> posts;
+    private final MutableLiveData<Result<List<Post>>> postsResult = new MutableLiveData<>();
+    private LiveData<Result<List<Post>>> source;
+    private Observer<Result<List<Post>>> sourceObserver;
     private int userId = -1;
     private boolean self;
 
@@ -32,28 +34,29 @@ public class ProfilePostsViewModel extends ViewModel {
     public void initialize(int userId, boolean self) {
         this.userId = userId;
         this.self = self;
-        this.posts = postRepository.getLocalUserPosts(userId, LIMIT);
     }
 
-    public LiveData<List<Post>> getPosts() {
-        return posts;
-    }
-
-    public LiveData<Result<Boolean>> getSyncStatus() {
-        return syncStatus;
+    public LiveData<Result<List<Post>>> getPostsResult() {
+        return postsResult;
     }
 
     public void sync() {
-        LiveData<Result<Boolean>> source = postRepository.syncUserPosts(userId, null, LIMIT);
-        source.observeForever(result -> {
-            if (result instanceof Result.Loading) {
-                syncStatus.setValue(new Result.Loading<>());
-            } else if (result instanceof Result.Success) {
-                syncStatus.setValue(new Result.Success<>(true));
-            } else if (result instanceof Result.Error) {
-                Result.Error<Boolean> error = (Result.Error<Boolean>) result;
-                syncStatus.setValue(new Result.Error<>(error.exception, error.message));
-            }
-        });
+        if (source != null && sourceObserver != null) {
+            source.removeObserver(sourceObserver);
+        }
+
+        source = self
+                ? postRepository.getMyPosts(null, LIMIT)
+                : postRepository.getUserPosts(userId, null, LIMIT);
+        sourceObserver = result -> postsResult.setValue(result);
+        source.observeForever(sourceObserver);
+    }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        if (source != null && sourceObserver != null) {
+            source.removeObserver(sourceObserver);
+        }
     }
 }

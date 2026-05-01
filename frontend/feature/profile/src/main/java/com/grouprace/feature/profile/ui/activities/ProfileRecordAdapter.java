@@ -28,7 +28,16 @@ import java.util.List;
 import java.util.Locale;
 
 public class ProfileRecordAdapter extends RecyclerView.Adapter<ProfileRecordAdapter.RecordViewHolder> {
+    public interface Listener {
+        void onRecordClicked(Record record);
+    }
+
+    private final Listener listener;
     private final List<Record> records = new ArrayList<>();
+
+    public ProfileRecordAdapter(Listener listener) {
+        this.listener = listener;
+    }
 
     public void submitList(@Nullable List<Record> items) {
         records.clear();
@@ -92,6 +101,12 @@ public class ProfileRecordAdapter extends RecyclerView.Adapter<ProfileRecordAdap
             holder.pbLoading.setVisibility(View.GONE);
             holder.ivIcon.setImageDrawable(null);
         }
+
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onRecordClicked(currentRecord);
+            }
+        });
     }
 
     @Override

@@ -14,9 +14,11 @@ import com.grouprace.feature.profile.ui.edit.EditProfileFragment;
 import com.grouprace.feature.profile.ui.follow.FollowListFragment;
 import com.grouprace.feature.profile.ui.achievements.ProfileAchievementsFragment;
 import com.grouprace.feature.profile.ui.activities.ProfileRecordsFragment;
+import com.grouprace.feature.profile.ui.clubs.ProfileClubsFragment;
 import com.grouprace.feature.profile.ui.main.ProfileComingSoonFragment;
-import com.grouprace.feature.profile.ui.main.UserProfileFragment;
+import com.grouprace.feature.profile.ui.main.ProfileFactory;
 import com.grouprace.feature.profile.ui.posts.ProfilePostsFragment;
+import com.grouprace.feature.profile.ui.routes.ProfileRoutesFragment;
 import com.grouprace.feature.profile.ui.statistics.ProfileStatisticsDetailFragment;
 import com.grouprace.feature.login.ui.LoginFragment;
 import com.grouprace.feature.profile.ui.settings.ProfileSettingsFragment;
@@ -37,6 +39,7 @@ import com.grouprace.feature.club.ui.detail.tabs.ClubEventsFragment;
 import com.grouprace.feature.club.ui.detail.tabs.ClubStatisticsFragment;
 import com.grouprace.feature.club.ui.detail.tabs.EditClubFragment;
 import com.grouprace.feature.club.ui.detail.ClubDetailFragment;
+import com.grouprace.feature.map.ui.DrawRouteFragment;
 
 import javax.inject.Inject;
 
@@ -75,6 +78,7 @@ public class AppNavigatorImpl implements AppNavigator {
 
 //  public void openMyRoutes(Fragment currentFragment)
 
+    // profile section
     @Override
     public void openProfileActivities(Fragment currentFragment, int userId, String profileName, boolean isSelf) {
       navigateTo(currentFragment, ProfileRecordsFragment.newInstance(userId, profileName, isSelf));
@@ -87,12 +91,17 @@ public class AppNavigatorImpl implements AppNavigator {
 
     @Override
     public void openProfileRoutes(Fragment currentFragment, int userId, String profileName, boolean isSelf) {
-      navigateTo(currentFragment, ProfileComingSoonFragment.newInstance("Routes"));
+      if (isSelf) {
+        navigateTo(currentFragment, new DrawRouteFragment());
+        return;
+      }
+
+      navigateTo(currentFragment, ProfileRoutesFragment.newInstance(profileName));
     }
 
     @Override
     public void openProfileClubs(Fragment currentFragment, int userId, String profileName, boolean isSelf) {
-      navigateTo(currentFragment, ProfileComingSoonFragment.newInstance("Clubs"));
+      navigateTo(currentFragment, ProfileClubsFragment.newInstance(userId, profileName, isSelf));
     }
 
     @Override
@@ -112,7 +121,7 @@ public class AppNavigatorImpl implements AppNavigator {
 
     @Override
     public void openUserProfile(Fragment currentFragment, int userId) {
-      navigateTo(currentFragment, UserProfileFragment.newInstance(userId));
+      navigateTo(currentFragment, ProfileFactory.createUserProfile(userId));
     }
 
     // Profile setting

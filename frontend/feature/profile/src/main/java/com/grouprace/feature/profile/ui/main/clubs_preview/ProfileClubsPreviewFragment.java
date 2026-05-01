@@ -2,13 +2,21 @@ package com.grouprace.feature.profile.ui.main.clubs_preview;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.grouprace.core.model.Club;
 import com.grouprace.core.navigation.AppNavigator;
+import com.grouprace.feature.club.ui.adapter.ClubAdapter;
 import com.grouprace.feature.profile.R;
+
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -22,6 +30,15 @@ public class ProfileClubsPreviewFragment extends Fragment {
 
     @Inject
     AppNavigator navigator;
+
+    private ProfileClubsPreviewViewModel viewModel;
+    private ClubAdapter adapter;
+    private TextView countView;
+    private TextView emptyView;
+    private RecyclerView recyclerView;
+    private int userId;
+    private String profileName;
+    private boolean self;
 
     public ProfileClubsPreviewFragment() {
         super(R.layout.fragment_profile_clubs_preview);
@@ -41,10 +58,48 @@ public class ProfileClubsPreviewFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        int userId = getArguments() != null ? getArguments().getInt(ARG_USER_ID, -1) : -1;
-        String profileName = getArguments() != null ? getArguments().getString(ARG_PROFILE_NAME) : null;
-        boolean self = getArguments() == null || getArguments().getBoolean(ARG_IS_SELF, true);
+        userId = getArguments() != null ? getArguments().getInt(ARG_USER_ID, -1) : -1;
+        profileName = getArguments() != null ? getArguments().getString(ARG_PROFILE_NAME) : null;
+        self = getArguments() == null || getArguments().getBoolean(ARG_IS_SELF, true);
+
+        countView = view.findViewById(R.id.profile_clubs_count);
+        emptyView = view.findViewById(R.id.profile_clubs_empty_state);
+        recyclerView = view.findViewById(R.id.profile_clubs_preview_recycler);
+
+        adapter = new ClubAdapter();
+        adapter.setGridMode(false);
+        adapter.setListener(new ClubAdapter.OnClubClickListener() {
+            @Override
+            public void onClubClick(Club club) {
+                navigator.openClubDetail(ProfileClubsPreviewFragment.this, club.getClubId());
+            }
+
+            @Override
+            public void onJoinClick(Club club) {
+            }
+        });
+
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        recyclerView.setNestedScrollingEnabled(false);
+        recyclerView.setAdapter(adapter);
+
         view.findViewById(R.id.profile_all_clubs_link).setOnClickListener(v ->
                 navigator.openProfileClubs(this, userId, profileName, self));
+
+        viewModel = new ViewModelProvider(this).get(ProfileClubsPreviewViewModel.class);
+        viewModel.initialize(self);
+        viewModel.getClubs().observe(getViewLifecycleOwner(), this::bindClubs);
+        viewModel.sync();
+    }
+
+    private void bindClubs(List<Club> clubs) {
+        int count = clubs != null ? clubs.size() : 0;
+        countView.setText(String.valueOf(count));
+        adapter.submitList(clubs);
+
+        boolean empty = clubs == null || clubs.isEmpty();
+        recyclerView.setVisibility(empty ? View.GONE : View.VISIBLE);
+        emptyView.setVisibility(empty ? View.VISIBLE : View.GONE);
+        emptyView.setText(self ? "No joined clubs yet." : "Joined clubs are unavailable.");
     }
 }
