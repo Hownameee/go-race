@@ -7,8 +7,18 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
+import android.graphics.drawable.Drawable;
+import android.widget.ProgressBar;
+
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 
 import com.grouprace.core.model.UserSearchResult;
 import com.grouprace.feature.search.R;
@@ -23,7 +33,7 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
 
     public interface OnUserActionListener {
         void onActionClick(int userId, boolean isFollowing);
-        void onProfileClick(int userId);
+        void onItemClick(int userId);
     }
 
     public SearchAdapter(List<UserSearchResult> users, OnUserActionListener listener) {
@@ -36,12 +46,12 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
         this.isClubTab = isClubTab;
         notifyDataSetChanged();
     }
-    public void updateUserStatus(int userId, boolean isFollowing) {
+    public void updateUserStatus(int userId, int status) {
         if (users == null) return;
         for (int i = 0; i < users.size(); i++) {
             if (users.get(i).getUserId() == userId) {
-                users.get(i).setFollowing(isFollowing);
-                notifyItemChanged(i); // Chỉ vẽ lại item này
+                users.get(i).setFollowStatus(status);
+                notifyItemChanged(i);
                 break;
             }
         }
@@ -61,11 +71,43 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
         holder.tvUserName.setText(user.getFullname());
         holder.tvLocation.setText(user.getAddress());
 
+        if (user.getAvatarUrl() == null || user.getAvatarUrl().trim().isEmpty()) {
+            holder.pbAvatarLoading.setVisibility(View.GONE);
+            holder.ivAvatar.setImageResource(com.grouprace.core.system.R.drawable.ic_default_avt);
+        } else {
+            holder.pbAvatarLoading.setVisibility(View.VISIBLE);
+            holder.ivAvatar.setImageDrawable(null);
+            Glide.with(holder.ivAvatar.getContext())
+                    .load(user.getAvatarUrl())
+                    .listener(new RequestListener<Drawable>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                            holder.pbAvatarLoading.setVisibility(View.GONE);
+                            holder.ivAvatar.setImageResource(com.grouprace.core.system.R.drawable.ic_default_avt);
+                            return false;
+                        }
+
+                        @Override
+                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                            holder.pbAvatarLoading.setVisibility(View.GONE);
+                            return false;
+                        }
+                    })
+                    .into(holder.ivAvatar);
+        }
+
         if (isClubTab) {
-            holder.btnFollow.setVisibility(View.GONE);
+            holder.btnFollow.setVisibility(View.VISIBLE);
+            if (user.getFollowStatus() == 1) {
+                holder.btnFollow.setText("Joined");
+            } else if (user.getFollowStatus() == 2) {
+                holder.btnFollow.setText("Requested");
+            } else {
+                holder.btnFollow.setText("Join");
+            }
         } else {
             holder.btnFollow.setVisibility(View.VISIBLE);
-            if (user.isFollowing()) {
+            if (user.getFollowStatus() == 1) {
                 holder.btnFollow.setText("Following");
             } else {
                 holder.btnFollow.setText("Follow");
@@ -74,12 +116,13 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
 
         holder.btnFollow.setOnClickListener(v -> {
             if (listener != null) {
-                listener.onActionClick(user.getUserId(), user.isFollowing());
+                listener.onActionClick(user.getUserId(), user.getFollowStatus() == 1);
             }
         });
+
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
-                listener.onProfileClick(user.getUserId());
+                listener.onItemClick(user.getUserId());
             }
         });
     }
@@ -93,6 +136,7 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
         ImageView ivAvatar;
         TextView tvUserName, tvLocation;
         Button btnFollow;
+        ProgressBar pbAvatarLoading;
 
         public SearchViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -100,6 +144,7 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
             tvUserName = itemView.findViewById(R.id.tvUserName);
             tvLocation = itemView.findViewById(R.id.tvLocation);
             btnFollow = itemView.findViewById(R.id.btnFollow);
+            pbAvatarLoading = itemView.findViewById(R.id.pbAvatarLoading);
         }
     }
 }

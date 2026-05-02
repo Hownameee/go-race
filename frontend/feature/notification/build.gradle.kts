@@ -39,6 +39,7 @@ dependencies {
     implementation(project(":core:model"))
     implementation(project(":core:data"))
     implementation(project(":core:common"))
+    implementation(project(":core:navigation"))
     implementation(project(":core:system"))
 
     // Lifecycle
@@ -47,10 +48,11 @@ dependencies {
 
     // Hilt
     implementation(libs.hilt.android)
-//    implementation(libs.google.firebase.messaging)
     annotationProcessor(libs.hilt.compiler)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+
+    implementation("com.github.bumptech.glide:glide:4.16.0")
 }

@@ -19,7 +19,7 @@ public class CreateEventViewModel extends ViewModel {
         this.clubRepository = clubRepository;
     }
 
-    public LiveData<Result<String>> createEvent(int clubId, String title, String description, double targetDistance, int targetDurationSeconds, String startTime, String endTime) {
-        return clubRepository.createEvent(clubId, title, description, targetDistance, targetDurationSeconds, startTime, endTime);
+    public LiveData<Result<String>> createEvent(int clubId, String title, String description, double targetDistance, String startTime, String endTime) {
+        return clubRepository.createEvent(clubId, title, description, targetDistance, startTime, endTime);
     }
 }

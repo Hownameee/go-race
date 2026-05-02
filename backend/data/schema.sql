@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS NOTIFICATIONS (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER,
-    type TEXT CHECK (type IN ('like','comment','follow','system', 'club_join_request', 'club_approved', 'club_event', 'club_announcement')) NOT NULL,
+    type TEXT CHECK (type IN ('like','comment','follow','system', 'club_join_request', 'club_approved', 'club_event', 'club_announcement', 'post')) NOT NULL,
     actor_id INTEGER,
     activity_id INTEGER,
     title TEXT NOT NULL,
@@ -149,10 +149,7 @@ CREATE INDEX IF NOT EXISTS idx_follow_follower ON FOLLOW(follower_id, created_at
 CREATE INDEX IF NOT EXISTS idx_post_created_at ON POST(created_at);
 
 -- Indexes for efficient cursor-based pagination on COMMENT
-CREATE INDEX IF NOT EXISTS idx_comment_post_created ON COMMENT(post_id, parent_id, created_at);
-
--- Index for efficient comment like lookups
-CREATE INDEX IF NOT EXISTS idx_comment_like_user ON COMMENT_LIKE(comment_id, user_id);
+CREATE INDEX IF NOT EXISTS idx_comment_post_created ON COMMENT(post_id, created_at);
 
 -- Index for efficient like lookups
 CREATE INDEX IF NOT EXISTS idx_like_post_user ON LIKE(post_id, user_id);
@@ -182,7 +179,6 @@ CREATE TRIGGER IF NOT EXISTS USER_AU AFTER UPDATE ON USERS BEGIN
   INSERT INTO USER_FTS(rowid, fullname)
   VALUES (NEW.user_id, NEW.fullname);
 END;
-
 CREATE TABLE IF NOT EXISTS ROUTE_POINTS (
     point_id INTEGER PRIMARY KEY AUTOINCREMENT,
     record_id INTEGER NOT NULL,
@@ -240,12 +236,10 @@ CREATE TABLE IF NOT EXISTS CLUB_EVENTS (
     title TEXT NOT NULL,
     description TEXT,
     target_distance REAL DEFAULT 0,
-    target_duration_seconds INTEGER DEFAULT 0,
     start_time DATETIME NOT NULL,
     end_time DATETIME,
     participants_count INTEGER DEFAULT 0,
     total_distance REAL DEFAULT 0,
-    total_duration_seconds INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     
     FOREIGN KEY (club_id) REFERENCES CLUBS(club_id) ON DELETE CASCADE,
@@ -256,7 +250,6 @@ CREATE TABLE IF NOT EXISTS CLUB_EVENT_PARTICIPANTS (
     event_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     current_distance REAL DEFAULT 0,
-    current_duration_seconds INTEGER DEFAULT 0,
     joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     
     PRIMARY KEY (event_id, user_id),
@@ -295,6 +288,26 @@ BEGIN
     WHERE club_id = NEW.club_id 
       AND OLD.status = 'approved' 
       AND NEW.status != 'approved';
+END;
+
+DROP TRIGGER IF EXISTS trigger_club_member_delete;
+CREATE TRIGGER trigger_club_member_delete
+AFTER DELETE ON CLUB_MEMBERS
+BEGIN
+    UPDATE CLUBS 
+    SET total_distance = MAX(0, total_distance - COALESCE(OLD.total_distance, 0)),
+        member_count = member_count - 1,
+        club_record_distance = CASE 
+            WHEN club_record_distance = OLD.total_distance THEN 
+                COALESCE((SELECT MAX(total_distance) FROM CLUB_MEMBERS WHERE club_id = OLD.club_id AND status = 'approved'), 0)
+            ELSE club_record_distance 
+        END,
+        club_record_duration = CASE 
+            WHEN club_record_duration = OLD.total_duration THEN 
+                COALESCE((SELECT MAX(total_duration) FROM CLUB_MEMBERS WHERE club_id = OLD.club_id AND status = 'approved'), 0)
+            ELSE club_record_duration 
+        END
+    WHERE club_id = OLD.club_id;
 END;
 
 -- ==========================================
@@ -349,22 +362,35 @@ DROP TRIGGER IF EXISTS trigger_record_insert_update_event_progress;
 CREATE TRIGGER trigger_record_insert_update_event_progress
 AFTER INSERT ON RECORD
 BEGIN
-    -- 1. Cập nhật tiến độ cá nhân (chỉ rows user đã join + event đang diễn ra)
+    -- 1. Cập nhật tiến độ cá nhân (chỉ rows user đã join + event đang diễn ra + chưa hoàn thành)
     UPDATE CLUB_EVENT_PARTICIPANTS
-    SET current_distance         = current_distance         + COALESCE(NEW.distance_km, 0),
-        current_duration_seconds = current_duration_seconds + COALESCE(NEW.duration_seconds, 0)
+    SET current_distance = current_distance + (
+        SELECT CASE 
+            WHEN e.target_distance > 0 THEN 
+                MIN(COALESCE(NEW.distance_km, 0), MAX(0, e.target_distance - e.total_distance))
+            ELSE 
+                COALESCE(NEW.distance_km, 0)
+            END
+        FROM CLUB_EVENTS e
+        WHERE e.event_id = CLUB_EVENT_PARTICIPANTS.event_id
+    )
     WHERE user_id = NEW.owner_id
       AND event_id IN (
           SELECT e.event_id
           FROM CLUB_EVENTS e
           WHERE datetime(NEW.start_time) >= datetime(e.start_time)
             AND (e.end_time IS NULL OR datetime(NEW.start_time) <= datetime(e.end_time))
+            AND (e.target_distance <= 0 OR e.total_distance < e.target_distance)
       );
 
-    -- 2. Cập nhật global progress (chỉ event mà user ĐÃ join)
+    -- 2. Cập nhật global progress (chỉ event mà user ĐÃ join + đang diễn ra + chưa hoàn thành)
     UPDATE CLUB_EVENTS
-    SET total_distance         = total_distance         + COALESCE(NEW.distance_km, 0),
-        total_duration_seconds = total_duration_seconds + COALESCE(NEW.duration_seconds, 0)
+    SET total_distance = CASE 
+        WHEN target_distance > 0 THEN 
+            MIN(target_distance, total_distance + COALESCE(NEW.distance_km, 0))
+        ELSE 
+            total_distance + COALESCE(NEW.distance_km, 0)
+        END
     WHERE event_id IN (
           SELECT ep.event_id
           FROM CLUB_EVENT_PARTICIPANTS ep
@@ -372,6 +398,7 @@ BEGIN
           WHERE ep.user_id = NEW.owner_id
             AND datetime(NEW.start_time) >= datetime(e.start_time)
             AND (e.end_time IS NULL OR datetime(NEW.start_time) <= datetime(e.end_time))
+            AND (e.target_distance <= 0 OR e.total_distance < e.target_distance)
       );
 END;
 
@@ -397,19 +424,18 @@ CREATE TRIGGER trigger_record_delete_update_event_progress
 AFTER DELETE ON RECORD
 BEGIN
     UPDATE CLUB_EVENT_PARTICIPANTS
-    SET current_distance         = MAX(0, current_distance         - COALESCE(OLD.distance_km, 0)),
-        current_duration_seconds = MAX(0, current_duration_seconds - COALESCE(OLD.duration_seconds, 0))
+    SET current_distance         = MAX(0, current_distance         - COALESCE(OLD.distance_km, 0))
     WHERE user_id = OLD.owner_id
       AND event_id IN (
           SELECT e.event_id
           FROM CLUB_EVENTS e
           WHERE datetime(OLD.start_time) >= datetime(e.start_time)
             AND (e.end_time IS NULL OR datetime(OLD.start_time) <= datetime(e.end_time))
+            AND (e.target_distance <= 0 OR e.total_distance < e.target_distance)
       );
 
     UPDATE CLUB_EVENTS
-    SET total_distance         = MAX(0, total_distance         - COALESCE(OLD.distance_km, 0)),
-        total_duration_seconds = MAX(0, total_duration_seconds - COALESCE(OLD.duration_seconds, 0))
+    SET total_distance         = MAX(0, total_distance         - COALESCE(OLD.distance_km, 0))
     WHERE event_id IN (
           SELECT ep.event_id
           FROM CLUB_EVENT_PARTICIPANTS ep
@@ -417,6 +443,7 @@ BEGIN
           WHERE ep.user_id = OLD.owner_id
             AND datetime(OLD.start_time) >= datetime(e.start_time)
             AND (e.end_time IS NULL OR datetime(OLD.start_time) <= datetime(e.end_time))
+            AND (e.target_distance <= 0 OR e.total_distance < e.target_distance)
       );
 END;
 
@@ -433,7 +460,13 @@ CREATE TRIGGER trigger_club_event_participant_delete
 AFTER DELETE ON CLUB_EVENT_PARTICIPANTS
 BEGIN
     UPDATE CLUB_EVENTS
-    SET participants_count = MAX(0, participants_count - 1)
+    SET participants_count = MAX(0, participants_count - 1),
+        total_distance = CASE 
+            WHEN (end_time IS NULL OR datetime('now') <= datetime(end_time)) 
+                 AND (target_distance <= 0 OR total_distance < target_distance)
+            THEN MAX(0, total_distance - COALESCE(OLD.current_distance, 0))
+            ELSE total_distance 
+        END
     WHERE event_id = OLD.event_id;
 END;
 
@@ -476,3 +509,20 @@ CREATE INDEX IF NOT EXISTS idx_club_event_participants_leaderboard
 -- trigger event progress: WHERE user_id = ? AND event_id IN (...)
 CREATE INDEX IF NOT EXISTS idx_club_event_participants_user
     ON CLUB_EVENT_PARTICIPANTS(user_id);
+
+CREATE TABLE IF NOT EXISTS USER_ROUTES (
+    route_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    route_mode TEXT,
+    is_cycle BOOLEAN,
+    distance_km REAL,
+    duration_seconds INTEGER,
+    route_coordinates_json TEXT,
+    waypoints_json TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_routes_user_id ON USER_ROUTES(user_id);
+

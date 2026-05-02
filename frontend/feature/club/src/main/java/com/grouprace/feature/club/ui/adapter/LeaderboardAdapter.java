@@ -46,18 +46,21 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<LeaderboardAdapter.
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
+        private final TextView tvRank;
         private final ImageView ivAvatar;
         private final TextView tvName;
         private final TextView tvDistance;
 
         ViewHolder(View view) {
             super(view);
+            tvRank = view.findViewById(R.id.tv_rank);
             ivAvatar = view.findViewById(R.id.iv_avatar);
             tvName = view.findViewById(R.id.tv_name);
             tvDistance = view.findViewById(R.id.tv_distance);
         }
 
         void bind(ClubStats.LeaderboardEntry item, int position) {
+            tvRank.setText(String.valueOf(position + 1));
             tvName.setText(item.getMemberName());
             tvDistance.setText(String.format(Locale.getDefault(), "%.2f km", item.getDistance()));
             

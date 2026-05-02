@@ -31,6 +31,8 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
 
         void onShareClicked(Post post);
         void onReportClicked(Post post);
+
+        void onPostClicked(Post post);
     }
 
     private OnPostActionListener listener;
@@ -77,7 +79,7 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull PostViewHolder holder, int position,
-            @NonNull java.util.List<Object> payloads) {
+                                 @NonNull java.util.List<Object> payloads) {
         if (!payloads.isEmpty()) {
             for (Object payload : payloads) {
                 if (PAYLOAD_LIKE.equals(payload)) {
@@ -96,14 +98,16 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
 
         InteractionAnimator.setupSquishAnimation(holder.ivLike);
         holder.ivLike.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onLikeClicked(post, position);
+            int currentPos = holder.getBindingAdapterPosition();
+            if (listener != null && currentPos != androidx.recyclerview.widget.RecyclerView.NO_POSITION) {
+                listener.onLikeClicked(getItem(currentPos), currentPos);
             }
         });
 
         View.OnClickListener commentClickListener = v -> {
-            if (listener != null) {
-                listener.onCommentClicked(post);
+            int currentPos = holder.getBindingAdapterPosition();
+            if (listener != null && currentPos != androidx.recyclerview.widget.RecyclerView.NO_POSITION) {
+                listener.onCommentClicked(getItem(currentPos));
             }
         };
         InteractionAnimator.setupSquishAnimation(holder.ivComment);
@@ -112,24 +116,36 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
 
         InteractionAnimator.setupSquishAnimation(holder.ivShare);
         holder.ivShare.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onShareClicked(post);
+            int currentPos = holder.getBindingAdapterPosition();
+            if (listener != null && currentPos != androidx.recyclerview.widget.RecyclerView.NO_POSITION) {
+                listener.onShareClicked(getItem(currentPos));
             }
         });
 
         holder.ivMore.setOnClickListener(v -> {
-            PopupMenu popup = new PopupMenu(v.getContext(), v);
-            popup.getMenuInflater().inflate(R.menu.menu_post_more, popup.getMenu());
-            popup.setOnMenuItemClickListener(item -> {
-                if (item.getItemId() == R.id.action_report) {
-                    if (listener != null) {
-                        listener.onReportClicked(post);
+            int currentPos = holder.getBindingAdapterPosition();
+            if (currentPos != androidx.recyclerview.widget.RecyclerView.NO_POSITION) {
+                Post currentPost = getItem(currentPos);
+                PopupMenu popup = new PopupMenu(v.getContext(), v);
+                popup.getMenuInflater().inflate(R.menu.menu_post_more, popup.getMenu());
+                popup.setOnMenuItemClickListener(item -> {
+                    if (item.getItemId() == R.id.action_report) {
+                        if (listener != null) {
+                            listener.onReportClicked(currentPost);
+                        }
+                        return true;
                     }
-                    return true;
-                }
-                return false;
-            });
-            popup.show();
+                    return false;
+                });
+                popup.show();
+            }
+        });
+
+        holder.itemView.setOnClickListener(v -> {
+            int currentPos = holder.getBindingAdapterPosition();
+            if (listener != null && currentPos != androidx.recyclerview.widget.RecyclerView.NO_POSITION) {
+                listener.onPostClicked(getItem(currentPos));
+            }
         });
     }
 
@@ -178,7 +194,7 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
             ivComment = itemView.findViewById(R.id.iv_comment);
             ivShare = itemView.findViewById(R.id.iv_share);
             ivMore = itemView.findViewById(R.id.iv_more);
-            
+
             // Setup PagerSnapHelper for rvMedia
             new androidx.recyclerview.widget.PagerSnapHelper().attachToRecyclerView(rvMedia);
         }

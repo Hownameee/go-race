@@ -124,4 +124,9 @@ public class AuthRepositoryImpl implements AuthRepository {
     public LiveData<Result<Boolean>>  registerDeviceToken(String token) {
         return authNetworkDataSource.registerDeviceToken(token);
     }
+
+    @Override
+    public LiveData<Result<Boolean>>  unregisterDeviceToken(String token) {
+        return authNetworkDataSource.unregisterDeviceToken(token);
+    }
 }

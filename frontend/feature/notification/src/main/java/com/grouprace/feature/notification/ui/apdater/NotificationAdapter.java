@@ -1,15 +1,18 @@
 package com.grouprace.feature.notification.ui.apdater;
 
-import android.graphics.Color;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.grouprace.core.model.NotificationModel;
 import com.grouprace.feature.notification.R;
 
@@ -24,10 +27,14 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     private List<NotificationModel> items = new ArrayList<>();
     private Integer latestNotificationId = null;
 
+    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+
     private OnNotificationClickListener clickListener;
+
     public interface OnNotificationClickListener {
         void onNotificationClick(NotificationModel notification);
     }
+
     public void setOnNotificationClickListener(OnNotificationClickListener listener) {
         this.clickListener = listener;
     }
@@ -54,8 +61,24 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         holder.tvTitle.setText(item.getTitle());
         holder.tvMessage.setText(item.getMessage());
 
+        // --- BẮT ĐẦU: Xử lý load Avatar từ URL ---
+        String avatarUrl = item.getAvtUrl(); // Giả định model có hàm getAvatarUrl()
+
+        if (avatarUrl != null && !avatarUrl.isEmpty()) {
+            Glide.with(holder.itemView.getContext())
+                    .load(avatarUrl)
+                    .placeholder(com.grouprace.core.system.R.drawable.bg_avatar_placeholder) // Ảnh hiển thị trong lúc chờ tải
+                    .error(com.grouprace.core.system.R.drawable.bg_avatar_placeholder)       // Ảnh hiển thị nếu link lỗi
+                    .circleCrop()                                  // Bo tròn ảnh
+                    .into(holder.ivAvatar);
+        } else {
+            // Nếu không có URL, set về ảnh mặc định
+            holder.ivAvatar.setImageResource(com.grouprace.core.system.R.drawable.bg_avatar_placeholder);
+        }
+        // --- KẾT THÚC: Xử lý load Avatar ---
+
+        // Xử lý thời gian
         String createdAtStr = item.getCreatedAt();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
         try {
             long timeMillis = sdf.parse(createdAtStr).getTime();
             CharSequence timeAgo = DateUtils.getRelativeTimeSpanString(
@@ -67,12 +90,11 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             holder.tvTime.setText(createdAtStr);
         }
 
-        if (item.isRead() == false) {
-            holder.viewDot.setVisibility(View.VISIBLE);    // hiện dot nếu chưa đọc
-            holder.tvTitle.setTextColor(holder.itemView.getContext().getColor(com.grouprace.core.system.R.color.text_primary)); // màu chữ nổi bật
+        // Logic thay đổi màu nền dựa trên trạng thái đã đọc
+        if (!item.isRead()) {
+            holder.rootLayout.setBackgroundColor(ContextCompat.getColor(holder.itemView.getContext(), com.grouprace.core.system.R.color.surface_medium));
         } else {
-            holder.viewDot.setVisibility(View.GONE);  // ẩn dot nếu đã đọc
-            holder.tvTitle.setTextColor(holder.itemView.getContext().getColor(com.grouprace.core.system.R.color.text_secondary)); // màu chữ mờ hơn
+            holder.rootLayout.setBackgroundColor(ContextCompat.getColor(holder.itemView.getContext(), android.R.color.black));
         }
 
         holder.itemView.setOnClickListener(v -> {
@@ -89,14 +111,18 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvTitle, tvMessage, tvTime;
-        View viewDot;
+        LinearLayout rootLayout;
+        ImageView ivAvatar; // Khai báo ImageView
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvTitle = itemView.findViewById(R.id.tv_title);
             tvMessage = itemView.findViewById(R.id.tv_message);
             tvTime = itemView.findViewById(R.id.tv_time);
-            viewDot = itemView.findViewById(R.id.view_dot);
+            rootLayout = itemView.findViewById(R.id.ll_root);
+
+            // Ánh xạ id từ file XML
+            ivAvatar = itemView.findViewById(R.id.iv_avatar);
         }
     }
 }

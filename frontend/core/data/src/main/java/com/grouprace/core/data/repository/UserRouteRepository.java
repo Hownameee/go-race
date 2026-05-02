@@ -22,6 +22,9 @@ public interface UserRouteRepository {
     /** Delete a route and its waypoints. */
     LiveData<Result<Void>> deleteRoute(long id);
 
+    /** Update a route and its waypoints. */
+    LiveData<Result<Void>> updateRoute(UserRoute route);
+
     /** Call Mapbox API to generate route from waypoints. */
     LiveData<Result<PlannedRoute>> generateRouteFromWaypoints(
             List<double[]> waypoints, String mode, boolean isCycle, String accessToken);

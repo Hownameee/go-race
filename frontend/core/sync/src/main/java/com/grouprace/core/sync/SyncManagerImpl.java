@@ -40,7 +40,7 @@ public class SyncManagerImpl implements SyncManager {
                 .build();
 
         workManager.enqueueUniqueWork(
-                "global_sync_queue",
+                "record_sync_queue",
                 ExistingWorkPolicy.APPEND_OR_REPLACE,
                 request
         );
@@ -57,7 +57,7 @@ public class SyncManagerImpl implements SyncManager {
                 .build();
 
         workManager.enqueueUniqueWork(
-                "global_sync_queue",
+                "post_sync_queue",
                 ExistingWorkPolicy.APPEND_OR_REPLACE,
                 request
         );

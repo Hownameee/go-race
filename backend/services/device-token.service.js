@@ -17,10 +17,17 @@ const deviceTokenService = {
     const rows = await deviceTokenRepository.findAllTokens();
     return rows.map((item) => item.token).filter(Boolean);
   },
-  
+
   removeInvalidTokens: async function (invalidTokens) {
     if (!Array.isArray(invalidTokens) || invalidTokens.length === 0) return;
     await deviceTokenRepository.deleteByTokens(invalidTokens);
+  },
+
+  unregister: async function (userId, token) {
+    if (!userId || !token) {
+      throw new Error('userId and token are required');
+    }
+    await deviceTokenRepository.deleteByUserIdAndToken(userId, token);
   },
 };
 

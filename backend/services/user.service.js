@@ -30,7 +30,7 @@ const userService = {
   createGoogleUser: async function (userData) {
     return userRepo.createGoogleUser(userData);
   },
-  
+
   getAllUsers: async function (offset = 0, limit = 10) {
     const users = await userRepo.getAllUsers(offset, limit);
     return attachAvatarUrls(users);
@@ -64,7 +64,11 @@ const userService = {
 
   searchUsersByName: async function (currentUserId, searchQuery, limit) {
     const safeQuery = searchQuery || '';
-    const users = await userRepo.searchUsersByName(currentUserId, safeQuery, limit);
+    const users = await userRepo.searchUsersByName(
+      currentUserId,
+      safeQuery,
+      limit,
+    );
     return attachAvatarUrls(users);
   },
   updateUserById: async function (userId, updateData) {
@@ -82,11 +86,13 @@ const userService = {
     };
 
     if (updateData.password) {
-      dbUpdateData.hashed_password = await authService.hashPassword(updateData.password);
+      dbUpdateData.hashed_password = await authService.hashPassword(
+        updateData.password,
+      );
     }
 
     const filteredUpdateData = Object.fromEntries(
-      Object.entries(dbUpdateData).filter(([, value]) => value !== undefined)
+      Object.entries(dbUpdateData).filter(([, value]) => value !== undefined),
     );
 
     return await userRepo.updateUserById(userId, filteredUpdateData);
@@ -98,7 +104,11 @@ const userService = {
       throw new Error('User not found');
     }
 
-    const otpCode = otpService.createOtp(userId, 'change-email-verify-current', user.email);
+    const otpCode = otpService.createOtp(
+      userId,
+      'change-email-verify-current',
+      user.email,
+    );
     await mailService.sendEmail(
       user.email,
       'GoRace email change OTP',
@@ -146,7 +156,11 @@ const userService = {
       throw new Error('Email already exists');
     }
 
-    const otpCode = otpService.createOtp(userId, 'change-email-verify-new', newEmail);
+    const otpCode = otpService.createOtp(
+      userId,
+      'change-email-verify-new',
+      newEmail,
+    );
     await mailService.sendEmail(
       newEmail,
       'GoRace new email verification OTP',
@@ -173,7 +187,10 @@ const userService = {
       throw new Error('Email change verification required');
     }
 
-    if (!authorization.pendingNewEmail || authorization.pendingNewEmail !== newEmail) {
+    if (
+      !authorization.pendingNewEmail ||
+      authorization.pendingNewEmail !== newEmail
+    ) {
       throw new Error('New email verification required');
     }
 
@@ -196,11 +213,17 @@ const userService = {
     return await userRepo.updateUserById(userId, { email: newEmail });
   },
 
-  changePasswordWithCurrentPassword: async function (userId, currentPassword, newPassword) {
+  changePasswordWithCurrentPassword: async function (
+    userId,
+    currentPassword,
+    newPassword,
+  ) {
     await userService.verifyCurrentPassword(userId, currentPassword);
 
     const hashedPassword = await authService.hashPassword(newPassword);
-    return await userRepo.updateUserById(userId, { hashed_password: hashedPassword });
+    return await userRepo.updateUserById(userId, {
+      hashed_password: hashedPassword,
+    });
   },
 
   verifyCurrentPassword: async function (userId, currentPassword) {
@@ -209,7 +232,10 @@ const userService = {
       throw new Error('User not found');
     }
 
-    const isMatch = await authService.comparePassword(currentPassword, user.hashed_password);
+    const isMatch = await authService.comparePassword(
+      currentPassword,
+      user.hashed_password,
+    );
     if (!isMatch) {
       throw new Error('Current password is incorrect');
     }
@@ -237,13 +263,20 @@ const userService = {
       throw new Error('User not found');
     }
 
-    const isValid = otpService.verifyOtp(userId, 'reset-password', otpCode, user.email);
+    const isValid = otpService.verifyOtp(
+      userId,
+      'reset-password',
+      otpCode,
+      user.email,
+    );
     if (!isValid) {
       throw new Error('Invalid or expired OTP');
     }
 
     const hashedPassword = await authService.hashPassword(newPassword);
-    return await userRepo.updateUserById(userId, { hashed_password: hashedPassword });
+    return await userRepo.updateUserById(userId, {
+      hashed_password: hashedPassword,
+    });
   },
 
   deleteMyAccount: async function (userId) {

@@ -4,7 +4,10 @@ const postController = {
   async createPost(req, res, next) {
     try {
       const userId = req.user.userId;
+      const fullname = req.user.fullname;
       const newPost = await postService.createPost({
+        owner_id: userId,
+        fullname: fullname,
         ...req.body,
         owner_id: userId,
       }, req.files);
@@ -20,8 +23,9 @@ const postController = {
 
   async getFeed(req, res, next) {
     try {
+      const userId = req.user.userId;
       const { cursor, limit } = req.query;
-      const result = await postService.getFeed(cursor, limit);
+      const result = await postService.getFeed(userId, cursor, limit);
       return res.ok(result, 'Feed retrieved successfully.');
     } catch (error) {
       if (error.status === 409) {
@@ -66,7 +70,8 @@ const postController = {
     try {
       const postId = parseInt(req.params.postId);
       const userId = req.user.userId;
-      const result = await postService.likePost(postId, userId);
+      const fullname = req.user.fullname;
+      const result = await postService.likePost(postId, userId, fullname);
       return res.created(result, 'Post liked successfully.');
     } catch (error) {
       if (error.status === 409) {
@@ -96,8 +101,15 @@ const postController = {
     try {
       const postId = parseInt(req.params.postId);
       const userId = req.user.userId;
+      const fullname = req.user.fullname;
       const { content, parentId } = req.body;
-      const comment = await postService.createComment(postId, userId, content, parentId);
+      const comment = await postService.createComment(
+        postId,
+        userId,
+        content,
+        parentId,
+        fullname,
+      );
       return res.created(comment, 'Comment created successfully.');
     } catch (error) {
       if (error.status === 409) {
@@ -113,7 +125,12 @@ const postController = {
       const postId = parseInt(req.params.postId);
       const userId = req.user.userId;
       const { cursor, limit } = req.query;
-      const result = await postService.getComments(postId, userId, cursor, limit);
+      const result = await postService.getComments(
+        postId,
+        userId,
+        cursor,
+        limit,
+      );
       return res.ok(result, 'Comments retrieved successfully.');
     } catch (error) {
       if (error.status === 409) {
@@ -144,7 +161,8 @@ const postController = {
     try {
       const commentId = parseInt(req.params.commentId);
       const userId = req.user.userId;
-      const result = await postService.likeComment(commentId, userId);
+      const fullname = req.user.fullname;
+      const result = await postService.likeComment(commentId, userId, fullname);
       return res.created(result, 'Comment liked successfully.');
     } catch (error) {
       if (error.status === 409) {
@@ -175,7 +193,12 @@ const postController = {
       const commentId = parseInt(req.params.commentId);
       const userId = req.user.userId;
       const { cursor, limit } = req.query;
-      const result = await postService.getReplies(commentId, userId, cursor, limit);
+      const result = await postService.getReplies(
+        commentId,
+        userId,
+        cursor,
+        limit,
+      );
       return res.ok(result, 'Replies retrieved successfully.');
     } catch (error) {
       if (error.status === 409) {

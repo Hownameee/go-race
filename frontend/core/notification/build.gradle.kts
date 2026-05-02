@@ -40,4 +40,7 @@ dependencies {
 
     implementation(project(":core:model"))
     implementation(project(":core:system"))
+    implementation(project(":core:navigation"))
+
+    implementation("com.github.bumptech.glide:glide:4.16.0")
 }

@@ -207,14 +207,18 @@ const recordService = {
         formatDate(now),
       ),
     );
-    const allTime = normalizeAggregate(recordRepo.getAggregateStats(userId, activityType, null, null));
+    const allTime = normalizeAggregate(
+      recordRepo.getAggregateStats(userId, activityType, null, null),
+    );
 
     return {
       activity_type: activityType,
       weekly_average: {
         total_activities: roundTo(weeklyTotals.total_activities / 12, 1),
         total_distance_km: roundTo(weeklyTotals.total_distance_km / 12, 2),
-        total_duration_seconds: Math.round(weeklyTotals.total_duration_seconds / 12),
+        total_duration_seconds: Math.round(
+          weeklyTotals.total_duration_seconds / 12,
+        ),
       },
       year_to_date: yearToDate,
       all_time: {

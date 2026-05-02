@@ -62,7 +62,6 @@ public class CreateEventFragment extends Fragment {
         TextInputEditText etTitle = view.findViewById(R.id.et_event_title);
         TextInputEditText etDesc = view.findViewById(R.id.et_event_desc);
         TextInputEditText etTargetDist = view.findViewById(R.id.et_target_distance);
-        TextInputEditText etTargetDur = view.findViewById(R.id.et_target_duration);
         TextInputEditText etStartDate = view.findViewById(R.id.et_start_date);
         TextInputEditText etEndDate = view.findViewById(R.id.et_end_date);
         Button btnCreate = view.findViewById(R.id.btn_create_event);
@@ -79,7 +78,6 @@ public class CreateEventFragment extends Fragment {
             String title = etTitle.getText().toString().trim();
             String desc = etDesc.getText().toString().trim();
             String targetDistStr = etTargetDist.getText().toString().trim();
-            String targetDurStr = etTargetDur.getText().toString().trim();
             String startDate = (String) etStartDate.getTag();
             String endDate = (String) etEndDate.getTag();
 
@@ -105,27 +103,15 @@ public class CreateEventFragment extends Fragment {
                 return;
             }
 
-            int targetDurSeconds = 0;
-            if (TextUtils.isEmpty(targetDurStr)) {
-                Toast.makeText(getContext(), "Target duration is required", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            try {
-                targetDurSeconds = Integer.parseInt(targetDurStr) * 60;
-            } catch (NumberFormatException e) {
-                Toast.makeText(getContext(), "Invalid target duration", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            if (targetDist <= 0 || targetDurSeconds <= 0) {
-                Toast.makeText(getContext(), "Target values must be greater than 0", Toast.LENGTH_SHORT).show();
+            if (targetDist <= 0) {
+                Toast.makeText(getContext(), "Target distance must be greater than 0", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             pbCreate.setVisibility(View.VISIBLE);
             btnCreate.setEnabled(false);
 
-            viewModel.createEvent(clubId, title, desc, targetDist, targetDurSeconds, startDate, endDate).observe(getViewLifecycleOwner(), result -> {
+            viewModel.createEvent(clubId, title, desc, targetDist, startDate, endDate).observe(getViewLifecycleOwner(), result -> {
                 pbCreate.setVisibility(View.GONE);
                 btnCreate.setEnabled(true);
                 

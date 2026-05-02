@@ -232,6 +232,7 @@ public class OverviewFragment extends Fragment {
 
         if (isLeader) {
             options.add("admin".equalsIgnoreCase(targetMember.getRole()) ? "Demote from Admin" : "Promote to Admin");
+            options.add("Transfer Leadership");
         }
 
         if (isLeader || (isAdmin && !"admin".equalsIgnoreCase(targetMember.getRole()))) {
@@ -250,12 +251,24 @@ public class OverviewFragment extends Fragment {
                     if (selected.contains("Admin")) {
                         String newRole = "admin".equalsIgnoreCase(targetMember.getRole()) ? "member" : "admin";
                         memberViewModel.updateMemberRole(targetMember.getUserId(), newRole);
+                    } else if (selected.equals("Transfer Leadership")) {
+                        showTransferLeadershipDialog(targetMember);
                     } else if (selected.equals("Kick Member")) {
                         memberViewModel.updateMemberStatus(targetMember.getUserId(), "left");
                     } else if (selected.equals("View Profile")) {
                         // TODO: Navigate to profile
                     }
                 })
+                .show();
+    }
+
+    private void showTransferLeadershipDialog(ClubMember member) {
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("Transfer Leadership")
+                .setMessage("Are you sure you want to transfer leadership to " + member.getFullname()
+                        + "? You will become a regular member.")
+                .setPositiveButton("Transfer", (d, w) -> memberViewModel.transferLeadership(member.getUserId()))
+                .setNegativeButton("Cancel", null)
                 .show();
     }
 

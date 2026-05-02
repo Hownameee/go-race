@@ -26,6 +26,10 @@ public class ProfileSettingsViewModel extends ViewModel {
         authRepository.logout();
     }
 
+    public LiveData<Result<Boolean>> unregisterDeviceToken(String token) {
+        return authRepository.unregisterDeviceToken(token);
+    }
+
     public LiveData<Result<Void>> deleteMyAccount() {
         return userRepository.deleteMyAccount();
     }

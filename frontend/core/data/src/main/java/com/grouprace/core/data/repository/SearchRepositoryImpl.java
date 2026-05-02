@@ -106,4 +106,14 @@ public class SearchRepositoryImpl implements SearchRepository {
             }
         });
     }
+
+    @Override
+    public LiveData<Result<String>> joinClub(int clubId) {
+        return searchNetworkDataSource.joinClub(clubId);
+    }
+
+    @Override
+    public LiveData<Result<String>> leaveClub(int clubId) {
+        return searchNetworkDataSource.leaveClub(clubId);
+    }
 }

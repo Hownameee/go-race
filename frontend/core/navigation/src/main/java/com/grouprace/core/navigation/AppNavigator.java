@@ -3,6 +3,8 @@ package com.grouprace.core.navigation;
 import androidx.fragment.app.Fragment;
 import com.grouprace.core.model.PlannedRoute;
 
+
+
 public interface AppNavigator {
     void navigateToNotification(Fragment currentFragment);
     void navigateToSearch(Fragment currentFragment);
@@ -22,7 +24,6 @@ public interface AppNavigator {
     void openProfileFollowList(Fragment currentFragment, int userId, String profileName, boolean isSelf, String initialTab);
     void openProfileStatistics(Fragment currentFragment, int userId, boolean isSelf);
     void openProfileAchievements(Fragment currentFragment, int userId, boolean isSelf);
-    void openUserProfile(Fragment currentFragment, int userId);
     void openLogin(Fragment currentFragment);
     void openRegister(Fragment currentFragment);
     void openRegister(Fragment currentFragment, String fullname, String email);
@@ -30,6 +31,9 @@ public interface AppNavigator {
     void navigateToVisualEditor(Fragment currentFragment, String photoUri, String title, String distance, String time, String speed);
     void openAddPost(Fragment currentFragment, boolean withActivity, Integer clubId);
     void setBottomNavigationVisibility(Fragment fragment, boolean visible);
+
+    void openCommentFragment(Fragment currentFragment, int postId);
+    void openUserProfile(Fragment currentFragment, int userId);
     void navigateToCreateClub(Fragment currentFragment);
     void navigateToClubs(Fragment currentFragment);
     void openCreateEvent(Fragment currentFragment, int clubId);
@@ -39,5 +43,6 @@ public interface AppNavigator {
     void openClubStats(Fragment currentFragment, int clubId);
     void openEditClub(Fragment currentFragment, int clubId);
     void openClubDetail(Fragment currentFragment, int clubId);
+    void openPostDetail(Fragment currentFragment, int postId);
     void navigateToRunWithRoute(Fragment currentFragment, PlannedRoute route);
 }

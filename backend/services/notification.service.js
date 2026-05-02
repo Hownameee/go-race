@@ -1,6 +1,7 @@
 import notificationRepository from '../repo/notification.repo.js';
 import deviceTokenService from './device-token.service.js';
 import { getFirebaseAdmin } from '../utils/firebase/admin.js';
+import userRepo from '../repo/user.repo.js';
 
 function buildPayload(data, fallbackUserId) {
   return {
@@ -45,6 +46,11 @@ const notificationService = {
     title,
     message,
   }) {
+    if (userId === actorId) return;
+    let user = null;
+    if (actorId !== null) {
+      user = userRepo.getUserById(userId);
+    }
     const id = await notificationRepository.create({
       user_id: userId,
       type,
@@ -60,14 +66,17 @@ const notificationService = {
       type,
       actor_id: actorId,
       activity_id: activityId,
+      actor_avatar_url: user ? user.actor_avatar_url : null,
       title,
       message,
     };
 
+    console.log(notification);
+
     if (type === 'system') {
       await this.sendPushAllUsers(notification);
     } else {
-      console.log("send firebase");
+      console.log('send firebase');
       await this.sendPushByUserId(userId, notification);
     }
 
@@ -80,6 +89,10 @@ const notificationService = {
 
   async markAsRead(id) {
     await notificationRepository.markAsRead(id);
+  },
+
+  async getUnreadCount(userId) {
+    return await notificationRepository.countUnreadByUserId(userId);
   },
 
   async sendPushByUserId(userId, data) {
@@ -96,15 +109,19 @@ const notificationService = {
       data: buildPayload(data, userId),
     };
 
-    console.log("vao");
+    console.log('vao');
 
     try {
       const resp = await admin.messaging().sendEachForMulticast(message);
 
-      console.log('[fcm] success:', resp.successCount, 'fail:', resp.failureCount);
+      console.log(
+        '[fcm] success:',
+        resp.successCount,
+        'fail:',
+        resp.failureCount,
+      );
 
       await handleInvalidTokens(resp.responses, tokens);
-
     } catch (e) {
       console.warn('[fcm] send failed:', e?.message || e);
     }

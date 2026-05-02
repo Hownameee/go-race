@@ -19,14 +19,105 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import com.grouprace.core.network.api.UserRouteApiService;
+import com.grouprace.core.network.model.route.NetworkUserRoute;
+import com.grouprace.core.network.utils.ApiResponse;
+
 public class UserRouteNetworkDataSource {
 
     private static final String TAG = "UserRouteNetworkDataSource";
     private final DirectionsApiService directionsApiService;
+    private final UserRouteApiService userRouteApiService;
 
     @Inject
-    public UserRouteNetworkDataSource(DirectionsApiService directionsApiService) {
+    public UserRouteNetworkDataSource(DirectionsApiService directionsApiService,
+                                   UserRouteApiService userRouteApiService) {
         this.directionsApiService = directionsApiService;
+        this.userRouteApiService = userRouteApiService;
+    }
+
+    public LiveData<Result<NetworkUserRoute>> saveRoute(java.util.Map<String, Object> body) {
+        MutableLiveData<Result<NetworkUserRoute>> result = new MutableLiveData<>();
+        result.postValue(new Result.Loading<>());
+        userRouteApiService.createRoute(body).enqueue(new Callback<ApiResponse<NetworkUserRoute>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<NetworkUserRoute>> call, Response<ApiResponse<NetworkUserRoute>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().getData() != null) {
+                    result.postValue(new Result.Success<>(response.body().getData()));
+                } else {
+                    result.postValue(new Result.Error<>(new Exception("Failed to save route on backend"), "Failed to save route on backend"));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<NetworkUserRoute>> call, Throwable t) {
+                result.postValue(new Result.Error<>(new Exception(t), t.getMessage()));
+            }
+        });
+        return result;
+    }
+
+    public LiveData<Result<List<NetworkUserRoute>>> getRoutes() {
+        MutableLiveData<Result<List<NetworkUserRoute>>> result = new MutableLiveData<>();
+        result.postValue(new Result.Loading<>());
+        userRouteApiService.getRoutes().enqueue(new Callback<ApiResponse<List<NetworkUserRoute>>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<List<NetworkUserRoute>>> call, Response<ApiResponse<List<NetworkUserRoute>>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().getData() != null) {
+                    result.postValue(new Result.Success<>(response.body().getData()));
+                } else {
+                    result.postValue(new Result.Error<>(new Exception("Failed to fetch routes"), "Failed to fetch routes"));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<List<NetworkUserRoute>>> call, Throwable t) {
+                result.postValue(new Result.Error<>(new Exception(t), t.getMessage()));
+            }
+        });
+        return result;
+    }
+
+    public LiveData<Result<Void>> deleteRoute(long routeId) {
+        MutableLiveData<Result<Void>> result = new MutableLiveData<>();
+        result.postValue(new Result.Loading<>());
+        userRouteApiService.deleteRoute(routeId).enqueue(new Callback<ApiResponse<Void>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
+                if (response.isSuccessful()) {
+                    result.postValue(new Result.Success<>(null));
+                } else {
+                    result.postValue(new Result.Error<>(new Exception("Failed to delete route"), "Failed to delete route"));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
+                result.postValue(new Result.Error<>(new Exception(t), t.getMessage()));
+            }
+        });
+        return result;
+    }
+
+    public LiveData<Result<Void>> updateRoute(long routeId, java.util.Map<String, Object> body) {
+        MutableLiveData<Result<Void>> result = new MutableLiveData<>();
+        result.postValue(new Result.Loading<>());
+        userRouteApiService.updateRoute(routeId, body).enqueue(new Callback<ApiResponse<Void>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
+                if (response.isSuccessful()) {
+                    result.postValue(new Result.Success<>(null));
+                } else {
+                    result.postValue(new Result.Error<>(new Exception("Failed to update route"), "Failed to update route"));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
+                result.postValue(new Result.Error<>(new Exception(t), t.getMessage()));
+            }
+        });
+        return result;
     }
 
     public LiveData<Result<PlannedRoute>> generateRouteFromWaypoints(

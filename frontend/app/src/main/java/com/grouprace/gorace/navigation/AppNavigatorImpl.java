@@ -5,6 +5,8 @@ import android.view.ViewGroup;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import com.grouprace.feature.posts.ui.CommentFragment;
+import com.grouprace.feature.profile.ui.main.ProfileFragment;
 import com.grouprace.feature.club.ui.ClubsFragment;
 import com.grouprace.gorace.R;
 import com.grouprace.core.navigation.AppNavigator;
@@ -38,6 +40,7 @@ import com.grouprace.feature.club.ui.detail.tabs.ClubStatisticsFragment;
 import com.grouprace.feature.club.ui.detail.tabs.EditClubFragment;
 import com.grouprace.core.model.PlannedRoute;
 import com.grouprace.feature.club.ui.detail.ClubDetailFragment;
+import com.grouprace.feature.posts.ui.PostDetailFragment;
 import com.grouprace.feature.tracking.ui.TrackingFragment;
 
 import javax.inject.Inject;
@@ -234,6 +237,11 @@ public class AppNavigatorImpl implements AppNavigator {
     }
 
     @Override
+    public void openPostDetail(Fragment currentFragment, int postId) {
+        navigateTo(currentFragment, PostDetailFragment.newInstance(postId));
+    }
+
+    @Override
     public void navigateToRunWithRoute(Fragment currentFragment, PlannedRoute route) {
         navigateTo(currentFragment, TrackingFragment.newInstance(route));
     }
@@ -260,4 +268,17 @@ public class AppNavigatorImpl implements AppNavigator {
                     .commit();
         }
     }
+
+    @Override
+    public void openCommentFragment(Fragment currentFragment, int postId) {
+        CommentFragment fragment = CommentFragment.newInstance(postId);
+        navigateTo(currentFragment, fragment);
+    }
+
+//    @Override
+//    public void openUserProfile(Fragment currentFragment, int userId) {
+//        ProfileFragment fragment = ProfileFragment.newInstance(userId);
+//        navigateTo(currentFragment, fragment);
+//    }
+
 }

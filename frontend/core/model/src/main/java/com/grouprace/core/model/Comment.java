@@ -13,6 +13,7 @@ public class Comment {
     private int replyCount;
     private boolean isLiked;
     private Integer parentId;
+    private boolean isRepliesExpanded;
 
     public Comment() {}
 
@@ -66,4 +67,7 @@ public class Comment {
 
     public Integer getParentId() { return parentId; }
     public void setParentId(Integer parentId) { this.parentId = parentId; }
+
+    public boolean isRepliesExpanded() { return isRepliesExpanded; }
+    public void setRepliesExpanded(boolean expanded) { isRepliesExpanded = expanded; }
 }

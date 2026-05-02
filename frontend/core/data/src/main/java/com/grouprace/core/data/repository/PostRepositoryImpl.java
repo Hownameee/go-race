@@ -3,6 +3,7 @@ package com.grouprace.core.data.repository;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
+import androidx.lifecycle.MediatorLiveData;
 
 import com.grouprace.core.model.Post;
 import com.grouprace.core.model.Comment;
@@ -27,6 +28,7 @@ public class PostRepositoryImpl implements PostRepository {
     private final PostDao postDao;
     private final SyncManager syncManager;
     private final com.grouprace.core.network.utils.SessionManager sessionManager;
+    private final java.util.concurrent.ExecutorService executorService = java.util.concurrent.Executors.newSingleThreadExecutor();
 
     @Inject
     public PostRepositoryImpl(PostNetworkDataSource postNetworkDataSource, PostDao postDao, SyncManager syncManager, com.grouprace.core.network.utils.SessionManager sessionManager) {
@@ -38,36 +40,64 @@ public class PostRepositoryImpl implements PostRepository {
 
     @Override
     public LiveData<List<Post>> getPosts() {
-        return Transformations.map(postDao.getAllPosts(), entities -> 
-            entities.stream()
-                .map(PostEntity::asExternalModel)
-                .collect(Collectors.toList())
-        );
+        MediatorLiveData<List<Post>> result = new MediatorLiveData<>();
+        result.addSource(postDao.getAllPosts(), entities -> {
+            executorService.execute(() -> {
+                List<Post> posts = entities.stream()
+                    .map(PostEntity::asExternalModel)
+                    .collect(Collectors.toList());
+                result.postValue(posts);
+            });
+        });
+        return result;
     }
 
     @Override
     public LiveData<List<Post>> getPostsByClubId(int clubId) {
-        return Transformations.map(postDao.getAllPostsByClubId(clubId), entities ->
-                entities.stream()
-                        .map(PostEntity::asExternalModel)
-                        .collect(Collectors.toList())
-        );
+        MediatorLiveData<List<Post>> result = new MediatorLiveData<>();
+        result.addSource(postDao.getAllPostsByClubId(clubId), entities -> {
+            executorService.execute(() -> {
+                List<Post> posts = entities.stream()
+                    .map(PostEntity::asExternalModel)
+                    .collect(Collectors.toList());
+                result.postValue(posts);
+            });
+        });
+        return result;
+    }
+
+    @Override
+    public LiveData<Post> getPostById(int postId) {
+        MediatorLiveData<Post> result = new MediatorLiveData<>();
+        result.addSource(postDao.getPostById(postId), entity -> {
+            executorService.execute(() -> {
+                Post post = entity != null ? entity.asExternalModel() : null;
+                result.postValue(post);
+            });
+        });
+        return result;
     }
 
     @Override
     public LiveData<Result<List<Post>>> getMyPosts(String cursor, int limit) {
-        return Transformations.map(postNetworkDataSource.getMyPosts(cursor, limit), result -> {
-            if (result instanceof Result.Success) {
-                List<Post> posts = ((Result.Success<List<NetworkPost>>) result).data.stream()
-                        .map(NetworkPost::asExternalModel)
-                        .collect(Collectors.toList());
-                return new Result.Success<>(posts);
-            } else if (result instanceof Result.Error) {
-                Result.Error<List<NetworkPost>> error = (Result.Error<List<NetworkPost>>) result;
-                return new Result.Error<>(error.exception, error.message);
+        LiveData<Result<List<NetworkPost>>> networkCall = postNetworkDataSource.getMyPosts(cursor, limit);
+        MediatorLiveData<Result<List<Post>>> result = new MediatorLiveData<>();
+        result.addSource(networkCall, r -> {
+            if (r instanceof Result.Success) {
+                executorService.execute(() -> {
+                    List<Post> posts = ((Result.Success<List<NetworkPost>>) r).data.stream()
+                            .map(NetworkPost::asExternalModel)
+                            .collect(Collectors.toList());
+                    result.postValue(new Result.Success<>(posts));
+                });
+            } else if (r instanceof Result.Error) {
+                Result.Error<List<NetworkPost>> error = (Result.Error<List<NetworkPost>>) r;
+                result.postValue(new Result.Error<>(error.exception, error.message));
+            } else {
+                result.postValue(new Result.Loading<>());
             }
-            return new Result.Loading<>();
         });
+        return result;
     }
 
     @Override
@@ -81,33 +111,32 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     private LiveData<Result<Boolean>> syncInternal(LiveData<Result<List<NetworkPost>>> networkCall) {
-        MutableLiveData<Result<Boolean>> resultData = new MutableLiveData<>();
+        MediatorLiveData<Result<Boolean>> resultData = new MediatorLiveData<>();
         resultData.postValue(new Result.Loading<>());
         
-        networkCall.observeForever(result -> {
+        resultData.addSource(networkCall, result -> {
             if (result instanceof Result.Success) {
-                List<NetworkPost> networkPosts = ((Result.Success<List<NetworkPost>>) result).data;
-                
-                List<PostEntity> entities = networkPosts.stream()
-                    .map(np -> {
-                        Post p = np.asExternalModel();
-                        return new PostEntity(
-                            p.getPostId(), p.getRecordId(), p.getOwnerId(), p.getTitle(),
-                            p.getDescription(), p.getPhotoUrls(), p.getLikeCount(),
-                            p.getCommentCount(), p.getViewMode(), p.getCreatedAt(),
-                            p.getUsername(), p.getFullName(), p.getProfilePictureUrl(),
-                            p.getActivityType(), p.getDurationSeconds(), p.getDistanceKm(),
-                            p.getSpeed(), p.getRecordImageUrl(), p.isLiked(), p.getClubId(),
-                            false // pendingSync = false
-                        );
-                    })
-                    .collect(Collectors.toList());
+                executorService.execute(() -> {
+                    List<NetworkPost> networkPosts = ((Result.Success<List<NetworkPost>>) result).data;
+                    
+                    List<PostEntity> entities = networkPosts.stream()
+                        .map(np -> {
+                            Post p = np.asExternalModel();
+                            return new PostEntity(
+                                p.getPostId(), p.getRecordId(), p.getOwnerId(), p.getTitle(),
+                                p.getDescription(), p.getPhotoUrls(), p.getLikeCount(),
+                                p.getCommentCount(), p.getViewMode(), p.getCreatedAt(),
+                                p.getUsername(), p.getFullName(), p.getProfilePictureUrl(),
+                                p.getActivityType(), p.getDurationSeconds(), p.getDistanceKm(),
+                                p.getSpeed(), p.getRecordImageUrl(), p.isLiked(), p.getClubId(),
+                                false // pendingSync = false
+                            );
+                        })
+                        .collect(Collectors.toList());
 
-                new Thread(() -> {
                     postDao.upsertAll(entities);
                     resultData.postValue(new Result.Success<>(true));
-                }).start();
-
+                });
             } else if (result instanceof Result.Error) {
                 Result.Error<?> error = (Result.Error<?>) result;
                 resultData.postValue(new Result.Error<>(error.exception, error.message));
@@ -119,40 +148,79 @@ public class PostRepositoryImpl implements PostRepository {
 
     @Override
     public LiveData<Result<Boolean>> likePost(int postId) {
-        return postNetworkDataSource.likePost(postId);
+        executorService.execute(() -> postDao.updateLikeStatus(postId, true, 1));
+        LiveData<Result<Boolean>> networkCall = postNetworkDataSource.likePost(postId);
+        MediatorLiveData<Result<Boolean>> result = new MediatorLiveData<>();
+        result.addSource(networkCall, r -> {
+            result.setValue(r);
+            if (r instanceof Result.Error) {
+                executorService.execute(() -> postDao.updateLikeStatus(postId, false, -1));
+            }
+        });
+        return result;
     }
 
     @Override
     public LiveData<Result<Boolean>> unlikePost(int postId) {
-        return postNetworkDataSource.unlikePost(postId);
+        executorService.execute(() -> postDao.updateLikeStatus(postId, false, -1));
+        LiveData<Result<Boolean>> networkCall = postNetworkDataSource.unlikePost(postId);
+        MediatorLiveData<Result<Boolean>> result = new MediatorLiveData<>();
+        result.addSource(networkCall, r -> {
+            result.setValue(r);
+            if (r instanceof Result.Error) {
+                executorService.execute(() -> postDao.updateLikeStatus(postId, true, 1));
+            }
+        });
+        return result;
     }
 
     @Override
     public LiveData<Result<List<Comment>>> getComments(int postId, String cursor, int limit) {
-        return Transformations.map(postNetworkDataSource.getComments(postId, cursor, limit), result -> {
+        LiveData<Result<CommentPayload>> networkCall = postNetworkDataSource.getComments(postId, cursor, limit);
+        MediatorLiveData<Result<List<Comment>>> resultData = new MediatorLiveData<>();
+        resultData.addSource(networkCall, result -> {
             if (result instanceof Result.Success) {
-                CommentPayload payload = ((Result.Success<CommentPayload>) result).data;
-                List<Comment> comments = payload.getComments().stream()
-                        .map(NetworkComment::asExternalModel)
-                        .collect(Collectors.toList());
-                return new Result.Success<>(comments);
+                executorService.execute(() -> {
+                    CommentPayload payload = ((Result.Success<CommentPayload>) result).data;
+                    List<Comment> comments = payload.getComments().stream()
+                            .map(NetworkComment::asExternalModel)
+                            .collect(Collectors.toList());
+                    resultData.postValue(new Result.Success<>(comments));
+                });
             } else if (result instanceof Result.Error) {
                 Result.Error<CommentPayload> error = (Result.Error<CommentPayload>) result;
-                return new Result.Error<>(error.exception, error.message);
+                resultData.postValue(new Result.Error<>(error.exception, error.message));
             } else {
-                return new Result.Loading<>();
+                resultData.postValue(new Result.Loading<>());
             }
         });
+        return resultData;
     }
 
     @Override
     public LiveData<Result<Boolean>> createComment(int postId, String content, Integer parentId) {
-        return postNetworkDataSource.createComment(postId, content, parentId);
+        LiveData<Result<Boolean>> networkCall = postNetworkDataSource.createComment(postId, content, parentId);
+        MediatorLiveData<Result<Boolean>> result = new MediatorLiveData<>();
+        result.addSource(networkCall, r -> {
+            result.setValue(r);
+            if (r instanceof Result.Success) {
+                executorService.execute(() -> postDao.updateCommentCount(postId, 1));
+            }
+        });
+        return result;
     }
 
     @Override
     public LiveData<Result<Boolean>> deleteComment(int postId, int commentId) {
-        return postNetworkDataSource.deleteComment(postId, commentId);
+        LiveData<Result<Boolean>> networkCall = postNetworkDataSource.deleteComment(postId, commentId);
+        MediatorLiveData<Result<Boolean>> result = new MediatorLiveData<>();
+        result.addSource(networkCall, r -> {
+            result.setValue(r);
+            if (r instanceof Result.Success) {
+                executorService.execute(() -> postDao.updateCommentCount(postId, -1));
+            }
+        });
+        return result;
     }
 
     @Override
@@ -167,20 +235,25 @@ public class PostRepositoryImpl implements PostRepository {
 
     @Override
     public LiveData<Result<List<Comment>>> getReplies(int postId, int commentId, String cursor, int limit) {
-        return Transformations.map(postNetworkDataSource.getReplies(postId, commentId, cursor, limit), result -> {
+        LiveData<Result<CommentPayload>> networkCall = postNetworkDataSource.getReplies(postId, commentId, cursor, limit);
+        MediatorLiveData<Result<List<Comment>>> resultData = new MediatorLiveData<>();
+        resultData.addSource(networkCall, result -> {
             if (result instanceof Result.Success) {
-                CommentPayload payload = ((Result.Success<CommentPayload>) result).data;
-                List<Comment> comments = payload.getComments().stream()
-                        .map(NetworkComment::asExternalModel)
-                        .collect(Collectors.toList());
-                return new Result.Success<>(comments);
+                executorService.execute(() -> {
+                    CommentPayload payload = ((Result.Success<CommentPayload>) result).data;
+                    List<Comment> comments = payload.getComments().stream()
+                            .map(NetworkComment::asExternalModel)
+                            .collect(Collectors.toList());
+                    resultData.postValue(new Result.Success<>(comments));
+                });
             } else if (result instanceof Result.Error) {
                 Result.Error<CommentPayload> error = (Result.Error<CommentPayload>) result;
-                return new Result.Error<>(error.exception, error.message);
+                resultData.postValue(new Result.Error<>(error.exception, error.message));
             } else {
-                return new Result.Loading<>();
+                resultData.postValue(new Result.Loading<>());
             }
         });
+        return resultData;
     }
 
     @Override
@@ -201,12 +274,17 @@ public class PostRepositoryImpl implements PostRepository {
                 true // pendingSync = true
         );
 
-        new Thread(() -> {
+        executorService.execute(() -> {
             postDao.upsert(offlineEntity);
             syncManager.schedulePostSync();
             resultData.postValue(new Result.Success<>(true));
-        }).start();
+        });
 
         return resultData;
+    }
+
+    @Override
+    public void deleteOldPosts() {
+        executorService.execute(() -> postDao.deleteOldPosts());
     }
 }

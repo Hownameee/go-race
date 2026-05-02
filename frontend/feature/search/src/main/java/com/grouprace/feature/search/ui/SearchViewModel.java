@@ -20,7 +20,14 @@ public class SearchViewModel extends ViewModel {
 
     private final MutableLiveData<SearchUiState> uiState = new MutableLiveData<>();
 
+    private List<UserSearchResult> suggestedUsersCache;
+    private List<UserSearchResult> suggestedClubsCache;
+
     private boolean isClubTab = false;
+    
+    public boolean isClubTab() {
+        return isClubTab;
+    }
 
     @Inject
     public SearchViewModel(SearchRepository repository) {
@@ -35,7 +42,15 @@ public class SearchViewModel extends ViewModel {
     // --- Tab ---
     public void switchTab(boolean isClub) {
         this.isClubTab = isClub;
-        loadSuggested();
+        
+        // Use cache if available to avoid unnecessary network calls and state loss
+        if (isClubTab && suggestedClubsCache != null) {
+            uiState.setValue(new SearchUiState(suggestedClubsCache, false, null, false));
+        } else if (!isClubTab && suggestedUsersCache != null) {
+            uiState.setValue(new SearchUiState(suggestedUsersCache, false, null, false));
+        } else {
+            loadSuggested();
+        }
     }
 
     // --- Suggested ---
@@ -48,21 +63,41 @@ public class SearchViewModel extends ViewModel {
 
         source.observeForever(result -> {
             if (result instanceof Result.Success) {
-                uiState.postValue(new SearchUiState(
-                        ((Result.Success<List<UserSearchResult>>) result).data,
-                        false,
-                        null,
-                        false
-                ));
+                List<UserSearchResult> data = ((Result.Success<List<UserSearchResult>>) result).data;
+                if (isClubTab) {
+                    suggestedClubsCache = data;
+                } else {
+                    suggestedUsersCache = data;
+                }
+                uiState.postValue(new SearchUiState(data, false, null, false));
             } else if (result instanceof Result.Error) {
-                uiState.postValue(new SearchUiState(
-                        null,
-                        false,
-                        ((Result.Error<?>) result).message,
-                        false
-                ));
+                uiState.postValue(new SearchUiState(null, false, ((Result.Error<?>) result).message, false));
             }
         });
+    }
+    
+    public void updateItemStatus(int id, int status) {
+        SearchUiState current = uiState.getValue();
+        if (current != null && current.data != null) {
+            for (UserSearchResult item : current.data) {
+                if (item.getUserId() == id) {
+                    item.setFollowStatus(status);
+                    break;
+                }
+            }
+            uiState.setValue(current);
+        }
+        
+        // Also update cache
+        List<UserSearchResult> cache = isClubTab ? suggestedClubsCache : suggestedUsersCache;
+        if (cache != null) {
+            for (UserSearchResult item : cache) {
+                if (item.getUserId() == id) {
+                    item.setFollowStatus(status);
+                    break;
+                }
+            }
+        }
     }
 
     // --- Search ---
@@ -104,5 +139,13 @@ public class SearchViewModel extends ViewModel {
 
     public LiveData<Result<Boolean>> unfollowUser(int id) {
         return repository.unfollowUser(id);
+    }
+
+    public LiveData<Result<String>> joinClub(int id) {
+        return repository.joinClub(id);
+    }
+
+    public LiveData<Result<String>> leaveClub(int id) {
+        return repository.leaveClub(id);
     }
 }

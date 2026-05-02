@@ -12,20 +12,16 @@ public class CreateClubEventRequest {
     @SerializedName("target_distance")
     private Double targetDistance;
 
-    @SerializedName("target_duration_seconds")
-    private Integer targetDurationSeconds;
-
     @SerializedName("start_time")
     private String startTime;
 
     @SerializedName("end_time")
     private String endTime;
 
-    public CreateClubEventRequest(String title, String description, Double targetDistance, Integer targetDurationSeconds, String startTime, String endTime) {
+    public CreateClubEventRequest(String title, String description, Double targetDistance, String startTime, String endTime) {
         this.title = title;
         this.description = description;
         this.targetDistance = targetDistance;
-        this.targetDurationSeconds = targetDurationSeconds;
         this.startTime = startTime;
         this.endTime = endTime;
     }

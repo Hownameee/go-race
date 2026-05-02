@@ -127,6 +127,13 @@ public class PostFragment extends Fragment {
             public void onReportClicked(Post post) {
                 Toast.makeText(requireContext(), "Post reported", Toast.LENGTH_SHORT).show();
             }
+
+            @Override
+            public void onPostClicked(Post post) {
+                if (appNavigator != null) {
+                    appNavigator.openPostDetail(PostFragment.this, post.getPostId());
+                }
+            }
         });
         rvPosts.setAdapter(postAdapter);
 
@@ -210,22 +217,22 @@ public class PostFragment extends Fragment {
         rvPosts.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-            super.onScrolled(recyclerView, dx, dy);
+                super.onScrolled(recyclerView, dx, dy);
 
-            if (dy > 0 && !isLoadingPage) {
-                int visibleItemCount = layoutManager.getChildCount();
-                int totalItemCount = layoutManager.getItemCount();
-                int pastVisibleItems = layoutManager.findFirstVisibleItemPosition();
+                if (dy > 0 && !isLoadingPage) {
+                    int visibleItemCount = layoutManager.getChildCount();
+                    int totalItemCount = layoutManager.getItemCount();
+                    int pastVisibleItems = layoutManager.findFirstVisibleItemPosition();
 
-                if ((visibleItemCount + pastVisibleItems) >= totalItemCount) {
-                    isLoadingPage = true;
+                    if ((visibleItemCount + pastVisibleItems) >= totalItemCount) {
+                        isLoadingPage = true;
 
-                    String cursor = postAdapter.getLastPostCreatedAt();
-                    if (cursor != null) {
-                        viewModel.fetchPosts(cursor);
+                        String cursor = postAdapter.getLastPostCreatedAt();
+                        if (cursor != null) {
+                            viewModel.fetchPosts(cursor);
+                        }
                     }
                 }
-            }
             }
         });
     }
@@ -299,12 +306,15 @@ public class PostFragment extends Fragment {
 
     private void collapseFab() {
         isFabExpanded = false;
-        fabOverlay.animate().alpha(0f).setDuration(200).withEndAction(() -> fabOverlay.setVisibility(View.GONE)).start();
+        fabOverlay.animate().alpha(0f).setDuration(200).withEndAction(() -> fabOverlay.setVisibility(View.GONE))
+                .start();
 
         fabMain.animate().rotation(0f).setDuration(200).start();
 
-        layoutFabPost.animate().alpha(0f).translationY(20f).setDuration(200).withEndAction(() -> layoutFabPost.setVisibility(View.GONE)).start();
-        layoutFabActivity.animate().alpha(0f).translationY(20f).setDuration(200).setStartDelay(50).withEndAction(() -> layoutFabActivity.setVisibility(View.GONE)).start();
+        layoutFabPost.animate().alpha(0f).translationY(20f).setDuration(200)
+                .withEndAction(() -> layoutFabPost.setVisibility(View.GONE)).start();
+        layoutFabActivity.animate().alpha(0f).translationY(20f).setDuration(200).setStartDelay(50)
+                .withEndAction(() -> layoutFabActivity.setVisibility(View.GONE)).start();
     }
 
     private void collapseFabImmediately() {
@@ -313,9 +323,12 @@ public class PostFragment extends Fragment {
             fabOverlay.setVisibility(View.GONE);
             fabOverlay.setAlpha(0f);
         }
-        if (fabMain != null) fabMain.setRotation(0f);
-        if (layoutFabPost != null) layoutFabPost.setVisibility(View.GONE);
-        if (layoutFabActivity != null) layoutFabActivity.setVisibility(View.GONE);
+        if (fabMain != null)
+            fabMain.setRotation(0f);
+        if (layoutFabPost != null)
+            layoutFabPost.setVisibility(View.GONE);
+        if (layoutFabActivity != null)
+            layoutFabActivity.setVisibility(View.GONE);
     }
 
     @Override
