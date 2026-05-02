@@ -16,6 +16,10 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
+import java.util.ArrayList;
 
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.Record;
@@ -24,6 +28,7 @@ import com.grouprace.core.system.ui.TopAppBarConfig;
 import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.feature.posts.R;
 import com.grouprace.feature.posts.ui.adapter.RecordSelectorAdapter;
+import com.grouprace.feature.posts.ui.adapter.SelectedPhotoAdapter;
 
 import javax.inject.Inject;
 
@@ -41,12 +46,23 @@ public class AddPostFragment extends Fragment {
     private View btnAddPhoto;
     private TextView tvRecordHeader;
     private RecyclerView rvRecords;
+    private RecyclerView rvSelectedPhotos;
     private ProgressBar loadingRecords;
     private RecordSelectorAdapter recordAdapter;
+    private SelectedPhotoAdapter photoAdapter;
 
     private boolean withActivity;
     private Integer selectedRecordId = null;
     private Integer clubId = null;
+
+    private final ActivityResultLauncher<PickVisualMediaRequest> pickMultipleMedia =
+            registerForActivityResult(new ActivityResultContracts.PickMultipleVisualMedia(10), uris -> {
+                if (!uris.isEmpty()) {
+                    for (android.net.Uri uri : uris) {
+                        viewModel.addPhoto(uri.toString());
+                    }
+                }
+            });
 
     @Inject
     AppNavigator appNavigator;
@@ -90,20 +106,35 @@ public class AddPostFragment extends Fragment {
 
         initViews(view);
         setupTopBar(view);
+        setupPhotosList();
         
         if (withActivity) {
             setupRecordsList();
         }
 
         btnAddPhoto.setOnClickListener(v -> 
-            Toast.makeText(getContext(), "Photo upload coming soon!", Toast.LENGTH_SHORT).show()
+            pickMultipleMedia.launch(new PickVisualMediaRequest.Builder()
+                .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                .build())
         );
+    }
+
+    private void setupPhotosList() {
+        photoAdapter = new SelectedPhotoAdapter(uri -> viewModel.removePhoto(uri));
+        rvSelectedPhotos.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        rvSelectedPhotos.setAdapter(photoAdapter);
+
+        viewModel.selectedPhotoUrls.observe(getViewLifecycleOwner(), uris -> {
+            photoAdapter.submitList(new ArrayList<>(uris));
+            rvSelectedPhotos.setVisibility(uris.isEmpty() ? View.GONE : View.VISIBLE);
+        });
     }
 
     private void initViews(View view) {
         etTitle = view.findViewById(R.id.et_title);
         etDescription = view.findViewById(R.id.et_description);
         btnAddPhoto = view.findViewById(R.id.btn_add_photo);
+        rvSelectedPhotos = view.findViewById(R.id.rv_selected_photos);
         tvRecordHeader = view.findViewById(R.id.tv_record_header);
         rvRecords = view.findViewById(R.id.rv_records);
         loadingRecords = view.findViewById(R.id.loading_records);

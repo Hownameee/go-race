@@ -35,8 +35,7 @@ public class RecordRepositoryImpl implements RecordRepository {
     public RecordRepositoryImpl(
             RecordDataSource recordDataSource,
             RecordNetworkDataSource recordNetworkDataSource,
-            RecordDao recordDao
-    ) {
+            RecordDao recordDao) {
         this.recordDataSource = recordDataSource;
         this.recordNetworkDataSource = recordNetworkDataSource;
         this.recordDao = recordDao;
@@ -44,19 +43,17 @@ public class RecordRepositoryImpl implements RecordRepository {
 
     @Override
     public LiveData<Result<WeeklyRecordSummary>> getMyWeeklySummary(String activityType, int weeks) {
-        LiveData<Result<RecordWeeklySummaryResponse>> networkResult =
-                recordDataSource.getMyWeeklySummary(activityType, weeks);
+        LiveData<Result<RecordWeeklySummaryResponse>> networkResult = recordDataSource.getMyWeeklySummary(activityType,
+                weeks);
 
         return Transformations.map(networkResult, result -> {
             if (result instanceof Result.Loading) {
                 return new Result.Loading<>();
             } else if (result instanceof Result.Success) {
-                RecordWeeklySummaryResponse response =
-                        ((Result.Success<RecordWeeklySummaryResponse>) result).data;
+                RecordWeeklySummaryResponse response = ((Result.Success<RecordWeeklySummaryResponse>) result).data;
                 return new Result.Success<>(mapToWeeklySummary(response));
             } else {
-                Result.Error<RecordWeeklySummaryResponse> error =
-                        (Result.Error<RecordWeeklySummaryResponse>) result;
+                Result.Error<RecordWeeklySummaryResponse> error = (Result.Error<RecordWeeklySummaryResponse>) result;
                 return new Result.Error<>(error.exception, error.message);
             }
         });
@@ -84,8 +81,8 @@ public class RecordRepositoryImpl implements RecordRepository {
                                     n.getCalories(),
                                     n.getHeartRate(),
                                     n.getSpeed(),
-                                    n.getImageUrl()
-                            ))
+                                    n.getImageUrl(),
+                                    false))
                             .collect(Collectors.toList());
 
                     new Thread(() -> recordDao.insertAll(entities)).start();
@@ -100,8 +97,7 @@ public class RecordRepositoryImpl implements RecordRepository {
                 recordDao.getRecords(limit),
                 entities -> entities.stream()
                         .map(RecordEntity::asExternalModel)
-                        .collect(Collectors.toList())
-        );
+                        .collect(Collectors.toList()));
     }
 
     @Override
@@ -129,8 +125,8 @@ public class RecordRepositoryImpl implements RecordRepository {
                                     n.getCalories(),
                                     n.getHeartRate(),
                                     n.getSpeed(),
-                                    n.getImageUrl()
-                            ))
+                                    n.getImageUrl(),
+                                    false))
                             .collect(Collectors.toList());
 
                     new Thread(() -> {
@@ -151,22 +147,21 @@ public class RecordRepositoryImpl implements RecordRepository {
 
     @Override
     public LiveData<List<Record>> getTodayRecords() {
-        String todayPrefix = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        String todayPrefix = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
         return Transformations.map(
                 recordDao.getTodayRecords(todayPrefix),
                 entities -> entities.stream()
                         .map(RecordEntity::asExternalModel)
-                        .collect(Collectors.toList())
-        );
+                        .collect(Collectors.toList()));
     }
 
     @Override
     public LiveData<TodaySummary> getTodaySummary() {
-        String todayPrefix = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        String todayPrefix = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
         return Transformations.map(
                 recordDao.getTodaySummary(todayPrefix),
-                entity -> entity != null ? entity.asExternalModel() : new com.grouprace.core.model.TodaySummary(0, 0, 0.0f)
-        );
+                entity -> entity != null ? entity.asExternalModel()
+                        : new com.grouprace.core.model.TodaySummary(0, 0, 0.0f));
     }
 
     private WeeklyRecordSummary mapToWeeklySummary(RecordWeeklySummaryResponse response) {
@@ -181,8 +176,7 @@ public class RecordRepositoryImpl implements RecordRepository {
                         point.getWeekStart(),
                         point.getWeekEnd(),
                         point.getTotalDistanceKm(),
-                        point.getTotalDurationSeconds()
-                ));
+                        point.getTotalDurationSeconds()));
             }
         }
 

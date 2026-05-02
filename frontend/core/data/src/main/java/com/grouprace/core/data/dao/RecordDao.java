@@ -27,18 +27,24 @@ public interface RecordDao {
     @Query("SELECT * FROM record WHERE recordId = :id")
     RecordEntity getById(int id);
 
-    @Query("SELECT * FROM record ORDER BY recordId DESC LIMIT :limit")
+    @Query("SELECT * FROM record ORDER BY startTime DESC LIMIT :limit")
     LiveData<List<RecordEntity>> getRecords(int limit);
 
-    @Query("SELECT * FROM record WHERE startTime LIKE :todayPrefix || '%' ORDER BY recordId DESC")
+    @Query("SELECT * FROM record WHERE startTime LIKE :todayPrefix || '%' ORDER BY startTime DESC")
     LiveData<List<RecordEntity>> getTodayRecords(String todayPrefix);
 
     @Query("SELECT COUNT(*) as activityCount, " +
-           "COALESCE(SUM(duration), 0) as totalDurationSeconds, " +
-           "COALESCE(SUM(distance), 0) as totalDistanceKm " +
-           "FROM record WHERE startTime LIKE :todayPrefix || '%'")
+            "COALESCE(SUM(duration), 0) as totalDurationSeconds, " +
+            "COALESCE(SUM(distance), 0) as totalDistanceKm " +
+            "FROM record WHERE startTime LIKE :todayPrefix || '%'")
     LiveData<TodaySummaryEntity> getTodaySummary(String todayPrefix);
 
     @Query("DELETE FROM record WHERE recordId NOT IN (SELECT recordId FROM record ORDER BY startTime DESC LIMIT 10)")
     void deleteOldRecords();
+
+    @Query("SELECT * FROM record WHERE pendingSync = 1")
+    List<RecordEntity> getPendingRecords();
+
+    @Query("DELETE FROM record WHERE recordId = :id")
+    void deleteById(int id);
 }

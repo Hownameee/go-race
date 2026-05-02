@@ -161,7 +161,7 @@ public class TrackingFragment extends Fragment {
             requestLocationPermission();
         });
 
-        viewModel = new ViewModelProvider(this).get(TrackingViewModel.class);
+        viewModel = new ViewModelProvider(requireActivity()).get(TrackingViewModel.class);
 
         observeViewModel();
         setupButtons();
@@ -246,8 +246,15 @@ public class TrackingFragment extends Fragment {
 
         viewModel.getFinishedActivityId().observe(getViewLifecycleOwner(), activityId -> {
             if (activityId != null) {
-                navigateToSummary(activityId);
+                // This is now handled in ActivitySummaryFragment after save
                 viewModel.resetFinishedActivityId();
+            }
+        });
+
+        viewModel.getNavigateToSummary().observe(getViewLifecycleOwner(), navigate -> {
+            if (navigate != null && navigate) {
+                navigateToSummary();
+                viewModel.onNavigatedToSummary();
             }
         });
     }
@@ -293,9 +300,9 @@ public class TrackingFragment extends Fragment {
 
     // --- Navigation ---
 
-    private void navigateToSummary(long activityId) {
+    private void navigateToSummary() {
         requireActivity().getSupportFragmentManager().beginTransaction()
-                .replace(getContainerId(), ActivitySummaryFragment.newInstance(activityId))
+                .replace(getContainerId(), ActivitySummaryFragment.newInstance(-1)) // -1 means fresh run
                 .addToBackStack(null)
                 .commit();
     }

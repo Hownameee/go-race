@@ -156,8 +156,10 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
         private final TextView tvDistance;
         private final TextView tvPace;
         private final TextView tvDuration;
+        private final TextView tvDescription;
         private final View llStats;
         private final ImageView ivMedia;
+        private final RecyclerView rvMedia;
         private final ImageView ivActivityType;
         final TextView tvLikes;
         final TextView tvComments;
@@ -171,11 +173,13 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
             tvUsername = itemView.findViewById(R.id.tv_username);
             tvTime = itemView.findViewById(R.id.tv_time);
             tvTitle = itemView.findViewById(R.id.tv_title);
+            tvDescription = itemView.findViewById(R.id.tv_description);
             tvDistance = itemView.findViewById(R.id.tv_distance);
             tvPace = itemView.findViewById(R.id.tv_pace);
             tvDuration = itemView.findViewById(R.id.tv_duration);
             llStats = itemView.findViewById(R.id.ll_stats);
             ivMedia = itemView.findViewById(R.id.iv_media);
+            rvMedia = itemView.findViewById(R.id.rv_media);
             ivActivityType = itemView.findViewById(R.id.iv_activity_type);
             tvLikes = itemView.findViewById(R.id.tv_likes);
             tvComments = itemView.findViewById(R.id.tv_comments);
@@ -183,12 +187,22 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
             ivComment = itemView.findViewById(R.id.iv_comment);
             ivShare = itemView.findViewById(R.id.iv_share);
             ivMore = itemView.findViewById(R.id.iv_more);
+            
+            // Setup PagerSnapHelper for rvMedia
+            new androidx.recyclerview.widget.PagerSnapHelper().attachToRecyclerView(rvMedia);
         }
 
         public void bind(Post post) {
             tvUsername.setText(post.getFullName() != null ? post.getFullName() : "Unknown");
             tvTitle.setText(post.getTitle() != null ? post.getTitle() : "Untitled Activity");
             tvTime.setText(post.getCreatedAt() != null ? post.getCreatedAt() : "");
+
+            if (post.getDescription() != null && !post.getDescription().isEmpty()) {
+                tvDescription.setVisibility(View.VISIBLE);
+                tvDescription.setText(post.getDescription());
+            } else {
+                tvDescription.setVisibility(View.GONE);
+            }
 
             if (post.getRecordId() != null) {
                 llStats.setVisibility(View.VISIBLE);
@@ -239,6 +253,16 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
                 llStats.setVisibility(View.GONE);
                 ivMedia.setVisibility(View.GONE);
                 ivActivityType.setVisibility(View.GONE);
+            }
+
+            // Post Photos
+            if (post.getPhotoUrls() != null && !post.getPhotoUrls().isEmpty()) {
+                rvMedia.setVisibility(View.VISIBLE);
+                PostMediaAdapter mediaAdapter = new PostMediaAdapter();
+                rvMedia.setAdapter(mediaAdapter);
+                mediaAdapter.submitList(post.getPhotoUrls());
+            } else {
+                rvMedia.setVisibility(View.GONE);
             }
 
             tvLikes.setText(String.valueOf(post.getLikeCount()));

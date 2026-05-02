@@ -1,10 +1,8 @@
 import postRepo from '../repo/post.repo.js';
 import clubRepo from '../repo/club.repo.js';
-import { getImageUrlS3 } from '../utils/s3/s3.js';
 import followRepo from '../repo/follow.repo.js';
-import userRepo from '../repo/user.repo.js';
 import notificationService from './notification.service.js';
-import { resolveImageUrl } from '../utils/s3/s3.js';
+import { resolveImageUrl, getImageUrlS3, uploadImageS3 } from '../utils/s3/s3.js';
 
 const FAR_FUTURE = '9999-12-31T23:59:59.999Z';
 
@@ -18,7 +16,7 @@ async function attachAvatarUrls(items) {
 }
 
 const postService = {
-  async createPost(payload) {
+  async createPost(payload, files = []) {
     if (!payload.title && !payload.description) {
       const error = new Error(
         'A post must have at least a title or description.',
@@ -45,49 +43,91 @@ const postService = {
       }
     }
 
-    const newPost = await postRepo.insertPost(payload);
-    try {
-      const fullname = payload.fullname;
-      const ownerId = payload.owner_id;
-      const clubId = payload.club_id;
+    const post = await postRepo.insertPost(payload);
 
-      let targets = [];
-      let notificationMessage = '';
+    if (files && files.length > 0) {
+      const uploadPromises = files.map(async (file, index) => {
+        const extension = path.extname(file.originalname || '') || '.jpg';
+        const s3Key = `posts/post-${post.post_id}-${Date.now()}-${index}${extension}`;
 
-      if (clubId) {
-        const club = await clubRepo.findById(clubId);
-        const members = await clubRepo.findApprovedMembers(clubId);
-        // Notify all approved members except the author
-        targets = members
-          .filter((m) => m.user_id !== ownerId)
-          .map((m) => m.user_id);
-        notificationMessage = `${fullname} just published a new post in ${club.name}`;
-      } else {
-        const effectiveCursor = FAR_FUTURE;
-        const followers = await followRepo.selectFollowers(
-          ownerId,
-          effectiveCursor,
-          null,
-        );
-        targets = followers.map((f) => f.user_id);
-        notificationMessage = `${fullname} just published a new post`;
-      }
-
-      for (const targetId of targets) {
-        await notificationService.createAndSend({
-          userId: targetId,
-          type: 'post',
-          actorId: ownerId,
-          activityId: newPost.post_id,
-          title: 'New Post',
-          message: notificationMessage,
-        });
-      }
-    } catch (err) {
-      console.error('[post][notification error]', err);
+        await uploadImageS3(file.buffer, s3Key, file.mimetype);
+        await postRepo.insertPostImage(post.post_id, s3Key);
+        return s3Key;
+      });
+      await Promise.all(uploadPromises);
     }
 
-    return newPost;
+    (async () => {
+      try {
+        const fullname = payload.fullname;
+        const ownerId = payload.owner_id;
+        const clubId = payload.club_id;
+
+        let targets = [];
+        let notificationMessage = '';
+
+        if (clubId) {
+          const club = await clubRepo.findById(clubId);
+          const members = await clubRepo.findApprovedMembers(clubId);
+          // Notify all approved members except the author
+          targets = members
+            .filter((m) => m.user_id !== ownerId)
+            .map((m) => m.user_id);
+          notificationMessage = `${fullname} just published a new post in ${club.name}`;
+        } else {
+          const effectiveCursor = FAR_FUTURE;
+          const followers = await followRepo.selectFollowers(
+            ownerId,
+            effectiveCursor,
+            null,
+          );
+          targets = followers.map((f) => f.user_id);
+          notificationMessage = `${fullname} just published a new post`;
+        }
+
+        for (const targetId of targets) {
+          notificationService.createAndSend({
+            userId: targetId,
+            type: 'post',
+            actorId: ownerId,
+            activityId: post.post_id,
+            title: 'New Post',
+            message: notificationMessage,
+          });
+        }
+      } catch (err) {
+        console.error('[post][notification error]', err);
+      }
+    })();
+
+    return post;
+  },
+
+  async resolvePostPhotos(rows) {
+    return Promise.all(
+      rows.map(async (row) => {
+        const { record_s3_key, photos, ...postWithoutExtras } = row;
+
+        let record_image_url = null;
+        if (record_s3_key) {
+          record_image_url = await getImageUrlS3(record_s3_key);
+        }
+
+        let photo_urls = [];
+        if (photos) {
+          const photoKeys = photos.split(',');
+          photo_urls = await Promise.all(
+            photoKeys.map(async (key) => await getImageUrlS3(key))
+          );
+        }
+
+        return {
+          ...postWithoutExtras,
+          record_image_url,
+          photo_urls
+        };
+      }),
+    );
   },
 
   async getFeed(cursor, limit) {
@@ -95,17 +135,7 @@ const postService = {
     const effectiveLimit = Math.min(parseInt(limit) || DEFAULT_LIMIT, 100);
 
     const rows = await postRepo.selectFeed(effectiveCursor, effectiveLimit);
-
-    const posts = await Promise.all(
-      rows.map(async (row) => {
-        const { s3_key, ...postWithoutS3Key } = row;
-        if (s3_key) {
-          const record_image_url = await getImageUrlS3(s3_key);
-          return { ...postWithoutS3Key, record_image_url };
-        }
-        return postWithoutS3Key;
-      }),
-    );
+    const posts = await this.resolvePostPhotos(rows);
 
     const nextCursor =
       posts.length === effectiveLimit
@@ -125,16 +155,7 @@ const postService = {
       effectiveLimit,
     );
 
-    const posts = await Promise.all(
-      rows.map(async (row) => {
-        const { s3_key, ...postWithoutS3Key } = row;
-        if (s3_key) {
-          const record_image_url = await getImageUrlS3(s3_key);
-          return { ...postWithoutS3Key, record_image_url };
-        }
-        return postWithoutS3Key;
-      }),
-    );
+    const posts = await this.resolvePostPhotos(rows);
 
     const nextCursor =
       posts.length === effectiveLimit
@@ -154,16 +175,7 @@ const postService = {
       effectiveLimit,
     );
 
-    const posts = await Promise.all(
-      rows.map(async (row) => {
-        const { s3_key, ...postWithoutS3Key } = row;
-        if (s3_key) {
-          const record_image_url = await getImageUrlS3(s3_key);
-          return { ...postWithoutS3Key, record_image_url };
-        }
-        return postWithoutS3Key;
-      }),
-    );
+    const posts = await this.resolvePostPhotos(rows);
 
     const nextCursor =
       posts.length === effectiveLimit
@@ -217,22 +229,8 @@ const postService = {
     const effectiveCursor = cursor || FAR_FUTURE;
     const effectiveLimit = Math.min(parseInt(limit) || DEFAULT_LIMIT, 100);
 
-    const rows = await postRepo.selectClubPosts(
-      clubId,
-      effectiveCursor,
-      effectiveLimit,
-    );
-
-    const posts = await Promise.all(
-      rows.map(async (row) => {
-        const { s3_key, ...postWithoutS3Key } = row;
-        if (s3_key) {
-          const record_image_url = await getImageUrlS3(s3_key);
-          return { ...postWithoutS3Key, record_image_url };
-        }
-        return postWithoutS3Key;
-      }),
-    );
+    const rows = await postRepo.selectClubPosts(clubId, effectiveCursor, effectiveLimit);
+    const posts = await this.resolvePostPhotos(rows);
 
     const nextCursor =
       rows.length === effectiveLimit ? rows[rows.length - 1].created_at : null;

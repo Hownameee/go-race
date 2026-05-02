@@ -10,7 +10,7 @@ const postController = {
         fullname: fullname,
         ...req.body,
         owner_id: userId,
-      });
+      }, req.files);
       return res.created(newPost, 'Post created successfully.');
     } catch (error) {
       if (error.status === 409) {
