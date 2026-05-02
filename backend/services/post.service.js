@@ -1,3 +1,4 @@
+import path from 'path'
 import postRepo from '../repo/post.repo.js';
 import clubRepo from '../repo/club.repo.js';
 import followRepo from '../repo/follow.repo.js';

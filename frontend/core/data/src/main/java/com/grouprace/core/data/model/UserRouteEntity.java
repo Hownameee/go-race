@@ -15,7 +15,7 @@ import java.util.List;
 @Entity(tableName = "user_routes")
 public class UserRouteEntity {
 
-    @PrimaryKey(autoGenerate = true)
+    @PrimaryKey
     public long id;
 
     public String name;

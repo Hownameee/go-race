@@ -509,3 +509,20 @@ CREATE INDEX IF NOT EXISTS idx_club_event_participants_leaderboard
 -- trigger event progress: WHERE user_id = ? AND event_id IN (...)
 CREATE INDEX IF NOT EXISTS idx_club_event_participants_user
     ON CLUB_EVENT_PARTICIPANTS(user_id);
+
+CREATE TABLE IF NOT EXISTS USER_ROUTES (
+    route_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    route_mode TEXT,
+    is_cycle BOOLEAN,
+    distance_km REAL,
+    duration_seconds INTEGER,
+    route_coordinates_json TEXT,
+    waypoints_json TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_routes_user_id ON USER_ROUTES(user_id);
+
