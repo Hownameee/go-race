@@ -32,8 +32,10 @@ import com.grouprace.feature.posts.ui.adapter.CommentAdapter;
 import com.grouprace.feature.posts.ui.adapter.PostAdapter;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -154,6 +156,7 @@ public class PostDetailFragment extends Fragment {
 
                         currentComments.set(position, updated);
                         commentAdapter.submitList(new ArrayList<>(currentComments));
+                        commentAdapter.notifyItemChanged(position, CommentAdapter.PAYLOAD_LIKE);
                     }
                 }
 
@@ -169,25 +172,48 @@ public class PostDetailFragment extends Fragment {
 
             @Override
             public void onViewRepliesClicked(Comment comment) {
-                viewModel.loadReplies(postId, comment.getCommentId()).observe(getViewLifecycleOwner(), result -> {
-                    if (result instanceof Result.Success) {
-                        List<Comment> replies = ((Result.Success<List<Comment>>) result).data;
-                        insertReplies(comment, replies);
-                    }
-                });
+                if (comment.isRepliesExpanded()) {
+                    insertReplies(comment, new ArrayList<>());
+                } else {
+                    viewModel.loadReplies(postId, comment.getCommentId()).observe(getViewLifecycleOwner(), result -> {
+                        if (result instanceof Result.Success) {
+                            List<Comment> replies = ((Result.Success<List<Comment>>) result).data;
+                            insertReplies(comment, replies);
+                        }
+                    });
+                }
             }
 
             private void insertReplies(Comment parent, List<Comment> replies) {
                 int index = currentComments.indexOf(parent);
                 if (index != -1) {
-                    // Remove existing replies from this parent first to avoid duplicates if clicked
-                    // multiple times
-                    currentComments
-                            .removeIf(c -> parent.getCommentId() == (c.getParentId() != null ? c.getParentId() : -1));
-                    currentComments.addAll(index + 1, replies);
-                    commentAdapter.submitList(new ArrayList<>(currentComments));
-                    commentAdapter.notifyItemChanged(index); // Refresh parent to maybe hide "View X replies" or change it to
-                                                      // "Hide"
+                    if (parent.isRepliesExpanded()) {
+                        Set<Integer> idsToRemove = new HashSet<>();
+                        idsToRemove.add(parent.getCommentId());
+
+                        boolean added;
+                        do {
+                            added = false;
+                            for (Comment c : currentComments) {
+                                if (c.getParentId() != null && idsToRemove.contains(c.getParentId())) {
+                                    if (idsToRemove.add(c.getCommentId())) {
+                                        added = true;
+                                    }
+                                }
+                            }
+                        } while (added);
+
+                        currentComments.removeIf(c -> c.getParentId() != null && idsToRemove.contains(c.getParentId()));
+                        parent.setRepliesExpanded(false);
+                        commentAdapter.submitList(new ArrayList<>(currentComments));
+                        commentAdapter.notifyItemChanged(index);
+                    } else {
+                        currentComments.removeIf(c -> parent.getCommentId() == (c.getParentId() != null ? c.getParentId() : -1));
+                        currentComments.addAll(index + 1, replies);
+                        parent.setRepliesExpanded(true);
+                        commentAdapter.submitList(new ArrayList<>(currentComments));
+                        commentAdapter.notifyItemChanged(index);
+                    }
                 }
             }
         });

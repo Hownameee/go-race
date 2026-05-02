@@ -86,20 +86,23 @@ public class CommentAdapter extends ListAdapter<Comment, CommentAdapter.CommentV
 
         InteractionAnimator.setupSquishAnimation(holder.ivLike);
         holder.ivLike.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onLikeClicked(comment, position);
+            int currentPos = holder.getBindingAdapterPosition();
+            if (listener != null && currentPos != androidx.recyclerview.widget.RecyclerView.NO_POSITION) {
+                listener.onLikeClicked(getItem(currentPos), currentPos);
             }
         });
 
         holder.tvReply.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onReplyClicked(comment);
+            int currentPos = holder.getBindingAdapterPosition();
+            if (listener != null && currentPos != androidx.recyclerview.widget.RecyclerView.NO_POSITION) {
+                listener.onReplyClicked(getItem(currentPos));
             }
         });
 
         holder.tvViewReplies.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onViewRepliesClicked(comment);
+            int currentPos = holder.getBindingAdapterPosition();
+            if (listener != null && currentPos != androidx.recyclerview.widget.RecyclerView.NO_POSITION) {
+                listener.onViewRepliesClicked(getItem(currentPos));
             }
         });
     }
@@ -142,8 +145,12 @@ public class CommentAdapter extends ListAdapter<Comment, CommentAdapter.CommentV
 
             if (comment.getReplyCount() > 0) {
                 tvViewReplies.setVisibility(View.VISIBLE);
-                tvViewReplies.setText(
-                        "View " + comment.getReplyCount() + " " + (comment.getReplyCount() == 1 ? "reply" : "replies"));
+                if (comment.isRepliesExpanded()) {
+                    tvViewReplies.setText("Hide replies");
+                } else {
+                    tvViewReplies.setText(
+                            "View " + comment.getReplyCount() + " " + (comment.getReplyCount() == 1 ? "reply" : "replies"));
+                }
             } else {
                 tvViewReplies.setVisibility(View.GONE);
             }

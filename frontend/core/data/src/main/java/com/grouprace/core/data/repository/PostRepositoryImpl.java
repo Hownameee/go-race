@@ -27,6 +27,7 @@ public class PostRepositoryImpl implements PostRepository {
     private final PostDao postDao;
     private final SyncManager syncManager;
     private final com.grouprace.core.network.utils.SessionManager sessionManager;
+    private final java.util.concurrent.ExecutorService executorService = java.util.concurrent.Executors.newSingleThreadExecutor();
 
     @Inject
     public PostRepositoryImpl(PostNetworkDataSource postNetworkDataSource, PostDao postDao, SyncManager syncManager, com.grouprace.core.network.utils.SessionManager sessionManager) {
@@ -126,12 +127,30 @@ public class PostRepositoryImpl implements PostRepository {
 
     @Override
     public LiveData<Result<Boolean>> likePost(int postId) {
-        return postNetworkDataSource.likePost(postId);
+        executorService.execute(() -> postDao.updateLikeStatus(postId, true, 1));
+        LiveData<Result<Boolean>> networkCall = postNetworkDataSource.likePost(postId);
+        androidx.lifecycle.MediatorLiveData<Result<Boolean>> result = new androidx.lifecycle.MediatorLiveData<>();
+        result.addSource(networkCall, r -> {
+            result.setValue(r);
+            if (r instanceof Result.Error) {
+                executorService.execute(() -> postDao.updateLikeStatus(postId, false, -1));
+            }
+        });
+        return result;
     }
 
     @Override
     public LiveData<Result<Boolean>> unlikePost(int postId) {
-        return postNetworkDataSource.unlikePost(postId);
+        executorService.execute(() -> postDao.updateLikeStatus(postId, false, -1));
+        LiveData<Result<Boolean>> networkCall = postNetworkDataSource.unlikePost(postId);
+        androidx.lifecycle.MediatorLiveData<Result<Boolean>> result = new androidx.lifecycle.MediatorLiveData<>();
+        result.addSource(networkCall, r -> {
+            result.setValue(r);
+            if (r instanceof Result.Error) {
+                executorService.execute(() -> postDao.updateLikeStatus(postId, true, 1));
+            }
+        });
+        return result;
     }
 
     @Override
@@ -154,12 +173,28 @@ public class PostRepositoryImpl implements PostRepository {
 
     @Override
     public LiveData<Result<Boolean>> createComment(int postId, String content, Integer parentId) {
-        return postNetworkDataSource.createComment(postId, content, parentId);
+        LiveData<Result<Boolean>> networkCall = postNetworkDataSource.createComment(postId, content, parentId);
+        androidx.lifecycle.MediatorLiveData<Result<Boolean>> result = new androidx.lifecycle.MediatorLiveData<>();
+        result.addSource(networkCall, r -> {
+            result.setValue(r);
+            if (r instanceof Result.Success) {
+                executorService.execute(() -> postDao.updateCommentCount(postId, 1));
+            }
+        });
+        return result;
     }
 
     @Override
     public LiveData<Result<Boolean>> deleteComment(int postId, int commentId) {
-        return postNetworkDataSource.deleteComment(postId, commentId);
+        LiveData<Result<Boolean>> networkCall = postNetworkDataSource.deleteComment(postId, commentId);
+        androidx.lifecycle.MediatorLiveData<Result<Boolean>> result = new androidx.lifecycle.MediatorLiveData<>();
+        result.addSource(networkCall, r -> {
+            result.setValue(r);
+            if (r instanceof Result.Success) {
+                executorService.execute(() -> postDao.updateCommentCount(postId, -1));
+            }
+        });
+        return result;
     }
 
     @Override

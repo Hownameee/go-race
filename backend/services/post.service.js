@@ -129,11 +129,11 @@ const postService = {
     );
   },
 
-  async getFeed(cursor, limit) {
+  async getFeed(userId, cursor, limit) {
     const effectiveCursor = cursor || FAR_FUTURE;
     const effectiveLimit = Math.min(parseInt(limit) || DEFAULT_LIMIT, 100);
 
-    const rows = await postRepo.selectFeed(effectiveCursor, effectiveLimit);
+    const rows = await postRepo.selectFeed(userId, effectiveCursor, effectiveLimit);
     const posts = await this.resolvePostPhotos(rows);
 
     const nextCursor =
@@ -228,7 +228,7 @@ const postService = {
     const effectiveCursor = cursor || FAR_FUTURE;
     const effectiveLimit = Math.min(parseInt(limit) || DEFAULT_LIMIT, 100);
 
-    const rows = await postRepo.selectClubPosts(clubId, effectiveCursor, effectiveLimit);
+    const rows = await postRepo.selectClubPosts(clubId, userId, effectiveCursor, effectiveLimit);
     const posts = await this.resolvePostPhotos(rows);
 
     const nextCursor =

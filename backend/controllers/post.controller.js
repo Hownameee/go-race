@@ -23,8 +23,9 @@ const postController = {
 
   async getFeed(req, res, next) {
     try {
+      const userId = req.user.userId;
       const { cursor, limit } = req.query;
-      const result = await postService.getFeed(cursor, limit);
+      const result = await postService.getFeed(userId, cursor, limit);
       return res.ok(result, 'Feed retrieved successfully.');
     } catch (error) {
       if (error.status === 409) {

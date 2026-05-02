@@ -98,14 +98,16 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
 
         InteractionAnimator.setupSquishAnimation(holder.ivLike);
         holder.ivLike.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onLikeClicked(post, position);
+            int currentPos = holder.getBindingAdapterPosition();
+            if (listener != null && currentPos != androidx.recyclerview.widget.RecyclerView.NO_POSITION) {
+                listener.onLikeClicked(getItem(currentPos), currentPos);
             }
         });
 
         View.OnClickListener commentClickListener = v -> {
-            if (listener != null) {
-                listener.onCommentClicked(post);
+            int currentPos = holder.getBindingAdapterPosition();
+            if (listener != null && currentPos != androidx.recyclerview.widget.RecyclerView.NO_POSITION) {
+                listener.onCommentClicked(getItem(currentPos));
             }
         };
         InteractionAnimator.setupSquishAnimation(holder.ivComment);
@@ -114,29 +116,35 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
 
         InteractionAnimator.setupSquishAnimation(holder.ivShare);
         holder.ivShare.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onShareClicked(post);
+            int currentPos = holder.getBindingAdapterPosition();
+            if (listener != null && currentPos != androidx.recyclerview.widget.RecyclerView.NO_POSITION) {
+                listener.onShareClicked(getItem(currentPos));
             }
         });
 
         holder.ivMore.setOnClickListener(v -> {
-            PopupMenu popup = new PopupMenu(v.getContext(), v);
-            popup.getMenuInflater().inflate(R.menu.menu_post_more, popup.getMenu());
-            popup.setOnMenuItemClickListener(item -> {
-                if (item.getItemId() == R.id.action_report) {
-                    if (listener != null) {
-                        listener.onReportClicked(post);
+            int currentPos = holder.getBindingAdapterPosition();
+            if (currentPos != androidx.recyclerview.widget.RecyclerView.NO_POSITION) {
+                Post currentPost = getItem(currentPos);
+                PopupMenu popup = new PopupMenu(v.getContext(), v);
+                popup.getMenuInflater().inflate(R.menu.menu_post_more, popup.getMenu());
+                popup.setOnMenuItemClickListener(item -> {
+                    if (item.getItemId() == R.id.action_report) {
+                        if (listener != null) {
+                            listener.onReportClicked(currentPost);
+                        }
+                        return true;
                     }
-                    return true;
-                }
-                return false;
-            });
-            popup.show();
+                    return false;
+                });
+                popup.show();
+            }
         });
 
         holder.itemView.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onPostClicked(post);
+            int currentPos = holder.getBindingAdapterPosition();
+            if (listener != null && currentPos != androidx.recyclerview.widget.RecyclerView.NO_POSITION) {
+                listener.onPostClicked(getItem(currentPos));
             }
         });
     }

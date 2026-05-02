@@ -39,4 +39,10 @@ public interface PostDao {
 
     @Query("DELETE FROM posts WHERE postId = :oldId")
     void deleteById(int oldId);
+
+    @Query("UPDATE posts SET isLiked = :isLiked, likeCount = likeCount + :delta WHERE postId = :postId")
+    void updateLikeStatus(int postId, boolean isLiked, int delta);
+
+    @Query("UPDATE posts SET commentCount = commentCount + :delta WHERE postId = :postId")
+    void updateCommentCount(int postId, int delta);
 }
