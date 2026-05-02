@@ -4,6 +4,7 @@ import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 import com.grouprace.core.model.Post;
+import java.util.List;
 
 @Entity(tableName = "posts")
 public class PostEntity {
@@ -13,7 +14,7 @@ public class PostEntity {
     public int ownerId;
     public String title;
     public String description;
-    public String photoUrl;
+    public List<String> photoUrls;
     public int likeCount;
     public int commentCount;
     public String viewMode;
@@ -28,10 +29,11 @@ public class PostEntity {
     public String recordImageUrl;
     public boolean isLiked;
     public Integer clubId;
+    public boolean pendingSync;
     public boolean selfOwner;
 
     @Ignore
-    public PostEntity(int postId, Integer recordId, int ownerId, String title, String description, String photoUrl, int likeCount, int commentCount, String viewMode, String createdAt, String username, String fullName, String profilePictureUrl, String activityType, Integer durationSeconds, Double distanceKm, Double speed, String recordImageUrl, boolean isLiked, Integer clubId) {
+    public PostEntity(int postId, Integer recordId, int ownerId, String title, String description, java.util.List<String> photoUrls, int likeCount, int commentCount, String viewMode, String createdAt, String username, String fullName, String profilePictureUrl, String activityType, Integer durationSeconds, Double distanceKm, Double speed, String recordImageUrl, boolean isLiked, Integer clubId, boolean pendingSync) {
         this(postId, recordId, ownerId, title, description, photoUrl, likeCount, commentCount,
                 viewMode, createdAt, username, fullName, profilePictureUrl, activityType,
                 durationSeconds, distanceKm, speed, recordImageUrl, isLiked, clubId, false);
@@ -43,7 +45,7 @@ public class PostEntity {
         this.ownerId = ownerId;
         this.title = title;
         this.description = description;
-        this.photoUrl = photoUrl;
+        this.photoUrls = photoUrls;
         this.likeCount = likeCount;
         this.commentCount = commentCount;
         this.viewMode = viewMode;
@@ -59,10 +61,11 @@ public class PostEntity {
         this.isLiked = isLiked;
         this.clubId = clubId;
         this.selfOwner = selfOwner;
+        this.pendingSync = pendingSync;
     }
 
     public Post asExternalModel() {
-        Post post = new Post(postId, recordId, ownerId, title, description, photoUrl, likeCount, commentCount, viewMode, createdAt, username, fullName, profilePictureUrl, activityType, durationSeconds, distanceKm, speed, recordImageUrl, clubId);
+        Post post = new Post(postId, recordId, ownerId, title, description, photoUrls, likeCount, commentCount, viewMode, createdAt, username, fullName, profilePictureUrl, activityType, durationSeconds, distanceKm, speed, recordImageUrl, clubId);
         post.setLiked(isLiked);
         return post;
     }

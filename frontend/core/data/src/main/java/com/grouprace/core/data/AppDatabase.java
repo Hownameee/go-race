@@ -1,7 +1,10 @@
 package com.grouprace.core.data;
 
+import androidx.annotation.NonNull;
 import androidx.room.Database;
 import androidx.room.RoomDatabase;
+import androidx.room.migration.Migration;
+import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import com.grouprace.core.data.dao.ClubDao;
 import com.grouprace.core.data.dao.ProfileDao;

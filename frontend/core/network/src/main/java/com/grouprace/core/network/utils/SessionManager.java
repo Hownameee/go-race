@@ -16,6 +16,7 @@ public class SessionManager {
     private static final String PREF_NAME = "GoRaceApp";
     private static final String KEY_ACCESS_TOKEN = "Access_Token";
     private static final String KEY_REFRESH_TOKEN = "Refresh_Token";
+    private static final String KEY_USER_ID = "User_Id";
 
     private final SharedPreferences prefs;
     private final MutableLiveData<Boolean> loginState = new MutableLiveData<>();
@@ -27,11 +28,20 @@ public class SessionManager {
     }
 
     public void saveSession(String accessToken, String refreshToken) {
+        saveSession(accessToken, refreshToken, -1);
+    }
+
+    public void saveSession(String accessToken, String refreshToken, int userId) {
         prefs.edit()
                 .putString(KEY_ACCESS_TOKEN, accessToken)
                 .putString(KEY_REFRESH_TOKEN, refreshToken)
+                .putInt(KEY_USER_ID, userId)
                 .commit();
         loginState.postValue(true);
+    }
+
+    public int getUserId() {
+        return prefs.getInt(KEY_USER_ID, 0);
     }
 
     public String getAccessToken() {

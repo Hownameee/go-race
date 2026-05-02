@@ -2,6 +2,7 @@ import { Router } from 'express';
 import postController from '../controllers/post.controller.js';
 import validation from '../middlewares/validation.js';
 import { auth } from '../middlewares/auth.middleware.js';
+import { uploadPhotos } from '../middlewares/upload.middleware.js';
 import {
   createPostSchema,
   getPostFeedQuerySchema,
@@ -17,6 +18,7 @@ const router = Router();
 router.post(
   '/api/posts',
   auth,
+  uploadPhotos,
   validation(createPostSchema, 'body'),
   postController.createPost,
 );

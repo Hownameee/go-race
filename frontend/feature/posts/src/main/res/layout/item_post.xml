@@ -165,7 +165,29 @@
         </LinearLayout>
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/tv_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textColor="@color/text_secondary"
+        android:textSize="14sp"
+        android:visibility="gone"
+        tools:text="Had a great run this morning! The weather was perfect."
+        tools:visibility="visible" />
+
     <!-- Map/Image Area -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_media"
+        android:layout_width="match_parent"
+        android:layout_height="220dp"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/item_post_media"
+        tools:visibility="visible" />
+
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/iv_media"
         android:layout_width="match_parent"
@@ -174,8 +196,7 @@
         android:scaleType="centerCrop"
         android:visibility="gone"
         app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Large"
-        tools:src="@drawable/bg_media_placeholder"
-        tools:visibility="visible" />
+        tools:src="@drawable/bg_media_placeholder" />
 
     <!-- Actions Row -->
     <LinearLayout

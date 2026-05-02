@@ -1,6 +1,7 @@
 package com.grouprace.core.navigation;
 
 import androidx.fragment.app.Fragment;
+import com.grouprace.core.model.PlannedRoute;
 
 public interface AppNavigator {
     void navigateToNotification(Fragment currentFragment);
@@ -42,4 +43,5 @@ public interface AppNavigator {
     void openClubStats(Fragment currentFragment, int clubId);
     void openEditClub(Fragment currentFragment, int clubId);
     void openClubDetail(Fragment currentFragment, int clubId);
+    void navigateToRunWithRoute(Fragment currentFragment, PlannedRoute route);
 }

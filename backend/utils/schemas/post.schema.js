@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const createPostSchema = z.object({
-  record_id: z
+  record_id: z.coerce
     .number()
     .int()
     .positive('record_id must be a positive number')
@@ -11,9 +11,8 @@ export const createPostSchema = z.object({
     .string()
     .max(2000, 'description must be at most 2000 characters')
     .optional(),
-  photo_url: z.string().optional(),
   view_mode: z.enum(['Everyone', 'Followers', 'Self']).default('Everyone'),
-  club_id: z.number().int().positive().optional().nullable(),
+  club_id: z.coerce.number().int().positive().optional().nullable(),
 });
 
 export const getPostFeedQuerySchema = z.object({
@@ -34,7 +33,7 @@ export const createCommentBodySchema = z.object({
     .string()
     .min(1, 'content must not be empty')
     .max(2000, 'content must be at most 2000 characters'),
-  parentId: z.number().int().positive().optional().nullable(),
+  parentId: z.coerce.number().int().positive().optional().nullable(),
 });
 
 export const getCommentsQuerySchema = z.object({

@@ -29,27 +29,43 @@ public class UserRepositoryImpl implements UserRepository {
     private static final int MY_PROFILE_INFO_ID = 1;
 
     private final UserNetworkDataSource userNetworkDataSource;
+    private final com.grouprace.core.network.utils.SessionManager sessionManager;
     private final ProfileDao profileDao;
     // ===== Profile Feature Section =====
     private final Gson gson = new Gson();
 
     @Inject
-    public UserRepositoryImpl(UserNetworkDataSource userNetworkDataSource, ProfileDao profileDao) {
+    public UserRepositoryImpl(UserNetworkDataSource userNetworkDataSource, com.grouprace.core.network.utils.SessionManager sessionManager, ProfileDao profileDao) {
         this.userNetworkDataSource = userNetworkDataSource;
+        this.sessionManager = sessionManager;
         this.profileDao = profileDao;
     }
 
     // ===== Profile Feature Section =====
     @Override
     public LiveData<Result<ProfileOverview>> getMyOverview() {
-        return getOverviewOfflineFirst(
-                profileDao.getMyOverview(),
-                userNetworkDataSource.getMyOverview(),
-                true
-        );
+        LiveData<Result<ProfileOverviewResponse>> networkResult = userDataSource.getMyOverview();
+
+        return Transformations.map(networkResult, result -> {
+            if (result instanceof Result.Loading) {
+                return new Result.Loading<>();
+            } else if (result instanceof Result.Success) {
+                ProfileOverviewResponse response = ((Result.Success<ProfileOverviewResponse>) result).data;
+                if (response != null) {
+                    sessionManager.saveSession(
+                        sessionManager.getAccessToken(),
+                        sessionManager.getRefreshToken(),
+                        response.getUserId()
+                    );
+                }
+                return new Result.Success<>(mapToProfileOverview(response));
+            } else {
+                Result.Error<ProfileOverviewResponse> error = (Result.Error<ProfileOverviewResponse>) result;
+                return new Result.Error<>(error.exception, error.message);
+            }
+        });
     }
 
-    // ===== Profile Feature Section =====
     @Override
     public LiveData<Result<ProfileOverview>> getUserOverview(int userId) {
         return getOverviewOfflineFirst(

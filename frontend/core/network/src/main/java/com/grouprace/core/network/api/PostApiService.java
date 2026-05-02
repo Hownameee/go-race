@@ -30,8 +30,12 @@ public interface PostApiService {
             @Query("limit") int limit
     );
 
+    @retrofit2.http.Multipart
     @POST("api/posts")
-    Call<ApiResponse<Void>> createPost(@Body CreatePostRequest request);
+    Call<ApiResponse<Void>> createPost(
+        @retrofit2.http.PartMap java.util.Map<String, okhttp3.RequestBody> params,
+        @retrofit2.http.Part java.util.List<okhttp3.MultipartBody.Part> photos
+    );
 
     @POST("api/posts/{postId}/like")
     Call<ApiResponse<Void>> likePost(@Path("postId") int postId);

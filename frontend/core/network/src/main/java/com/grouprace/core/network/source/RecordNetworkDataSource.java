@@ -278,6 +278,24 @@ public class RecordNetworkDataSource {
         return liveData;
     }
 
+    public Result<NetworkRecord> createRecordSync(CreateRecordRequest request) {
+        try {
+            Response<ApiResponse<NetworkRecord>> response = apiService.createRecord(request).execute();
+            if (response.isSuccessful() && response.body() != null) {
+                ApiResponse<NetworkRecord> apiResponse = response.body();
+                if (apiResponse.isSuccess() && apiResponse.getData() != null) {
+                    return new Result.Success<>(apiResponse.getData());
+                } else {
+                    return new Result.Error<>(null, apiResponse.getMessage());
+                }
+            } else {
+                return new Result.Error<>(null, "HTTP Error: " + response.code());
+            }
+        } catch (java.io.IOException e) {
+            return new Result.Error<>(e, e.getMessage());
+        }
+    }
+
     public LiveData<Result<Void>> updateRecord(long recordId, java.util.Map<String, Object> updateData) {
         MutableLiveData<Result<Void>> liveData = new MutableLiveData<>();
         liveData.setValue(new Result.Loading<>());
@@ -304,6 +322,24 @@ public class RecordNetworkDataSource {
         });
 
         return liveData;
+    }
+
+    public Result<Void> updateRecordSync(long recordId, java.util.Map<String, Object> updateData) {
+        try {
+            Response<ApiResponse<Void>> response = apiService.updateRecord(recordId, updateData).execute();
+            if (response.isSuccessful() && response.body() != null) {
+                ApiResponse<Void> apiResponse = response.body();
+                if (apiResponse.isSuccess()) {
+                    return new Result.Success<>(null);
+                } else {
+                    return new Result.Error<>(null, apiResponse.getMessage());
+                }
+            } else {
+                return new Result.Error<>(null, "HTTP Error: " + response.code());
+            }
+        } catch (java.io.IOException e) {
+            return new Result.Error<>(e, e.getMessage());
+        }
     }
 
     private void handleWeeklySummaryResponse(

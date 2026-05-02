@@ -38,8 +38,10 @@ import com.grouprace.feature.club.ui.detail.tabs.OverviewFragment;
 import com.grouprace.feature.club.ui.detail.tabs.ClubEventsFragment;
 import com.grouprace.feature.club.ui.detail.tabs.ClubStatisticsFragment;
 import com.grouprace.feature.club.ui.detail.tabs.EditClubFragment;
+import com.grouprace.core.model.PlannedRoute;
 import com.grouprace.feature.club.ui.detail.ClubDetailFragment;
 import com.grouprace.feature.map.ui.DrawRouteFragment;
+import com.grouprace.feature.tracking.ui.TrackingFragment;
 
 import javax.inject.Inject;
 
@@ -253,6 +255,11 @@ public class AppNavigatorImpl implements AppNavigator {
     @Override
     public void openClubDetail(Fragment currentFragment, int clubId) {
         navigateTo(currentFragment, ClubDetailFragment.newInstance(clubId));
+    }
+
+    @Override
+    public void navigateToRunWithRoute(Fragment currentFragment, PlannedRoute route) {
+        navigateTo(currentFragment, TrackingFragment.newInstance(route));
     }
 
     private void navigateTo(Fragment currentFragment, Fragment targetFragment) {
