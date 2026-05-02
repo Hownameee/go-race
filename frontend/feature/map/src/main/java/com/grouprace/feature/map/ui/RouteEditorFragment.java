@@ -19,7 +19,9 @@ import android.content.Intent;
 import android.net.Uri;
 import androidx.core.content.FileProvider;
 import com.grouprace.core.common.GpxExporter;
+import com.grouprace.core.model.PlannedRoute;
 import com.grouprace.core.model.UserRoute;
+import com.grouprace.core.navigation.AppNavigator;
 import java.io.File;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -49,10 +51,15 @@ import org.json.JSONObject;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class RouteEditorFragment extends Fragment {
+
+    @Inject
+    AppNavigator navigator;
 
     private DrawRouteViewModel viewModel;
     private DrawRouteMapHelper mapHelper;
@@ -134,7 +141,20 @@ public class RouteEditorFragment extends Fragment {
             mapStyle = style;
             mapHelper.setupLayers(style);
             setupMarkerLayer(style);
-            
+
+            // Observers may have fired before style loaded — draw any pending state now
+            UserRoute previewed = viewModel.previewedRoute.getValue();
+            if (previewed != null) {
+                mapHelper.drawResolvedRoute(style, previewed.routeCoordinates);
+                List<double[]> zoomTarget = (previewed.routeCoordinates != null && previewed.routeCoordinates.size() >= 2)
+                        ? previewed.routeCoordinates : previewed.waypoints;
+                mapHelper.zoomToFit(mapView, zoomTarget);
+                updateMarkers(previewed.waypoints);
+            } else {
+                PlannedRoute generated = viewModel.generatedRoute.getValue();
+                if (generated != null) mapHelper.drawResolvedRoute(style, generated.getCoordinates());
+            }
+
             String token = MapboxOptions.INSTANCE.getAccessToken();
             viewModel.setAccessToken(token);
             
@@ -209,7 +229,10 @@ public class RouteEditorFragment extends Fragment {
                 
                 if (mapStyle != null) {
                     mapHelper.drawResolvedRoute(mapStyle, route.routeCoordinates);
-                    mapHelper.zoomToFit(mapView, route.waypoints);
+                    // Use full route geometry for zoom — waypoints are just [start,end] for recorded routes
+                    List<double[]> zoomTarget = (route.routeCoordinates != null && route.routeCoordinates.size() >= 2)
+                            ? route.routeCoordinates : route.waypoints;
+                    mapHelper.zoomToFit(mapView, zoomTarget);
                     updateMarkers(route.waypoints);
                 }
             }
@@ -226,7 +249,16 @@ public class RouteEditorFragment extends Fragment {
         btnSave.setOnClickListener(v -> showSaveDialog());
         switchCycle.setOnCheckedChangeListener((buttonView, isChecked) -> viewModel.setCycle(isChecked));
         btnEditRoute.setOnClickListener(v -> viewModel.editPreviewedRoute());
-        btnUseRoute.setOnClickListener(v -> Toast.makeText(requireContext(), "Use Route feature coming soon", Toast.LENGTH_SHORT).show());
+        btnUseRoute.setOnClickListener(v -> {
+            UserRoute route = viewModel.previewedRoute.getValue();
+            if (route == null || route.routeCoordinates == null || route.routeCoordinates.size() < 2) {
+                Toast.makeText(requireContext(), R.string.msg_route_no_coords, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            PlannedRoute planned = new PlannedRoute(
+                    route.routeCoordinates, route.distanceKm, route.durationSeconds);
+            navigator.navigateToRunWithRoute(requireParentFragment(), planned);
+        });
         btnMore.setOnClickListener(v -> {
             PopupMenu popup = new PopupMenu(requireContext(), btnMore);
             popup.getMenuInflater().inflate(R.menu.menu_route_preview, popup.getMenu());

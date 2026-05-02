@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import android.util.Log;
 
 import javax.inject.Inject;
 
@@ -43,6 +44,7 @@ public class UserRouteRepositoryImpl implements UserRouteRepository {
         MutableLiveData<Result<Long>> result = new MutableLiveData<>();
         executorService.execute(() -> {
             try {
+                Log.d("UserRouteRepositoryImpl", "Saving route: " + route.name);
                 UserRouteEntity entity = new UserRouteEntity(
                         route.name,
                         route.routeMode,
@@ -63,6 +65,7 @@ public class UserRouteRepositoryImpl implements UserRouteRepository {
 
                 mainHandler.post(() -> result.setValue(new Result.Success<>(routeId)));
             } catch (Exception e) {
+                Log.e("UserRouteRepositoryImpl", "Error saving route: " + e.getMessage());
                 mainHandler.post(() -> result.setValue(new Result.Error<>(e, e.getMessage())));
             }
         });

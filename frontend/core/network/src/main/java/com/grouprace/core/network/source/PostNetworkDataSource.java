@@ -12,6 +12,9 @@ import com.grouprace.core.network.model.post.CreatePostRequest;
 import com.grouprace.core.network.model.post.CommentPayload;
 import com.grouprace.core.network.utils.ApiResponse;
 
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import javax.inject.Inject;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -24,10 +27,12 @@ import java.util.List;
 public class PostNetworkDataSource {
 
     private final PostApiService apiService;
+    private final android.content.Context context;
 
     @Inject
-    public PostNetworkDataSource(PostApiService apiService) {
+    public PostNetworkDataSource(PostApiService apiService, @dagger.hilt.android.qualifiers.ApplicationContext android.content.Context context) {
         this.apiService = apiService;
+        this.context = context;
     }
 
     public LiveData<Result<List<NetworkPost>>> getPosts(String cursor, int limit) {
@@ -313,11 +318,15 @@ public class PostNetworkDataSource {
 
         return liveData;
     }
-    public LiveData<Result<Boolean>> createPost(CreatePostRequest request) {
+    public LiveData<Result<Boolean>> createPost(
+            CreatePostRequest request,
+            List<String> photoUris
+    ) {
         MutableLiveData<Result<Boolean>> liveData = new MutableLiveData<>();
         liveData.postValue(new Result.Loading<>());
 
-        apiService.createPost(request).enqueue(new Callback<ApiResponse<Void>>() {
+        List<MultipartBody.Part> photos = resolvePhotoParts(photoUris);
+        apiService.createPost(request.toPartMap(), photos).enqueue(new Callback<ApiResponse<Void>>() {
             @Override
             public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
@@ -339,6 +348,58 @@ public class PostNetworkDataSource {
         });
 
         return liveData;
+    }
+
+    public Result<Boolean> createPostSync(
+            CreatePostRequest request,
+            List<String> photoUris
+    ) {
+        try {
+            List<MultipartBody.Part> photos = resolvePhotoParts(photoUris);
+            Response<ApiResponse<Void>> response = apiService.createPost(request.toPartMap(), photos).execute();
+            if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                return new Result.Success<>(true);
+            } else {
+                String msg = response.body() != null ? response.body().getMessage() : "HTTP " + response.code();
+                return new Result.Error<>(new Exception(msg), msg);
+            }
+        } catch (java.io.IOException e) {
+            return new Result.Error<>(e, e.getMessage());
+        }
+    }
+
+    private List<MultipartBody.Part> resolvePhotoParts(List<String> photoUris) {
+        List<MultipartBody.Part> photoParts = new java.util.ArrayList<>();
+        if (photoUris != null) {
+            for (String uriString : photoUris) {
+                try {
+                    android.net.Uri uri = android.net.Uri.parse(uriString);
+                    String mimeType = context.getContentResolver().getType(uri);
+                    if (mimeType == null) mimeType = "image/jpeg";
+
+                    java.io.InputStream inputStream = context.getContentResolver().openInputStream(uri);
+                    if (inputStream != null) {
+                        byte[] bytes = readAllBytes(inputStream);
+                        RequestBody requestBody = RequestBody.create(MediaType.parse(mimeType), bytes);
+                        photoParts.add(MultipartBody.Part.createFormData("photos", "photo_" + System.currentTimeMillis() + ".jpg", requestBody));
+                    }
+                } catch (Exception e) {
+                    Log.e("PostNetworkDataSource", "Failed to read image URI: " + uriString, e);
+                }
+            }
+        }
+        return photoParts;
+    }
+
+    private byte[] readAllBytes(java.io.InputStream inputStream) throws java.io.IOException {
+        java.io.ByteArrayOutputStream byteBuffer = new java.io.ByteArrayOutputStream();
+        int bufferSize = 1024;
+        byte[] buffer = new byte[bufferSize];
+        int len;
+        while ((len = inputStream.read(buffer)) != -1) {
+            byteBuffer.write(buffer, 0, len);
+        }
+        return byteBuffer.toByteArray();
     }
 
     public LiveData<Result<List<NetworkPost>>> getClubPosts(int clubId, String cursor, int limit) {

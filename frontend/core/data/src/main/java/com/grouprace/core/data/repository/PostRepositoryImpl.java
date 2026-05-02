@@ -14,20 +14,26 @@ import com.grouprace.core.network.source.PostNetworkDataSource;
 import com.grouprace.core.data.dao.PostDao;
 import com.grouprace.core.data.model.PostEntity;
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.data.SyncManager;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 public class PostRepositoryImpl implements PostRepository {
 
     private final PostNetworkDataSource postNetworkDataSource;
     private final PostDao postDao;
+    private final SyncManager syncManager;
+    private final com.grouprace.core.network.utils.SessionManager sessionManager;
 
     @Inject
-    public PostRepositoryImpl(PostNetworkDataSource postNetworkDataSource, PostDao postDao) {
+    public PostRepositoryImpl(PostNetworkDataSource postNetworkDataSource, PostDao postDao, SyncManager syncManager, com.grouprace.core.network.utils.SessionManager sessionManager) {
         this.postNetworkDataSource = postNetworkDataSource;
         this.postDao = postDao;
+        this.syncManager = syncManager;
+        this.sessionManager = sessionManager;
     }
 
     @Override
@@ -94,11 +100,12 @@ public class PostRepositoryImpl implements PostRepository {
                         Post p = np.asExternalModel();
                         return new PostEntity(
                             p.getPostId(), p.getRecordId(), p.getOwnerId(), p.getTitle(),
-                            p.getDescription(), p.getPhotoUrl(), p.getLikeCount(),
+                            p.getDescription(), p.getPhotoUrls(), p.getLikeCount(),
                             p.getCommentCount(), p.getViewMode(), p.getCreatedAt(),
                             p.getUsername(), p.getFullName(), p.getProfilePictureUrl(),
                             p.getActivityType(), p.getDurationSeconds(), p.getDistanceKm(),
-                            p.getSpeed(), p.getRecordImageUrl(), p.isLiked(), p.getClubId()
+                            p.getSpeed(), p.getRecordImageUrl(), p.isLiked(), p.getClubId(),
+                            false // pendingSync = false
                         );
                     })
                     .collect(Collectors.toList());
@@ -184,27 +191,28 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public LiveData<Result<Boolean>> createPost(String title, String description, Integer recordId, Integer clubId) {
-        CreatePostRequest request = new CreatePostRequest(0, title, description);
-        request.setRecordId(recordId);
-        request.setClubId(clubId);
-        
+    public LiveData<Result<Boolean>> createPost(String title, String description, Integer recordId, Integer clubId, List<String> photoUrls) {
         MutableLiveData<Result<Boolean>> resultData = new MutableLiveData<>();
         resultData.postValue(new Result.Loading<>());
 
-        postNetworkDataSource.createPost(request).observeForever(result -> {
-            if (result instanceof Result.Success) {
-                if (clubId != null) {
-                    syncClubPosts(clubId, null, 1);
-                } else {
-                    syncPosts(null, 1);
-                }
-                resultData.postValue(new Result.Success<>(true));
-            } else if (result instanceof Result.Error) {
-                Result.Error<?> error = (Result.Error<?>) result;
-                resultData.postValue(new Result.Error<>(error.exception, error.message));
-            }
-        });
+        // Use a negative ID for offline creation
+        int offlineId = - (new Random().nextInt(1000000) + 1);
+        
+        // Generate ISO 8601 timestamp
+        String currentTime = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US).format(new java.util.Date());
+        
+        PostEntity offlineEntity = new PostEntity(
+                offlineId, recordId, sessionManager.getUserId(), title, description, photoUrls,
+                0, 0, "Everyone", currentTime, null, null, null,
+                null, null, null, null, null, false, clubId,
+                true // pendingSync = true
+        );
+
+        new Thread(() -> {
+            postDao.upsert(offlineEntity);
+            syncManager.schedulePostSync();
+            resultData.postValue(new Result.Success<>(true));
+        }).start();
 
         return resultData;
     }

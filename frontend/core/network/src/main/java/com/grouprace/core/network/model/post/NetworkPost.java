@@ -2,6 +2,7 @@ package com.grouprace.core.network.model.post;
 
 import com.google.gson.annotations.SerializedName;
 import com.grouprace.core.model.Post;
+import java.util.List;
 
 public class NetworkPost {
 
@@ -20,8 +21,8 @@ public class NetworkPost {
     @SerializedName("description")
     private String description;
 
-    @SerializedName("photo_url")
-    private String photoUrl;
+    @SerializedName("photo_urls")
+    private List<String> photoUrls;
 
     @SerializedName("like_count")
     private int likeCount;
@@ -82,8 +83,8 @@ public class NetworkPost {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public String getPhotoUrl() { return photoUrl; }
-    public void setPhotoUrl(String photoUrl) { this.photoUrl = photoUrl; }
+    public List<String> getPhotoUrls() { return photoUrls; }
+    public void setPhotoUrls(List<String> photoUrls) { this.photoUrls = photoUrls; }
 
     public int getLikeCount() { return likeCount; }
     public void setLikeCount(int likeCount) { this.likeCount = likeCount; }
@@ -126,7 +127,7 @@ public class NetworkPost {
 
     public Post asExternalModel() {
         Post post = new Post(
-            postId, recordId, ownerId, title, description, photoUrl,
+            postId, recordId, ownerId, title, description, photoUrls,
             likeCount, commentCount, viewMode, createdAt, username, fullName, profilePictureUrl,
             activityType, durationSeconds, distanceKm, speed, recordImageUrl, clubId
         );
