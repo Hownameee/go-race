@@ -217,11 +217,6 @@ public class ClubDetailFragment extends Fragment {
             }
 
             @Override
-            public void onReportClicked(Post post) {
-
-            }
-
-            @Override
             public void onPostClicked(Post post) {
                 if (appNavigator != null) {
                     appNavigator.openPostDetail(ClubDetailFragment.this, post.getPostId());

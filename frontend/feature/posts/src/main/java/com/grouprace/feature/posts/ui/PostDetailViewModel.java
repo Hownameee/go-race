@@ -20,25 +20,33 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 public class PostDetailViewModel extends ViewModel {
 
     private final PostRepository postRepository;
-    private final MutableLiveData<Integer> postIdTrigger = new MutableLiveData<>();
+    private final MutableLiveData<Integer> postId = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> refreshTrigger = new MutableLiveData<>(true);
     private final LiveData<Result<List<Comment>>> comments;
-    private final LiveData<Post> postData;
 
     @Inject
     public PostDetailViewModel(PostRepository postRepository) {
         this.postRepository = postRepository;
-        this.comments = Transformations.switchMap(postIdTrigger, id -> postRepository.getComments(id, null, 50));
-        this.postData = Transformations.switchMap(postIdTrigger, postRepository::getPostById);
+        
+        // Combine postId and refreshTrigger to load comments
+        this.comments = Transformations.switchMap(postId, id -> 
+            Transformations.switchMap(refreshTrigger, trigger -> 
+                postRepository.getComments(id, null, 100)
+            )
+        );
     }
 
-    public void setPostId(int postId) {
-        if (postIdTrigger.getValue() == null || postIdTrigger.getValue() != postId) {
-            postIdTrigger.setValue(postId);
+    public void setPostId(int id) {
+        if (postId.getValue() == null || postId.getValue() != id) {
+            postId.setValue(id);
         }
     }
-    
+
     public LiveData<Post> getPostData() {
-        return postData;
+        Integer id = postId.getValue();
+        if (id == null)
+            return new MutableLiveData<>();
+        return postRepository.getPostById(id);
     }
 
     public LiveData<Result<List<Comment>>> getComments() {
@@ -46,9 +54,7 @@ public class PostDetailViewModel extends ViewModel {
     }
 
     public void loadComments() {
-        if (postIdTrigger.getValue() != null) {
-            postIdTrigger.setValue(postIdTrigger.getValue());
-        }
+        refreshTrigger.setValue(true);
     }
 
     public LiveData<Result<Boolean>> likePost(int postId) {
@@ -59,15 +65,7 @@ public class PostDetailViewModel extends ViewModel {
         return postRepository.unlikePost(postId);
     }
 
-    public LiveData<Result<Boolean>> createComment(String content, Integer parentId) {
-        Integer postId = postIdTrigger.getValue();
-        if (postId == null) return new MutableLiveData<>(new Result.Error<>(null, "Post ID not set"));
-        return postRepository.createComment(postId, content, parentId);
-    }
-
-    public LiveData<Result<Boolean>> likeComment(int commentId, boolean like) {
-        Integer postId = postIdTrigger.getValue();
-        if (postId == null) return new MutableLiveData<>(new Result.Error<>(null, "Post ID not set"));
+    public LiveData<Result<Boolean>> likeComment(int postId, int commentId, boolean like) {
         if (like) {
             return postRepository.likeComment(postId, commentId);
         } else {
@@ -75,9 +73,11 @@ public class PostDetailViewModel extends ViewModel {
         }
     }
 
-    public LiveData<Result<List<Comment>>> loadReplies(int commentId) {
-        Integer postId = postIdTrigger.getValue();
-        if (postId == null) return new MutableLiveData<>(new Result.Error<>(null, "Post ID not set"));
+    public LiveData<Result<Boolean>> createComment(int postId, String content, Integer parentId) {
+        return postRepository.createComment(postId, content, parentId);
+    }
+
+    public LiveData<Result<List<Comment>>> loadReplies(int postId, int commentId) {
         return postRepository.getReplies(postId, commentId, null, 20);
     }
 }

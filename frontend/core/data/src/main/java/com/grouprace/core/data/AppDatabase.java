@@ -29,7 +29,7 @@ import com.grouprace.core.data.model.EventEntity;
 
 @Database(entities = { RoutePoint.class, PostEntity.class, RecordEntity.class,
         UserRouteEntity.class, UserRouteWaypointEntity.class, ClubEntity.class,
-        ClubAdminEntity.class, EventEntity.class, NotificationEntity.class}, version = 13, exportSchema = false)
+        ClubAdminEntity.class, EventEntity.class, NotificationEntity.class}, version = 14, exportSchema = false)
 @androidx.room.TypeConverters(com.grouprace.core.data.utils.Converters.class)
 public abstract class AppDatabase extends RoomDatabase {
 

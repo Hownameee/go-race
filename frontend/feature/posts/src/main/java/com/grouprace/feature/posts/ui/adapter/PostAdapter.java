@@ -30,7 +30,6 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
         void onCommentClicked(Post post);
 
         void onShareClicked(Post post);
-
         void onReportClicked(Post post);
 
         void onPostClicked(Post post);
@@ -80,7 +79,7 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull PostViewHolder holder, int position,
-            @NonNull java.util.List<Object> payloads) {
+                                 @NonNull java.util.List<Object> payloads) {
         if (!payloads.isEmpty()) {
             for (Object payload : payloads) {
                 if (PAYLOAD_LIKE.equals(payload)) {
@@ -149,7 +148,7 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
         return null;
     }
 
-    public static class PostViewHolder extends RecyclerView.ViewHolder {
+    static class PostViewHolder extends RecyclerView.ViewHolder {
         private final TextView tvUsername;
         private final TextView tvTime;
         private final TextView tvTitle;
@@ -187,7 +186,7 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
             ivComment = itemView.findViewById(R.id.iv_comment);
             ivShare = itemView.findViewById(R.id.iv_share);
             ivMore = itemView.findViewById(R.id.iv_more);
-            
+
             // Setup PagerSnapHelper for rvMedia
             new androidx.recyclerview.widget.PagerSnapHelper().attachToRecyclerView(rvMedia);
         }

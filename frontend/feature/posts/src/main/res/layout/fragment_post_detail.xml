@@ -6,68 +6,45 @@
     android:layout_height="match_parent"
     android:background="@color/black">
 
+
+<!--    TOP BAR-->
     <include
         android:id="@+id/top_bar"
         layout="@layout/layout_top_app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scroll_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintTop_toBottomOf="@id/top_bar"
-        app:layout_constraintBottom_toTopOf="@id/layout_reply_indicator">
+        app:layout_constraintBottom_toTopOf="@id/layout_reply_indicator"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+
+<!--            POST DETAIL-->
             <include
                 android:id="@+id/post_header"
                 layout="@layout/item_post" />
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/surface_medium"
-                android:layout_marginHorizontal="16dp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Comments"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_margin="16dp" />
-
+<!--            COMMENT DETAIL-->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_comments"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false"
-                android:paddingHorizontal="16dp" />
-
-            <ProgressBar
-                android:id="@+id/loading_comments"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_margin="16dp"
-                android:visibility="gone"
-                android:indeterminateTint="@color/white" />
-
-            <TextView
-                android:id="@+id/tv_comment_error"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                android:gravity="center"
-                android:textColor="@color/error_red"
-                android:visibility="gone" />
+                android:paddingHorizontal="16dp"/>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
@@ -83,7 +60,9 @@
         android:paddingVertical="8dp"
         android:background="#1A1A1A"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/layout_input">
+        app:layout_constraintBottom_toTopOf="@id/layout_input"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <TextView
             android:id="@+id/tv_replying_to"
@@ -111,7 +90,9 @@
         android:gravity="center_vertical"
         android:padding="12dp"
         android:background="@color/black"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <ImageView
             android:id="@+id/iv_user_avatar"
@@ -143,5 +124,28 @@
             android:src="@drawable/ic_send"
             app:tint="@color/white" />
     </LinearLayout>
+
+    <!-- Loading and Error States -->
+    <ProgressBar
+        android:id="@+id/loading_comments"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_comment_error"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Error loading comments"
+        android:textColor="@color/error_red"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

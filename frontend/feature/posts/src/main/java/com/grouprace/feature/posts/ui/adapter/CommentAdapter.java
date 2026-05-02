@@ -67,8 +67,7 @@ public class CommentAdapter extends ListAdapter<Comment, CommentAdapter.CommentV
     }
 
     @Override
-    public void onBindViewHolder(@NonNull CommentViewHolder holder, int position,
-            @NonNull java.util.List<Object> payloads) {
+    public void onBindViewHolder(@NonNull CommentViewHolder holder, int position, @NonNull java.util.List<Object> payloads) {
         if (!payloads.isEmpty()) {
             for (Object payload : payloads) {
                 if (PAYLOAD_LIKE.equals(payload)) {
