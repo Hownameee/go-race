@@ -12,23 +12,23 @@ import com.grouprace.core.data.model.ProfileOverviewEntity;
 
 @Dao
 public interface ProfileDao {
-    @Query("SELECT * FROM profile_overviews WHERE selfProfile = 1 LIMIT 1")
-    LiveData<ProfileOverviewEntity> getMyOverview();
-
     @Query("SELECT * FROM profile_overviews WHERE userId = :userId LIMIT 1")
-    LiveData<ProfileOverviewEntity> getUserOverview(int userId);
+    LiveData<ProfileOverviewEntity> getOverviewByUserId(int userId);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void upsertOverview(ProfileOverviewEntity overview);
 
-    @Query("SELECT * FROM my_profile_info WHERE id = 1 LIMIT 1")
-    LiveData<MyProfileInfoEntity> getMyInfo();
+    @Query("DELETE FROM profile_overviews WHERE selfProfile = 1 AND userId != :userId")
+    void clearSelfOverviewExcept(int userId);
 
-    @Query("SELECT * FROM my_profile_info WHERE id = 1 LIMIT 1")
-    MyProfileInfoEntity getMyInfoSync();
+    @Query("SELECT * FROM my_profile_info WHERE id = :userId LIMIT 1")
+    LiveData<MyProfileInfoEntity> getMyInfo(int userId);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void upsertMyInfo(MyProfileInfoEntity info);
+
+    @Query("DELETE FROM my_profile_info WHERE id != :userId")
+    void clearMyInfoExcept(int userId);
 
     // ===== Profile Feature Section =====
     @Query("SELECT * FROM profile_cache WHERE cacheKey = :cacheKey LIMIT 1")

@@ -13,11 +13,20 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.grouprace.core.common.TimeUtils;
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.core.model.Post;
+import com.grouprace.core.network.utils.SessionManager;
 import com.grouprace.feature.profile.R;
+import com.grouprace.feature.posts.ui.CommentFragment;
+import com.grouprace.feature.posts.ui.ShareActivityFragment;
+import com.grouprace.feature.posts.ui.adapter.PostAdapter;
 
 import java.util.List;
+import java.util.Locale;
+
+import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -27,8 +36,14 @@ public class ProfilePostsFragment extends Fragment {
     private static final String ARG_PROFILE_NAME = "arg_profile_name";
     private static final String ARG_IS_SELF = "arg_is_self";
 
+    @Inject
+    AppNavigator navigator;
+
+    @Inject
+    SessionManager sessionManager;
+
     private ProfilePostsViewModel viewModel;
-    private ProfilePostAdapter adapter;
+    private PostAdapter adapter;
     private ProgressBar loadingState;
     private TextView errorState;
     private TextView emptyState;
@@ -66,7 +81,75 @@ public class ProfilePostsFragment extends Fragment {
         titleView.setText(isSelf ? "Posts" : (profileName != null && !profileName.isEmpty() ? profileName + "'s Posts" : "Posts"));
         backButton.setOnClickListener(v -> requireActivity().getOnBackPressedDispatcher().onBackPressed());
 
-        adapter = new ProfilePostAdapter();
+        adapter = new PostAdapter();
+        adapter.setOnPostActionListener(new PostAdapter.OnPostActionListener() {
+            @Override
+            public void onLikeClicked(Post post, int position) {
+                if (post.isLiked()) {
+                    viewModel.unlikePost(post.getPostId()).observe(getViewLifecycleOwner(), result -> {
+                        if (result instanceof Result.Success) {
+                            post.setLiked(false);
+                            post.setLikeCount(Math.max(0, post.getLikeCount() - 1));
+                            adapter.notifyItemChanged(position, PostAdapter.PAYLOAD_LIKE);
+                        }
+                    });
+                } else {
+                    viewModel.likePost(post.getPostId()).observe(getViewLifecycleOwner(), result -> {
+                        if (result instanceof Result.Success) {
+                            post.setLiked(true);
+                            post.setLikeCount(post.getLikeCount() + 1);
+                            adapter.notifyItemChanged(position, PostAdapter.PAYLOAD_LIKE);
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onCommentClicked(Post post) {
+                CommentFragment.newInstance(post.getPostId())
+                        .show(getChildFragmentManager(), "ProfileCommentBottomSheet");
+            }
+
+            @Override
+            public void onShareClicked(Post post) {
+                double distance = post.getDistanceKm() != null ? post.getDistanceKm() : 0.0;
+                int seconds = post.getDurationSeconds() != null ? post.getDurationSeconds() : 0;
+                String pace;
+                if (distance > 0 && seconds > 0) {
+                    double paceMinKm = (seconds / 60.0) / distance;
+                    int paceMin = (int) paceMinKm;
+                    int paceSec = (int) ((paceMinKm - paceMin) * 60);
+                    pace = String.format(Locale.getDefault(), "%d:%02d /km", paceMin, paceSec);
+                } else {
+                    pace = "--:--";
+                }
+
+                double speed = post.getSpeed() != null ? post.getSpeed() : 0.0;
+                ShareActivityFragment.newInstance(
+                        post.getTitle(),
+                        String.format(Locale.getDefault(), "%.2f km", distance),
+                        pace,
+                        TimeUtils.formatDuration(seconds),
+                        post.getFullName(),
+                        post.getRecordImageUrl(),
+                        String.format(Locale.getDefault(), "%.1f km/h", speed)
+                ).show(getChildFragmentManager(), "ProfileShareBottomSheet");
+            }
+
+            @Override
+            public void onReportClicked(Post post) {
+                // No-op for now; keep behavior aligned with Home without introducing a new report flow.
+            }
+
+            @Override
+            public void onOwnerClicked(Post post) {
+                if (post.getOwnerId() == sessionManager.getUserId()) {
+                    navigator.openMyProfile(ProfilePostsFragment.this);
+                    return;
+                }
+                navigator.openUserProfile(ProfilePostsFragment.this, post.getOwnerId());
+            }
+        });
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerView.setAdapter(adapter);
 

@@ -26,10 +26,6 @@ const userService = {
   getUserByGoogleSub: async function (googleSub) {
     return await userRepo.getUserByGoogleSub(googleSub);
   },
-
-  createGoogleUser: async function (userData) {
-    return userRepo.createGoogleUser(userData);
-  },
   
   getAllUsers: async function (offset = 0, limit = 10) {
     const users = await userRepo.getAllUsers(offset, limit);
@@ -45,7 +41,21 @@ const userService = {
     return await userRepo.getUserByEmail(email);
   },
 
+  getUserByUsername: async function (username) {
+    return await userRepo.getUserByUsername(username);
+  },
+
   createUser: async function (userData) {
+    const existingUsername = await userRepo.getUserByUsername(userData.username);
+    if (existingUsername) {
+      throw new Error('Username already exists');
+    }
+
+    const existingEmail = await userRepo.getUserByEmail(userData.email);
+    if (existingEmail) {
+      throw new Error('Email already exists');
+    }
+
     const hashedPassword = await authService.hashPassword(userData.password);
 
     return userRepo.createUser({
@@ -55,6 +65,20 @@ const userService = {
       hashedPassword: hashedPassword,
       birthdate: userData.birthdate,
     });
+  },
+
+  createGoogleUser: async function (userData) {
+    const existingUsername = await userRepo.getUserByUsername(userData.username);
+    if (existingUsername) {
+      throw new Error('Username already exists');
+    }
+
+    const existingEmail = await userRepo.getUserByEmail(userData.email);
+    if (existingEmail) {
+      throw new Error('Email already exists');
+    }
+
+    return userRepo.createGoogleUser(userData);
   },
 
   getSuggestedUsers: async function (currentUserId, limit) {
@@ -68,6 +92,20 @@ const userService = {
     return attachAvatarUrls(users);
   },
   updateUserById: async function (userId, updateData) {
+    if (updateData.username !== undefined) {
+      const existingUsername = await userRepo.getUserByUsername(updateData.username);
+      if (existingUsername && Number(existingUsername.user_id) !== Number(userId)) {
+        throw new Error('Username already exists');
+      }
+    }
+
+    if (updateData.email !== undefined) {
+      const existingEmail = await userRepo.getUserByEmail(updateData.email);
+      if (existingEmail && Number(existingEmail.user_id) !== Number(userId)) {
+        throw new Error('Email already exists');
+      }
+    }
+
     const dbUpdateData = {
       username: updateData.username,
       fullname: updateData.fullname,

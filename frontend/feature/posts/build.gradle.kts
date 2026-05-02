@@ -52,6 +52,7 @@ dependencies {
     implementation(project(":core:system"))
     implementation(project(":core:navigation"))
     implementation(project(":feature:search"))
+    implementation(project(":core:network"))
     implementation(libs.palette)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

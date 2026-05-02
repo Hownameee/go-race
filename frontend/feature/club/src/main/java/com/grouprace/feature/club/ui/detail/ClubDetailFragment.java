@@ -20,6 +20,7 @@ import com.grouprace.core.common.TimeUtils;
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.Post;
 import com.grouprace.core.navigation.AppNavigator;
+import com.grouprace.core.network.utils.SessionManager;
 import com.grouprace.core.system.ui.TopAppBarConfig;
 import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.feature.club.R;
@@ -41,6 +42,8 @@ import dagger.hilt.android.AndroidEntryPoint;
 public class ClubDetailFragment extends Fragment {
     @Inject
     AppNavigator appNavigator;
+    @Inject
+    SessionManager sessionManager;
     private ClubDetailViewModel viewModel;
     private android.widget.Button btnJoinClub;
     private LinearLayout layoutMemberActions;
@@ -214,6 +217,16 @@ public class ClubDetailFragment extends Fragment {
                 String speedStr = String.format(Locale.getDefault(), "%.1f km/h", speedVal);
 
                 ShareActivityFragment.newInstance(post.getTitle(), String.format(Locale.getDefault(), "%.2f km", distance), pace, TimeUtils.formatDuration(seconds), post.getFullName(), post.getRecordImageUrl(), speedStr).show(getChildFragmentManager(), "ShareBottomSheet");
+            }
+
+            // profile section
+            @Override
+            public void onOwnerClicked(Post post) {
+                if (post.getOwnerId() == sessionManager.getUserId()) {
+                    appNavigator.openMyProfile(ClubDetailFragment.this);
+                    return;
+                }
+                appNavigator.openUserProfile(ClubDetailFragment.this, post.getOwnerId());
             }
         });
 

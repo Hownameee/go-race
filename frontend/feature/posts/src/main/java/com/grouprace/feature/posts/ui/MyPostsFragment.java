@@ -15,17 +15,27 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.grouprace.core.common.TimeUtils;
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.core.model.Post;
+import com.grouprace.core.network.utils.SessionManager;
 import com.grouprace.feature.posts.R;
 import com.grouprace.feature.posts.ui.adapter.PostAdapter;
 
 import java.util.List;
 import java.util.Locale;
 
+import javax.inject.Inject;
+
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class MyPostsFragment extends Fragment {
+
+  @Inject
+  AppNavigator appNavigator;
+
+  @Inject
+  SessionManager sessionManager;
 
   private MyPostsViewModel viewModel;
   private PostAdapter postAdapter;
@@ -112,9 +122,19 @@ public class MyPostsFragment extends Fragment {
         ).show(getChildFragmentManager(), "ShareBottomSheet");
       }
 
-            @Override
-            public void onReportClicked(Post post) {
-            }
+      @Override
+      public void onReportClicked(Post post) {
+      }
+
+      // profile section
+      @Override
+      public void onOwnerClicked(Post post) {
+        if (post.getOwnerId() == sessionManager.getUserId()) {
+          appNavigator.openMyProfile(MyPostsFragment.this);
+          return;
+        }
+        appNavigator.openUserProfile(MyPostsFragment.this, post.getOwnerId());
+      }
     });
     recyclerView.setAdapter(postAdapter);
 

@@ -57,6 +57,11 @@ const userRepo = {
     return db.prepare(sql).get(email);
   },
 
+  getUserByUsername: (username) => {
+    const sql = `SELECT * FROM USERS WHERE username = ? COLLATE NOCASE`;
+    return db.prepare(sql).get(username);
+  },
+
   createUser: (user) => {
     const { username, fullname, email, hashedPassword, birthdate } = user;
     const sql = `

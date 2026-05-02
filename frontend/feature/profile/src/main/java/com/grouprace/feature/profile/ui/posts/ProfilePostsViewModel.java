@@ -53,6 +53,14 @@ public class ProfilePostsViewModel extends ViewModel {
         return syncStatus;
     }
 
+    public LiveData<Result<Boolean>> likePost(int postId) {
+        return postRepository.likePost(postId);
+    }
+
+    public LiveData<Result<Boolean>> unlikePost(int postId) {
+        return postRepository.unlikePost(postId);
+    }
+
     public void sync() {
         LiveData<Result<Boolean>> source;
         if (self) {

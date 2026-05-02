@@ -160,6 +160,9 @@ const userController = {
       await userService.updateUserById(userId, updateData);
       res.ok(null, "User updated successfully");
     } catch (error) {
+      if (error.message === 'Username already exists' || error.message === 'Email already exists') {
+        return res.violate(null, error.message);
+      }
       next(error);
     }
   },
@@ -295,6 +298,9 @@ const userController = {
         "Avatar uploaded successfully",
       );
     } catch (error) {
+      if (error.message === 'Username already exists' || error.message === 'Email already exists') {
+        return res.violate(null, error.message);
+      }
       next(error);
     }
   },

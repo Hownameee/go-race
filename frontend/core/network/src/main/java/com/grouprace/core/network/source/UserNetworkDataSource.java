@@ -304,6 +304,38 @@ public class UserNetworkDataSource {
         return executeVoidCall(apiService.updateMyInfo(payload), "Update profile failed.");
     }
 
+    public ProfileOverviewResponse getMyOverviewSync() throws Exception {
+        Response<ApiResponse<ProfileOverviewResponse>> response = apiService.getMyOverview().execute();
+        if (!response.isSuccessful() || response.body() == null) {
+            throw new Exception("HTTP Error: " + response.code() + " " + response.message());
+        }
+
+        ApiResponse<ProfileOverviewResponse> apiResponse = response.body();
+        if (!apiResponse.isSuccess() || apiResponse.getData() == null) {
+            throw new Exception(apiResponse.getMessage() != null
+                    ? apiResponse.getMessage()
+                    : "Load profile overview failed.");
+        }
+
+        return apiResponse.getData();
+    }
+
+    public MyProfileInfoPayload getMyInfoSync() throws Exception {
+        Response<ApiResponse<MyProfileInfoPayload>> response = apiService.getMyInfo().execute();
+        if (!response.isSuccessful() || response.body() == null) {
+            throw new Exception("HTTP Error: " + response.code() + " " + response.message());
+        }
+
+        ApiResponse<MyProfileInfoPayload> apiResponse = response.body();
+        if (!apiResponse.isSuccess() || apiResponse.getData() == null) {
+            throw new Exception(apiResponse.getMessage() != null
+                    ? apiResponse.getMessage()
+                    : "Load my profile info failed.");
+        }
+
+        return apiResponse.getData();
+    }
+
     private LiveData<Result<Void>> executeVoidCall(Call<ApiResponse<Void>> call, String fallbackMessage) {
         MutableLiveData<Result<Void>> liveData = new MutableLiveData<>();
         liveData.postValue(new Result.Loading<>());

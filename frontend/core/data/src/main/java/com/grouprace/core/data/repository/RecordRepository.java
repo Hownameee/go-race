@@ -32,6 +32,8 @@ public interface RecordRepository {
 
     void getNetworkRecord(int recordId);
 
+    LiveData<List<Record>> getLocalMyRecords(int limit);
+
     LiveData<List<Record>> getLocalRecords(int limit);
 
     LiveData<Result<Boolean>> getNetworkRecords(int offset, int limit);

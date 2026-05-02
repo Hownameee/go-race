@@ -12,8 +12,8 @@ import com.grouprace.core.network.model.auth.LoginPayload;
 import com.grouprace.core.network.model.auth.LoginResponse;
 import com.grouprace.core.network.model.auth.RegisterPayload;
 import com.grouprace.core.network.source.AuthNetworkDataSource;
-import com.grouprace.core.network.source.AuthNetworkDataSource;
 import com.grouprace.core.network.utils.SessionManager;
+import com.grouprace.core.data.SyncManager;
 
 import javax.inject.Inject;
 
@@ -21,11 +21,17 @@ public class AuthRepositoryImpl implements AuthRepository {
 
     private final AuthNetworkDataSource authNetworkDataSource;
     private final SessionManager sessionManager;
+    private final SyncManager syncManager;
 
     @Inject
-    public AuthRepositoryImpl(AuthNetworkDataSource authNetworkDataSource, SessionManager sessionManager) {
+    public AuthRepositoryImpl(
+            AuthNetworkDataSource authNetworkDataSource,
+            SessionManager sessionManager,
+            SyncManager syncManager
+    ) {
         this.authNetworkDataSource = authNetworkDataSource;
         this.sessionManager = sessionManager;
+        this.syncManager = syncManager;
     }
 
     @Override
@@ -50,6 +56,7 @@ public class AuthRepositoryImpl implements AuthRepository {
                 }
 
                 sessionManager.saveSession(response.getAccessToken(), response.getRefreshToken());
+                syncManager.scheduleUserProfileSync();
 
                 return new Result.Success<>(null);
 
@@ -105,6 +112,7 @@ public class AuthRepositoryImpl implements AuthRepository {
                         && response.getRefreshToken() != null
                         && !response.getRefreshToken().isEmpty()) {
                   sessionManager.saveSession(response.getAccessToken(), response.getRefreshToken());
+                  syncManager.scheduleUserProfileSync();
                   Log.d("AuthRepository", "Google session saved.");
                 } else if (!response.isRequiresProfileCompletion()) {
                     return new Result.Error<>(

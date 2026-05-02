@@ -73,7 +73,12 @@ public class PostRepositoryImpl implements PostRepository {
     // ===== Profile Section ====
     @Override
     public LiveData<List<Post>> getLocalMyPosts(int limit) {
-        return Transformations.map(postDao.getMyPosts(limit), entities ->
+        int currentUserId = sessionManager.getUserId();
+        if (currentUserId <= 0) {
+            return new MutableLiveData<>(java.util.Collections.emptyList());
+        }
+
+        return Transformations.map(postDao.getPostsByOwner(currentUserId, limit), entities ->
                 entities.stream()
                         .map(PostEntity::asExternalModel)
                         .collect(Collectors.toList())

@@ -121,6 +121,12 @@ public class AppNavigatorImpl implements AppNavigator {
       navigateTo(currentFragment, ProfileAchievementsFragment.newInstance(isSelf, userId));
     }
 
+    // profile section
+    @Override
+    public void openMyProfile(Fragment currentFragment) {
+      navigateTo(currentFragment, ProfileFactory.createMyProfile());
+    }
+
     @Override
     public void openUserProfile(Fragment currentFragment, int userId) {
       navigateTo(currentFragment, ProfileFactory.createUserProfile(userId));

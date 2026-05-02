@@ -31,6 +31,7 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
 
         void onShareClicked(Post post);
         void onReportClicked(Post post);
+        void onOwnerClicked(Post post);
     }
 
     private OnPostActionListener listener;
@@ -117,6 +118,14 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
             }
         });
 
+        View.OnClickListener ownerClickListener = v -> {
+            if (listener != null) {
+                listener.onOwnerClicked(post);
+            }
+        };
+        holder.ivAvatar.setOnClickListener(ownerClickListener);
+        holder.tvUsername.setOnClickListener(ownerClickListener);
+
         holder.ivMore.setOnClickListener(v -> {
             PopupMenu popup = new PopupMenu(v.getContext(), v);
             popup.getMenuInflater().inflate(R.menu.menu_post_more, popup.getMenu());
@@ -141,6 +150,7 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
     }
 
     static class PostViewHolder extends RecyclerView.ViewHolder {
+        final ImageView ivAvatar;
         private final TextView tvUsername;
         private final TextView tvTime;
         private final TextView tvTitle;
@@ -161,6 +171,7 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
 
         public PostViewHolder(@NonNull View itemView) {
             super(itemView);
+            ivAvatar = itemView.findViewById(R.id.iv_avatar);
             tvUsername = itemView.findViewById(R.id.tv_username);
             tvTime = itemView.findViewById(R.id.tv_time);
             tvTitle = itemView.findViewById(R.id.tv_title);
@@ -187,6 +198,11 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
             tvUsername.setText(post.getFullName() != null ? post.getFullName() : "Unknown");
             tvTitle.setText(post.getTitle() != null ? post.getTitle() : "Untitled Activity");
             tvTime.setText(post.getCreatedAt() != null ? post.getCreatedAt() : "");
+            Glide.with(itemView.getContext())
+                    .load(post.getProfilePictureUrl())
+                    .placeholder(com.grouprace.core.system.R.drawable.bg_avatar_placeholder)
+                    .error(com.grouprace.core.system.R.drawable.bg_avatar_placeholder)
+                    .into(ivAvatar);
 
             if (post.getDescription() != null && !post.getDescription().isEmpty()) {
                 tvDescription.setVisibility(View.VISIBLE);

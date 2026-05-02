@@ -35,6 +35,7 @@ import javax.inject.Inject;
 public class RecordRepositoryImpl implements RecordRepository {
     private final RecordNetworkDataSource recordNetworkDataSource;
     private final RecordDao recordDao;
+    private final com.grouprace.core.network.utils.SessionManager sessionManager;
     // ===== Profile Feature Section =====
     private final ProfileDao profileDao;
     private final Gson gson = new Gson();
@@ -43,10 +44,12 @@ public class RecordRepositoryImpl implements RecordRepository {
     public RecordRepositoryImpl(
             RecordNetworkDataSource recordNetworkDataSource,
             RecordDao recordDao,
+            com.grouprace.core.network.utils.SessionManager sessionManager,
             ProfileDao profileDao
     ) {
         this.recordNetworkDataSource = recordNetworkDataSource;
         this.recordDao = recordDao;
+        this.sessionManager = sessionManager;
         this.profileDao = profileDao;
     }
 
@@ -130,6 +133,21 @@ public class RecordRepositoryImpl implements RecordRepository {
     public LiveData<List<Record>> getLocalRecords(int limit) {
         return Transformations.map(
                 recordDao.getRecords(limit),
+                entities -> entities.stream()
+                        .map(RecordEntity::asExternalModel)
+                        .collect(Collectors.toList())
+        );
+    }
+
+    @Override
+    public LiveData<List<Record>> getLocalMyRecords(int limit) {
+        int currentUserId = sessionManager.getUserId();
+        if (currentUserId <= 0) {
+            return new MutableLiveData<>(new ArrayList<>());
+        }
+
+        return Transformations.map(
+                recordDao.getRecordsByOwner(currentUserId, limit),
                 entities -> entities.stream()
                         .map(RecordEntity::asExternalModel)
                         .collect(Collectors.toList())

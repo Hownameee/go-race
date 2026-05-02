@@ -32,7 +32,7 @@ public class ProfileRecordsViewModel extends ViewModel {
         this.recordRepository = recordRepository;
         this.records = Transformations.switchMap(limitLiveData, currentLimit -> {
             if (self) {
-                return recordRepository.getLocalRecords(currentLimit);
+                return recordRepository.getLocalMyRecords(currentLimit);
             }
             if (userId > 0) {
                 return recordRepository.getLocalUserRecords(userId, currentLimit);

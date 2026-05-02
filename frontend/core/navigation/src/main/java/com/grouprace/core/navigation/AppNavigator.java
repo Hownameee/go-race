@@ -26,6 +26,8 @@ public interface AppNavigator {
     void openProfileFollowList(Fragment currentFragment, int userId, String profileName, boolean isSelf, String initialTab);
     void openProfileStatistics(Fragment currentFragment, int userId, boolean isSelf);
     void openProfileAchievements(Fragment currentFragment, int userId, boolean isSelf);
+    // profile section
+    void openMyProfile(Fragment currentFragment);
     void openUserProfile(Fragment currentFragment, int userId);
     void openLogin(Fragment currentFragment);
     void openRegister(Fragment currentFragment);

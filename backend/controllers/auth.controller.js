@@ -62,18 +62,25 @@ const authController = {
       }
 
       if (!existingUser) {
-        const hashedPassword = await authService.createOAuthPlaceholderPassword();
-        const newUserId = await userService.createGoogleUser({
-          username,
-          fullname: googlePayload.name || username,
-          email: googlePayload.email,
-          hashedPassword,
-          birthdate,
-          googleSub: googlePayload.sub,
-          avatarUrl: googlePayload.picture || null,
-        });
+        try {
+          const hashedPassword = await authService.createOAuthPlaceholderPassword();
+          const newUserId = await userService.createGoogleUser({
+            username,
+            fullname: googlePayload.name || username,
+            email: googlePayload.email,
+            hashedPassword,
+            birthdate,
+            googleSub: googlePayload.sub,
+            avatarUrl: googlePayload.picture || null,
+          });
 
-        user = await userService.getUserById(newUserId);
+          user = await userService.getUserById(newUserId);
+        } catch (error) {
+          if (error.message === 'Username already exists' || error.message === 'Email already exists') {
+            return res.violate(null, error.message);
+          }
+          throw error;
+        }
       } else {
         user = existingUser;
       }
@@ -94,11 +101,19 @@ const authController = {
         return res.violate(null, 'Email already exists');
       }
 
+      const existingUsername = await userService.getUserByUsername(userData.username);
+      if (existingUsername) {
+        return res.violate(null, 'Username already exists');
+      }
+
       const newUserId = await userService.createUser(userData);
       if (!newUserId) throw new Error('Created user account failed');
 
       return res.created(null, 'User registered successfully');
     } catch (error) {
+      if (error.message === 'Username already exists' || error.message === 'Email already exists') {
+        return res.violate(null, error.message);
+      }
       next(error);
     }
   },

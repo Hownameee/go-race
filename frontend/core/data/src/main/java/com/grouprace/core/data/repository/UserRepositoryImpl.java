@@ -10,6 +10,7 @@ import com.grouprace.core.data.dao.ProfileDao;
 import com.grouprace.core.data.model.MyProfileInfoEntity;
 import com.grouprace.core.data.model.ProfileCacheEntity;
 import com.grouprace.core.data.model.ProfileOverviewEntity;
+import com.grouprace.core.data.SyncManager;
 import com.grouprace.core.model.Profile.FollowUser;
 import com.grouprace.core.model.Profile.MyProfileInfo;
 import com.grouprace.core.model.Profile.ProfileOverview;
@@ -25,27 +26,32 @@ import java.util.List;
 import javax.inject.Inject;
 
 public class UserRepositoryImpl implements UserRepository {
-
-    private static final int MY_PROFILE_INFO_ID = 1;
-
     private final UserNetworkDataSource userNetworkDataSource;
     private final com.grouprace.core.network.utils.SessionManager sessionManager;
     private final ProfileDao profileDao;
+    private final SyncManager syncManager;
     // ===== Profile Feature Section =====
     private final Gson gson = new Gson();
 
     @Inject
-    public UserRepositoryImpl(UserNetworkDataSource userNetworkDataSource, com.grouprace.core.network.utils.SessionManager sessionManager, ProfileDao profileDao) {
+    public UserRepositoryImpl(
+            UserNetworkDataSource userNetworkDataSource,
+            com.grouprace.core.network.utils.SessionManager sessionManager,
+            ProfileDao profileDao,
+            SyncManager syncManager
+    ) {
         this.userNetworkDataSource = userNetworkDataSource;
         this.sessionManager = sessionManager;
         this.profileDao = profileDao;
+        this.syncManager = syncManager;
     }
 
     // ===== Profile Feature Section =====
     @Override
     public LiveData<Result<ProfileOverview>> getMyOverview() {
+        int currentUserId = sessionManager.getUserId();
         return getOverviewOfflineFirst(
-                profileDao.getMyOverview(),
+                currentUserId > 0 ? profileDao.getOverviewByUserId(currentUserId) : new MutableLiveData<>(),
                 userNetworkDataSource.getMyOverview(),
                 true
         );
@@ -54,7 +60,7 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public LiveData<Result<ProfileOverview>> getUserOverview(int userId) {
         return getOverviewOfflineFirst(
-                profileDao.getUserOverview(userId),
+                profileDao.getOverviewByUserId(userId),
                 userNetworkDataSource.getUserOverview(userId),
                 false
         );
@@ -85,8 +91,10 @@ public class UserRepositoryImpl implements UserRepository {
     public LiveData<Result<MyProfileInfo>> getMyInfo() {
         MediatorLiveData<Result<MyProfileInfo>> resultData = new MediatorLiveData<>();
         boolean[] hasLocal = { false };
+        int currentUserId = sessionManager.getUserId();
 
-        LiveData<MyProfileInfoEntity> localResult = profileDao.getMyInfo();
+        LiveData<MyProfileInfoEntity> localResult =
+                currentUserId > 0 ? profileDao.getMyInfo(currentUserId) : new MutableLiveData<>();
         resultData.addSource(localResult, entity -> {
             if (entity != null) {
                 hasLocal[0] = true;
@@ -163,7 +171,18 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public LiveData<Result<String>> uploadMyAvatar(byte[] avatarBytes, String fileName, String mimeType) {
-        return userNetworkDataSource.uploadMyAvatar(avatarBytes, fileName, mimeType);
+        MediatorLiveData<Result<String>> resultData = new MediatorLiveData<>();
+        LiveData<Result<String>> source = userNetworkDataSource.uploadMyAvatar(avatarBytes, fileName, mimeType);
+        resultData.addSource(source, result -> {
+            resultData.setValue(result);
+            if (result instanceof Result.Success) {
+                syncManager.scheduleUserProfileSync();
+            }
+            if (!(result instanceof Result.Loading)) {
+                resultData.removeSource(source);
+            }
+        });
+        return resultData;
     }
 
     // ===== Profile Feature Section =====
@@ -174,6 +193,7 @@ public class UserRepositoryImpl implements UserRepository {
 
         userNetworkDataSource.updateMyInfo(mapToMyProfileInfoPayload(myProfileInfo)).observeForever(result -> {
             if (result instanceof Result.Success) {
+                syncManager.scheduleUserProfileSync();
                 userNetworkDataSource.getMyInfo().observeForever(syncResult -> {
                     if (syncResult instanceof Result.Success) {
                         cacheMyInfo(mapToMyProfileInfo(((Result.Success<MyProfileInfoPayload>) syncResult).data));
@@ -241,7 +261,12 @@ public class UserRepositoryImpl implements UserRepository {
             return;
         }
 
-        new Thread(() -> profileDao.upsertOverview(mapToProfileOverviewEntity(overview, selfProfile))).start();
+        new Thread(() -> {
+            profileDao.upsertOverview(mapToProfileOverviewEntity(overview, selfProfile));
+            if (selfProfile) {
+                profileDao.clearSelfOverviewExcept(overview.getUserId());
+            }
+        }).start();
     }
 
     // ===== Profile Feature Section =====
@@ -250,7 +275,15 @@ public class UserRepositoryImpl implements UserRepository {
             return;
         }
 
-        new Thread(() -> profileDao.upsertMyInfo(mapToMyProfileInfoEntity(info))).start();
+        int currentUserId = sessionManager.getUserId();
+        if (currentUserId <= 0) {
+            return;
+        }
+
+        new Thread(() -> {
+            profileDao.upsertMyInfo(mapToMyProfileInfoEntity(currentUserId, info));
+            profileDao.clearMyInfoExcept(currentUserId);
+        }).start();
     }
 
     // ===== Profile Feature Section =====
@@ -372,9 +405,9 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     // ===== Profile Feature Section =====
-    private MyProfileInfoEntity mapToMyProfileInfoEntity(MyProfileInfo info) {
+    private MyProfileInfoEntity mapToMyProfileInfoEntity(int userId, MyProfileInfo info) {
         return new MyProfileInfoEntity(
-                MY_PROFILE_INFO_ID,
+                userId,
                 info.getUsername(),
                 info.getFullname(),
                 info.getEmail(),
