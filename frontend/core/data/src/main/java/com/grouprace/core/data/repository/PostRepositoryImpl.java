@@ -66,6 +66,16 @@ public class PostRepositoryImpl implements PostRepository {
 
     // ===== Profile Section ====
     @Override
+    public LiveData<List<Post>> getLocalMyPosts(int limit) {
+        return Transformations.map(postDao.getMyPosts(limit), entities ->
+                entities.stream()
+                        .map(PostEntity::asExternalModel)
+                        .collect(Collectors.toList())
+        );
+    }
+
+    // ===== Profile Section ====
+    @Override
     public LiveData<List<Post>> getLocalUserPosts(int userId, int limit) {
         return Transformations.map(postDao.getPostsByOwner(userId, limit), entities ->
                 entities.stream()
@@ -94,11 +104,23 @@ public class PostRepositoryImpl implements PostRepository {
 
     // ===== Profile Section ====
     @Override
+    public LiveData<Result<Boolean>> syncMyPosts(String cursor, int limit) {
+        return syncProfilePosts(postNetworkDataSource.getMyPosts(cursor, limit), true);
+    }
+
+    // ===== Profile Section ====
+    @Override
     public LiveData<Result<Boolean>> syncUserPosts(int userId, String cursor, int limit) {
+        return syncProfilePosts(postNetworkDataSource.getUserPosts(userId, cursor, limit), false);
+    }
+
+    // ===== Profile Section ====
+    private LiveData<Result<Boolean>> syncProfilePosts(
+            LiveData<Result<List<NetworkPost>>> networkCall,
+            boolean selfOwner
+    ) {
         MutableLiveData<Result<Boolean>> resultData = new MutableLiveData<>();
         resultData.postValue(new Result.Loading<>());
-
-        LiveData<Result<List<NetworkPost>>> networkCall = postNetworkDataSource.getUserPosts(userId, cursor, limit);
 
         networkCall.observeForever(result -> {
             if (result instanceof Result.Success) {
@@ -112,7 +134,8 @@ public class PostRepositoryImpl implements PostRepository {
                                     p.getCommentCount(), p.getViewMode(), p.getCreatedAt(),
                                     p.getUsername(), p.getFullName(), p.getProfilePictureUrl(),
                                     p.getActivityType(), p.getDurationSeconds(), p.getDistanceKm(),
-                                    p.getSpeed(), p.getRecordImageUrl(), p.isLiked(), p.getClubId()
+                                    p.getSpeed(), p.getRecordImageUrl(), p.isLiked(), p.getClubId(),
+                                    selfOwner
                             );
                         })
                         .collect(Collectors.toList());

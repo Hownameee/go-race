@@ -1,11 +1,15 @@
 package com.grouprace.core.data.repository;
 
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 
+import com.google.gson.Gson;
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.data.dao.ProfileDao;
 import com.grouprace.core.data.dao.RecordDao;
+import com.grouprace.core.data.model.ProfileCacheEntity;
 import com.grouprace.core.data.model.RecordEntity;
 import com.grouprace.core.model.Profile.WeeklyRecordPoint;
 import com.grouprace.core.model.Profile.WeeklyRecordSummary;
@@ -31,50 +35,77 @@ import javax.inject.Inject;
 public class RecordRepositoryImpl implements RecordRepository {
     private final RecordNetworkDataSource recordNetworkDataSource;
     private final RecordDao recordDao;
+    // ===== Profile Feature Section =====
+    private final ProfileDao profileDao;
+    private final Gson gson = new Gson();
 
     @Inject
     public RecordRepositoryImpl(
             RecordNetworkDataSource recordNetworkDataSource,
-            RecordDao recordDao
+            RecordDao recordDao,
+            ProfileDao profileDao
     ) {
         this.recordNetworkDataSource = recordNetworkDataSource;
         this.recordDao = recordDao;
+        this.profileDao = profileDao;
     }
 
+    // ===== Profile Feature Section =====
     @Override
     public LiveData<Result<WeeklyRecordSummary>> getMyWeeklySummary(String activityType, int weeks) {
-        return Transformations.map(
-                recordNetworkDataSource.getMyWeeklySummary(activityType, weeks),
-                this::mapWeeklySummaryResult
+        return getWeeklySummaryOfflineFirst(
+                profileCacheKey("weekly", "self", activityType, weeks),
+                recordNetworkDataSource.getMyWeeklySummary(activityType, weeks)
         );
     }
 
+    // ===== Profile Feature Section =====
     @Override
     public LiveData<Result<WeeklyRecordSummary>> getUserWeeklySummary(int userId, String activityType, int weeks) {
-        return Transformations.map(
-                recordNetworkDataSource.getUserWeeklySummary(userId, activityType, weeks),
-                this::mapWeeklySummaryResult
+        return getWeeklySummaryOfflineFirst(
+                profileCacheKey("weekly", "user_" + userId, activityType, weeks),
+                recordNetworkDataSource.getUserWeeklySummary(userId, activityType, weeks)
         );
     }
 
+    // ===== Profile Feature Section =====
     @Override
     public LiveData<Result<RecordProfileStatisticsResponse>> getMyProfileStatistics(String activityType) {
-        return recordNetworkDataSource.getMyProfileStatistics(activityType);
+        return getProfileResponseOfflineFirst(
+                profileCacheKey("statistics", "self", activityType, 0),
+                recordNetworkDataSource.getMyProfileStatistics(activityType),
+                RecordProfileStatisticsResponse.class
+        );
     }
 
+    // ===== Profile Feature Section =====
     @Override
     public LiveData<Result<RecordProfileStatisticsResponse>> getUserProfileStatistics(int userId, String activityType) {
-        return recordNetworkDataSource.getUserProfileStatistics(userId, activityType);
+        return getProfileResponseOfflineFirst(
+                profileCacheKey("statistics", "user_" + userId, activityType, 0),
+                recordNetworkDataSource.getUserProfileStatistics(userId, activityType),
+                RecordProfileStatisticsResponse.class
+        );
     }
 
+    // ===== Profile Feature Section =====
     @Override
     public LiveData<Result<RecordStreakResponse>> getMyStreak() {
-        return recordNetworkDataSource.getMyStreak();
+        return getProfileResponseOfflineFirst(
+                profileCacheKey("streak", "self", null, 0),
+                recordNetworkDataSource.getMyStreak(),
+                RecordStreakResponse.class
+        );
     }
 
+    // ===== Profile Feature Section =====
     @Override
     public LiveData<Result<RecordStreakResponse>> getUserStreak(int userId) {
-        return recordNetworkDataSource.getUserStreak(userId);
+        return getProfileResponseOfflineFirst(
+                profileCacheKey("streak", "user_" + userId, null, 0),
+                recordNetworkDataSource.getUserStreak(userId),
+                RecordStreakResponse.class
+        );
     }
 
     @Override
@@ -157,18 +188,6 @@ public class RecordRepositoryImpl implements RecordRepository {
         );
     }
 
-    private Result<WeeklyRecordSummary> mapWeeklySummaryResult(Result<RecordWeeklySummaryResponse> result) {
-        if (result instanceof Result.Loading) {
-            return new Result.Loading<>();
-        } else if (result instanceof Result.Success) {
-            RecordWeeklySummaryResponse response = ((Result.Success<RecordWeeklySummaryResponse>) result).data;
-            return new Result.Success<>(mapToWeeklySummary(response));
-        }
-
-        Result.Error<RecordWeeklySummaryResponse> error = (Result.Error<RecordWeeklySummaryResponse>) result;
-        return new Result.Error<>(error.exception, error.message);
-    }
-
     private void syncRecordsToLocal(
             MutableLiveData<Result<Boolean>> resultData,
             Result<List<NetworkRecord>> result
@@ -209,6 +228,108 @@ public class RecordRepositoryImpl implements RecordRepository {
                 networkRecord.getSpeed(),
                 networkRecord.getImageUrl()
         );
+    }
+
+    // ===== Profile Feature Section =====
+    private LiveData<Result<WeeklyRecordSummary>> getWeeklySummaryOfflineFirst(
+            String cacheKey,
+            LiveData<Result<RecordWeeklySummaryResponse>> networkResult
+    ) {
+        MediatorLiveData<Result<WeeklyRecordSummary>> resultData = new MediatorLiveData<>();
+        boolean[] hasLocal = { false };
+
+        resultData.addSource(profileDao.getProfileCache(cacheKey), cache -> {
+            RecordWeeklySummaryResponse response = readProfileCache(cache, RecordWeeklySummaryResponse.class);
+            if (response != null) {
+                hasLocal[0] = true;
+                resultData.setValue(new Result.Success<>(mapToWeeklySummary(response)));
+            }
+        });
+
+        resultData.addSource(networkResult, result -> {
+            if (result instanceof Result.Loading) {
+                if (!hasLocal[0]) {
+                    resultData.setValue(new Result.Loading<>());
+                }
+            } else if (result instanceof Result.Success) {
+                RecordWeeklySummaryResponse response = ((Result.Success<RecordWeeklySummaryResponse>) result).data;
+                cacheProfileResponse(cacheKey, response);
+                resultData.setValue(new Result.Success<>(mapToWeeklySummary(response)));
+            } else if (!hasLocal[0]) {
+                Result.Error<RecordWeeklySummaryResponse> error = (Result.Error<RecordWeeklySummaryResponse>) result;
+                resultData.setValue(new Result.Error<>(error.exception, error.message));
+            }
+        });
+
+        return resultData;
+    }
+
+    // ===== Profile Feature Section =====
+    private <T> LiveData<Result<T>> getProfileResponseOfflineFirst(
+            String cacheKey,
+            LiveData<Result<T>> networkResult,
+            Class<T> responseClass
+    ) {
+        MediatorLiveData<Result<T>> resultData = new MediatorLiveData<>();
+        boolean[] hasLocal = { false };
+
+        resultData.addSource(profileDao.getProfileCache(cacheKey), cache -> {
+            T cachedResponse = readProfileCache(cache, responseClass);
+            if (cachedResponse != null) {
+                hasLocal[0] = true;
+                resultData.setValue(new Result.Success<>(cachedResponse));
+            }
+        });
+
+        resultData.addSource(networkResult, result -> {
+            if (result instanceof Result.Loading) {
+                if (!hasLocal[0]) {
+                    resultData.setValue(new Result.Loading<>());
+                }
+            } else if (result instanceof Result.Success) {
+                T response = ((Result.Success<T>) result).data;
+                cacheProfileResponse(cacheKey, response);
+                resultData.setValue(new Result.Success<>(response));
+            } else if (!hasLocal[0]) {
+                Result.Error<T> error = (Result.Error<T>) result;
+                resultData.setValue(new Result.Error<>(error.exception, error.message));
+            }
+        });
+
+        return resultData;
+    }
+
+    // ===== Profile Feature Section =====
+    private <T> T readProfileCache(ProfileCacheEntity cache, Class<T> responseClass) {
+        if (cache == null || cache.json == null) {
+            return null;
+        }
+
+        try {
+            return gson.fromJson(cache.json, responseClass);
+        } catch (RuntimeException exception) {
+            return null;
+        }
+    }
+
+    // ===== Profile Feature Section =====
+    private void cacheProfileResponse(String cacheKey, Object response) {
+        if (response == null) {
+            return;
+        }
+
+        String json = gson.toJson(response);
+        new Thread(() -> profileDao.upsertProfileCache(
+                new ProfileCacheEntity(cacheKey, json, System.currentTimeMillis())
+        )).start();
+    }
+
+    // ===== Profile Feature Section =====
+    private String profileCacheKey(String section, String owner, String activityType, int weeks) {
+        String normalizedActivity = activityType == null || activityType.trim().isEmpty()
+                ? "all"
+                : activityType.trim().toLowerCase(Locale.US);
+        return "profile:" + section + ":" + owner + ":" + normalizedActivity + ":" + weeks;
     }
 
     private WeeklyRecordSummary mapToWeeklySummary(RecordWeeklySummaryResponse response) {

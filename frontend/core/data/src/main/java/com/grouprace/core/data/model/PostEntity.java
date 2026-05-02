@@ -1,6 +1,7 @@
 package com.grouprace.core.data.model;
 
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 import com.grouprace.core.model.Post;
 
@@ -27,8 +28,16 @@ public class PostEntity {
     public String recordImageUrl;
     public boolean isLiked;
     public Integer clubId;
+    public boolean selfOwner;
 
+    @Ignore
     public PostEntity(int postId, Integer recordId, int ownerId, String title, String description, String photoUrl, int likeCount, int commentCount, String viewMode, String createdAt, String username, String fullName, String profilePictureUrl, String activityType, Integer durationSeconds, Double distanceKm, Double speed, String recordImageUrl, boolean isLiked, Integer clubId) {
+        this(postId, recordId, ownerId, title, description, photoUrl, likeCount, commentCount,
+                viewMode, createdAt, username, fullName, profilePictureUrl, activityType,
+                durationSeconds, distanceKm, speed, recordImageUrl, isLiked, clubId, false);
+    }
+
+    public PostEntity(int postId, Integer recordId, int ownerId, String title, String description, String photoUrl, int likeCount, int commentCount, String viewMode, String createdAt, String username, String fullName, String profilePictureUrl, String activityType, Integer durationSeconds, Double distanceKm, Double speed, String recordImageUrl, boolean isLiked, Integer clubId, boolean selfOwner) {
         this.postId = postId;
         this.recordId = recordId;
         this.ownerId = ownerId;
@@ -49,6 +58,7 @@ public class PostEntity {
         this.recordImageUrl = recordImageUrl;
         this.isLiked = isLiked;
         this.clubId = clubId;
+        this.selfOwner = selfOwner;
     }
 
     public Post asExternalModel() {

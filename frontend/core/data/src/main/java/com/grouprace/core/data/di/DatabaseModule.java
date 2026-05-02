@@ -6,6 +6,7 @@ import androidx.room.Room;
 
 import com.grouprace.core.data.AppDatabase;
 import com.grouprace.core.data.dao.ClubDao;
+import com.grouprace.core.data.dao.ProfileDao;
 import com.grouprace.core.data.dao.RecordDao;
 import com.grouprace.core.data.dao.RoutePointDao;
 import com.grouprace.core.data.dao.UserRouteDao;
@@ -67,5 +68,11 @@ public class DatabaseModule {
     @Provides
     public EventDao provideEventDao(AppDatabase appDatabase) {
         return appDatabase.eventDao();
+    }
+
+    // ===== Profile Feature Section =====
+    @Provides
+    public ProfileDao provideProfileDao(AppDatabase appDatabase) {
+        return appDatabase.profileDao();
     }
 }

@@ -19,6 +19,10 @@ public interface PostDao {
     @Query("SELECT * FROM posts WHERE ownerId = :ownerId ORDER BY createdAt DESC LIMIT :limit")
     LiveData<List<PostEntity>> getPostsByOwner(int ownerId, int limit);
 
+    // ===== Profile Feature Section =====
+    @Query("SELECT * FROM posts WHERE selfOwner = 1 ORDER BY createdAt DESC LIMIT :limit")
+    LiveData<List<PostEntity>> getMyPosts(int limit);
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void upsert(PostEntity post);
 

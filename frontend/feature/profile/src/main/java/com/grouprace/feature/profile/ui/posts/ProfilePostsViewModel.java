@@ -2,7 +2,7 @@ package com.grouprace.feature.profile.ui.posts;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Observer;
+import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModel;
 
 import com.grouprace.core.common.result.Result;
@@ -20,15 +20,24 @@ public class ProfilePostsViewModel extends ViewModel {
     private static final int LIMIT = 20;
 
     private final PostRepository postRepository;
-    private final MutableLiveData<Result<List<Post>>> postsResult = new MutableLiveData<>();
-    private LiveData<Result<List<Post>>> source;
-    private Observer<Result<List<Post>>> sourceObserver;
+    private final MutableLiveData<Result<Boolean>> syncStatus = new MutableLiveData<>();
+    private final MutableLiveData<Integer> limitLiveData = new MutableLiveData<>(LIMIT);
+    private final LiveData<List<Post>> posts;
     private int userId = -1;
     private boolean self;
 
     @Inject
     public ProfilePostsViewModel(PostRepository postRepository) {
         this.postRepository = postRepository;
+        this.posts = Transformations.switchMap(limitLiveData, currentLimit -> {
+            if (self) {
+                return postRepository.getLocalMyPosts(currentLimit);
+            }
+            if (userId > 0) {
+                return postRepository.getLocalUserPosts(userId, currentLimit);
+            }
+            return new MutableLiveData<>();
+        });
     }
 
     public void initialize(int userId, boolean self) {
@@ -36,27 +45,33 @@ public class ProfilePostsViewModel extends ViewModel {
         this.self = self;
     }
 
-    public LiveData<Result<List<Post>>> getPostsResult() {
-        return postsResult;
+    public LiveData<List<Post>> getPosts() {
+        return posts;
+    }
+
+    public LiveData<Result<Boolean>> getSyncStatus() {
+        return syncStatus;
     }
 
     public void sync() {
-        if (source != null && sourceObserver != null) {
-            source.removeObserver(sourceObserver);
+        LiveData<Result<Boolean>> source;
+        if (self) {
+            source = postRepository.syncMyPosts(null, LIMIT);
+        } else if (userId > 0) {
+            source = postRepository.syncUserPosts(userId, null, LIMIT);
+        } else {
+            return;
         }
 
-        source = self
-                ? postRepository.getMyPosts(null, LIMIT)
-                : postRepository.getUserPosts(userId, null, LIMIT);
-        sourceObserver = result -> postsResult.setValue(result);
-        source.observeForever(sourceObserver);
-    }
-
-    @Override
-    protected void onCleared() {
-        super.onCleared();
-        if (source != null && sourceObserver != null) {
-            source.removeObserver(sourceObserver);
-        }
+        source.observeForever(result -> {
+            if (result instanceof Result.Loading) {
+                syncStatus.setValue(new Result.Loading<>());
+            } else if (result instanceof Result.Success) {
+                syncStatus.setValue(new Result.Success<>(true));
+            } else if (result instanceof Result.Error) {
+                Result.Error<Boolean> error = (Result.Error<Boolean>) result;
+                syncStatus.setValue(new Result.Error<>(error.exception, error.message));
+            }
+        });
     }
 }

@@ -72,33 +72,41 @@ public class ProfilePostsFragment extends Fragment {
 
         viewModel = new ViewModelProvider(this).get(ProfilePostsViewModel.class);
         viewModel.initialize(userId, isSelf);
-        viewModel.getPostsResult().observe(getViewLifecycleOwner(), this::bindPostsState);
+        viewModel.getPosts().observe(getViewLifecycleOwner(), this::displayPosts);
+        viewModel.getSyncStatus().observe(getViewLifecycleOwner(), this::bindSyncState);
         viewModel.sync();
     }
 
-    private void bindPostsState(Result<List<Post>> result) {
+    private void bindSyncState(Result<Boolean> result) {
         if (result instanceof Result.Loading) {
-            loadingState.setVisibility(View.VISIBLE);
-            recyclerView.setVisibility(View.GONE);
-            errorState.setVisibility(View.GONE);
+            boolean hasCachedPosts = adapter.getItemCount() > 0;
+            loadingState.setVisibility(hasCachedPosts ? View.GONE : View.VISIBLE);
+            recyclerView.setVisibility(hasCachedPosts ? View.VISIBLE : View.GONE);
             emptyState.setVisibility(View.GONE);
+            errorState.setVisibility(View.GONE);
         } else if (result instanceof Result.Success) {
             loadingState.setVisibility(View.GONE);
             errorState.setVisibility(View.GONE);
-
-            List<Post> posts = ((Result.Success<List<Post>>) result).data;
-            adapter.submitList(posts);
-
-            boolean isEmpty = posts == null || posts.isEmpty();
-            recyclerView.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
-            emptyState.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
         } else if (result instanceof Result.Error) {
             loadingState.setVisibility(View.GONE);
-            recyclerView.setVisibility(View.GONE);
-            emptyState.setVisibility(View.GONE);
+            if (adapter.getItemCount() > 0) {
+                errorState.setVisibility(View.GONE);
+                return;
+            }
             errorState.setVisibility(View.VISIBLE);
-            String message = ((Result.Error<List<Post>>) result).message;
+            String message = ((Result.Error<Boolean>) result).message;
             errorState.setText(message != null ? message : "Failed to load posts.");
         }
+    }
+
+    private void displayPosts(List<Post> posts) {
+        loadingState.setVisibility(View.GONE);
+        errorState.setVisibility(View.GONE);
+
+        adapter.submitList(posts);
+
+        boolean isEmpty = posts == null || posts.isEmpty();
+        recyclerView.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+        emptyState.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
     }
 }
