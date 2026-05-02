@@ -182,4 +182,9 @@ public class RecordRepositoryImpl implements RecordRepository {
 
         return new WeeklyRecordSummary(response.getActivityType(), response.getWeeks(), points);
     }
+
+    @Override
+    public void deleteOldRecords() {
+        recordDao.deleteOldRecords();
+    }
 }

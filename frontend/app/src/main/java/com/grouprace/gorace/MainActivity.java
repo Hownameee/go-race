@@ -109,6 +109,14 @@ public class MainActivity extends AppCompatActivity {
                 .commit();
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (viewModel != null) {
+            viewModel.performGarbageCollection();
+        }
+    }
+
     private void retryRegisterFcmToken() {
         if (!sessionManager.isLoggedIn()) {
             return;

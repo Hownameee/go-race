@@ -32,4 +32,5 @@ public interface PostRepository {
     LiveData<Result<Boolean>> unlikeComment(int postId, int commentId);
     LiveData<Result<List<Comment>>> getReplies(int postId, int commentId, String cursor, int limit);
     LiveData<Result<Boolean>> createPost(String title, String description, Integer recordId, Integer clubId, List<String> photoUrls);
+    void deleteOldPosts();
 }

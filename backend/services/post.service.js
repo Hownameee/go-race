@@ -1,12 +1,8 @@
-import path from 'path';
 import postRepo from '../repo/post.repo.js';
 import clubRepo from '../repo/club.repo.js';
-import { getImageUrlS3 } from '../utils/s3/s3.js';
 import followRepo from '../repo/follow.repo.js';
-import userRepo from '../repo/user.repo.js';
 import notificationService from './notification.service.js';
-import { resolveImageUrl } from '../utils/s3/s3.js';
-import { uploadImageS3 } from '../utils/s3/s3.js';
+import { resolveImageUrl, getImageUrlS3, uploadImageS3 } from '../utils/s3/s3.js';
 
 const FAR_FUTURE = '9999-12-31T23:59:59.999Z';
 
@@ -47,12 +43,12 @@ const postService = {
       }
     }
 
-    const newPost = await postRepo.insertPost(payload);
+    const post = await postRepo.insertPost(payload);
+
     if (files && files.length > 0) {
       const uploadPromises = files.map(async (file, index) => {
         const extension = path.extname(file.originalname || '') || '.jpg';
         const s3Key = `posts/post-${post.post_id}-${Date.now()}-${index}${extension}`;
-        
         await uploadImageS3(file.buffer, s3Key, file.mimetype);
         await postRepo.insertPostImage(post.post_id, s3Key);
         return s3Key;
@@ -60,55 +56,57 @@ const postService = {
       await Promise.all(uploadPromises);
     }
 
-    try {
-      const fullname = payload.fullname;
-      const ownerId = payload.owner_id;
-      const clubId = payload.club_id;
+    (async () => {
+      try {
+        const fullname = payload.fullname;
+        const ownerId = payload.owner_id;
+        const clubId = payload.club_id;
 
-      let targets = [];
-      let notificationMessage = '';
+        let targets = [];
+        let notificationMessage = '';
 
-      if (clubId) {
-        const club = await clubRepo.findById(clubId);
-        const members = await clubRepo.findApprovedMembers(clubId);
-        // Notify all approved members except the author
-        targets = members
-          .filter((m) => m.user_id !== ownerId)
-          .map((m) => m.user_id);
-        notificationMessage = `${fullname} just published a new post in ${club.name}`;
-      } else {
-        const effectiveCursor = FAR_FUTURE;
-        const followers = await followRepo.selectFollowers(
-          ownerId,
-          effectiveCursor,
-          null,
-        );
-        targets = followers.map((f) => f.user_id);
-        notificationMessage = `${fullname} just published a new post`;
+        if (clubId) {
+          const club = await clubRepo.findById(clubId);
+          const members = await clubRepo.findApprovedMembers(clubId);
+          // Notify all approved members except the author
+          targets = members
+            .filter((m) => m.user_id !== ownerId)
+            .map((m) => m.user_id);
+          notificationMessage = `${fullname} just published a new post in ${club.name}`;
+        } else {
+          const effectiveCursor = FAR_FUTURE;
+          const followers = await followRepo.selectFollowers(
+            ownerId,
+            effectiveCursor,
+            null,
+          );
+          targets = followers.map((f) => f.user_id);
+          notificationMessage = `${fullname} just published a new post`;
+        }
+
+        for (const targetId of targets) {
+          notificationService.createAndSend({
+            userId: targetId,
+            type: 'post',
+            actorId: ownerId,
+            activityId: post.post_id,
+            title: 'New Post',
+            message: notificationMessage,
+          });
+        }
+      } catch (err) {
+        console.error('[post][notification error]', err);
       }
+    })();
 
-      for (const targetId of targets) {
-        await notificationService.createAndSend({
-          userId: targetId,
-          type: 'post',
-          actorId: ownerId,
-          activityId: newPost.post_id,
-          title: 'New Post',
-          message: notificationMessage,
-        });
-      }
-    } catch (err) {
-      console.error('[post][notification error]', err);
-    }
-
-    return newPost;
+    return post;
   },
 
   async resolvePostPhotos(rows) {
     return Promise.all(
       rows.map(async (row) => {
         const { record_s3_key, photos, ...postWithoutExtras } = row;
-        
+
         let record_image_url = null;
         if (record_s3_key) {
           record_image_url = await getImageUrlS3(record_s3_key);
@@ -122,10 +120,10 @@ const postService = {
           );
         }
 
-        return { 
-          ...postWithoutExtras, 
+        return {
+          ...postWithoutExtras,
           record_image_url,
-          photo_urls 
+          photo_urls
         };
       }),
     );

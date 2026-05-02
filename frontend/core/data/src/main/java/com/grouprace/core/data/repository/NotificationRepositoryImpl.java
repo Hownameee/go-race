@@ -111,6 +111,13 @@ public class NotificationRepositoryImpl implements NotificationRepository {
         }).start();
         return networkDataSource.markAsRead(notificationId);
     }
+
+    @Override
+    public void deleteOldNotifications() {
+        new Thread(() -> {
+            notificationDao.deleteOldNotifications();
+        }).start();
+    }
     
     private NotificationModel toModel(NotificationEntity entity) {
         return new NotificationModel(

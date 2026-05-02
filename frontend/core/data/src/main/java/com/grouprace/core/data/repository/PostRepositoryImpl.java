@@ -216,4 +216,9 @@ public class PostRepositoryImpl implements PostRepository {
 
         return resultData;
     }
+
+    @Override
+    public void deleteOldPosts() {
+        postDao.deleteOldPosts();
+    }
 }

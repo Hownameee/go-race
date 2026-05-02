@@ -16,4 +16,5 @@ public interface RecordRepository {
     LiveData<Result<Boolean>> getNetworkRecords(int offset, int limit);
     LiveData<List<Record>> getTodayRecords();
     LiveData<TodaySummary> getTodaySummary();
+    void deleteOldRecords();
 }
