@@ -1,10 +1,8 @@
 package com.grouprace.core.data;
 
-import androidx.annotation.NonNull;
 import androidx.room.Database;
 import androidx.room.RoomDatabase;
-import androidx.room.migration.Migration;
-import androidx.sqlite.db.SupportSQLiteDatabase;
+import androidx.room.TypeConverters;
 
 import com.grouprace.core.data.dao.ClubDao;
 import com.grouprace.core.data.dao.ProfileDao;
@@ -25,12 +23,14 @@ import com.grouprace.core.data.model.RoutePoint;
 import com.grouprace.core.data.model.UserRouteEntity;
 import com.grouprace.core.data.model.UserRouteWaypointEntity;
 import com.grouprace.core.data.model.EventEntity;
+import com.grouprace.core.data.utils.Converters;
 
 @Database(entities = { RoutePoint.class, PostEntity.class, RecordEntity.class,
         UserRouteEntity.class, UserRouteWaypointEntity.class, ClubEntity.class,
         ClubAdminEntity.class, EventEntity.class,
         // ===== Profile Feature Section =====
         ProfileOverviewEntity.class, MyProfileInfoEntity.class, ProfileCacheEntity.class }, version = 14, exportSchema = false)
+@TypeConverters(Converters.class)
 public abstract class AppDatabase extends RoomDatabase {
 
     public abstract RoutePointDao routePointDao();

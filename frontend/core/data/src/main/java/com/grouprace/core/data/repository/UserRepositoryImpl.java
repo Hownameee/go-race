@@ -44,26 +44,11 @@ public class UserRepositoryImpl implements UserRepository {
     // ===== Profile Feature Section =====
     @Override
     public LiveData<Result<ProfileOverview>> getMyOverview() {
-        LiveData<Result<ProfileOverviewResponse>> networkResult = userDataSource.getMyOverview();
-
-        return Transformations.map(networkResult, result -> {
-            if (result instanceof Result.Loading) {
-                return new Result.Loading<>();
-            } else if (result instanceof Result.Success) {
-                ProfileOverviewResponse response = ((Result.Success<ProfileOverviewResponse>) result).data;
-                if (response != null) {
-                    sessionManager.saveSession(
-                        sessionManager.getAccessToken(),
-                        sessionManager.getRefreshToken(),
-                        response.getUserId()
-                    );
-                }
-                return new Result.Success<>(mapToProfileOverview(response));
-            } else {
-                Result.Error<ProfileOverviewResponse> error = (Result.Error<ProfileOverviewResponse>) result;
-                return new Result.Error<>(error.exception, error.message);
-            }
-        });
+        return getOverviewOfflineFirst(
+                profileDao.getMyOverview(),
+                userNetworkDataSource.getMyOverview(),
+                true
+        );
     }
 
     @Override
@@ -229,6 +214,13 @@ public class UserRepositoryImpl implements UserRepository {
                 }
             } else if (result instanceof Result.Success) {
                 ProfileOverviewResponse response = ((Result.Success<ProfileOverviewResponse>) result).data;
+                if (selfProfile && response != null) {
+                    sessionManager.saveSession(
+                            sessionManager.getAccessToken(),
+                            sessionManager.getRefreshToken(),
+                            response.getUserId()
+                    );
+                }
                 ProfileOverview overview = mapToProfileOverview(response);
                 if (overview != null) {
                     cacheOverview(overview, selfProfile);

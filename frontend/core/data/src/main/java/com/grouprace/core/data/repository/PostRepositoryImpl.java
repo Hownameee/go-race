@@ -136,12 +136,12 @@ public class PostRepositoryImpl implements PostRepository {
                             Post p = np.asExternalModel();
                             return new PostEntity(
                                     p.getPostId(), p.getRecordId(), p.getOwnerId(), p.getTitle(),
-                                    p.getDescription(), p.getPhotoUrl(), p.getLikeCount(),
+                                    p.getDescription(), p.getPhotoUrls(), p.getLikeCount(),
                                     p.getCommentCount(), p.getViewMode(), p.getCreatedAt(),
                                     p.getUsername(), p.getFullName(), p.getProfilePictureUrl(),
                                     p.getActivityType(), p.getDurationSeconds(), p.getDistanceKm(),
                                     p.getSpeed(), p.getRecordImageUrl(), p.isLiked(), p.getClubId(),
-                                    selfOwner
+                                    false, selfOwner
                             );
                         })
                         .collect(Collectors.toList());
@@ -187,7 +187,8 @@ public class PostRepositoryImpl implements PostRepository {
                             p.getUsername(), p.getFullName(), p.getProfilePictureUrl(),
                             p.getActivityType(), p.getDurationSeconds(), p.getDistanceKm(),
                             p.getSpeed(), p.getRecordImageUrl(), p.isLiked(), p.getClubId(),
-                            false // pendingSync = false
+                            false, // pendingSync = false
+                            false
                         );
                     })
                     .collect(Collectors.toList());
@@ -287,7 +288,8 @@ public class PostRepositoryImpl implements PostRepository {
                 offlineId, recordId, sessionManager.getUserId(), title, description, photoUrls,
                 0, 0, "Everyone", currentTime, null, null, null,
                 null, null, null, null, null, false, clubId,
-                true // pendingSync = true
+                true, // pendingSync = true
+                true
         );
 
         new Thread(() -> {
