@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS USERS (
   ),
 
   -- sign-up information
-  username TEXT NOT NULL,
+  username TEXT NOT NULL UNIQUE,
   fullname TEXT NOT NULL,
   email TEXT NOT NULL UNIQUE,
   hashed_password TEXT NOT NULL,
@@ -144,6 +144,7 @@ CREATE TABLE IF NOT EXISTS FOLLOW (
 -- Indexes for efficient cursor-based pagination on FOLLOW
 CREATE INDEX IF NOT EXISTS idx_follow_following ON FOLLOW(following_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_follow_follower ON FOLLOW(follower_id, created_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username_nocase ON USERS(username COLLATE NOCASE);
 
 -- Index for efficient cursor-based pagination on POST
 CREATE INDEX IF NOT EXISTS idx_post_created_at ON POST(created_at);

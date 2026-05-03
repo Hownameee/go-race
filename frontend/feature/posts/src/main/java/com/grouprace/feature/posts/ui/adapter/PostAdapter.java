@@ -33,6 +33,7 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
         void onReportClicked(Post post);
 
         void onPostClicked(Post post);
+        void onOwnerClicked(Post post);
     }
 
     private OnPostActionListener listener;
@@ -147,6 +148,15 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
                 listener.onPostClicked(getItem(currentPos));
             }
         });
+
+        View.OnClickListener ownerClickListener = v -> {
+            int currentPos = holder.getBindingAdapterPosition();
+            if (listener != null && currentPos != androidx.recyclerview.widget.RecyclerView.NO_POSITION) {
+                listener.onOwnerClicked(getItem(currentPos));
+            }
+        };
+        holder.ivAvatar.setOnClickListener(ownerClickListener);
+        holder.tvUsername.setOnClickListener(ownerClickListener);
     }
 
     public String getLastPostCreatedAt() {
@@ -157,7 +167,8 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
     }
 
     static class PostViewHolder extends RecyclerView.ViewHolder {
-        private final TextView tvUsername;
+        final ImageView ivAvatar;
+        final TextView tvUsername;
         private final TextView tvTime;
         private final TextView tvTitle;
         private final TextView tvDistance;
@@ -177,6 +188,7 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
 
         public PostViewHolder(@NonNull View itemView) {
             super(itemView);
+            ivAvatar = itemView.findViewById(R.id.iv_avatar);
             tvUsername = itemView.findViewById(R.id.tv_username);
             tvTime = itemView.findViewById(R.id.tv_time);
             tvTitle = itemView.findViewById(R.id.tv_title);
@@ -203,6 +215,16 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
             tvUsername.setText(post.getFullName() != null ? post.getFullName() : "Unknown");
             tvTitle.setText(post.getTitle() != null ? post.getTitle() : "Untitled Activity");
             tvTime.setText(post.getCreatedAt() != null ? post.getCreatedAt() : "");
+            if (post.getProfilePictureUrl() != null && !post.getProfilePictureUrl().isEmpty()) {
+                Glide.with(itemView.getContext())
+                        .load(post.getProfilePictureUrl())
+                        .placeholder(com.grouprace.core.system.R.drawable.ic_default_avt)
+                        .error(com.grouprace.core.system.R.drawable.ic_default_avt)
+                        .circleCrop()
+                        .into(ivAvatar);
+            } else {
+                ivAvatar.setImageResource(com.grouprace.core.system.R.drawable.ic_default_avt);
+            }
 
             if (post.getDescription() != null && !post.getDescription().isEmpty()) {
                 tvDescription.setVisibility(View.VISIBLE);

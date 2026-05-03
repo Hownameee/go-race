@@ -17,7 +17,7 @@ import com.grouprace.core.network.utils.SessionManager;
 import com.grouprace.core.system.ui.PlaceholderFragment;
 import com.grouprace.feature.login.ui.LoginViewModel;
 import com.grouprace.feature.club.ui.ClubsFragment;
-import com.grouprace.feature.profile.ui.main.ProfileFragment;
+import com.grouprace.feature.profile.ui.main.ProfileFactory;
 import com.grouprace.feature.login.ui.LoginFragment;
 import com.grouprace.feature.posts.ui.PostFragment;
 import com.grouprace.feature.records.list.ui.RecordsFragment;
@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (itemId == R.id.nav_clubs) {
                 fragment = new ClubsFragment();
             } else if (itemId == R.id.nav_you) {
-                fragment = new ProfileFragment();
+                fragment = ProfileFactory.createMyProfile();
             }
 
             if (fragment != null) {

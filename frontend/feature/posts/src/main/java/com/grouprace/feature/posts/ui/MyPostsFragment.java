@@ -15,7 +15,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.grouprace.core.common.TimeUtils;
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.core.model.Post;
+import com.grouprace.core.network.utils.SessionManager;
 import com.grouprace.feature.posts.R;
 import com.grouprace.feature.posts.ui.adapter.PostAdapter;
 
@@ -23,7 +25,7 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.inject.Inject;
-import com.grouprace.core.navigation.AppNavigator;
+
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
@@ -31,6 +33,9 @@ public class MyPostsFragment extends Fragment {
 
   @Inject
   AppNavigator appNavigator;
+
+  @Inject
+  SessionManager sessionManager;
 
   private MyPostsViewModel viewModel;
   private PostAdapter postAdapter;
@@ -40,7 +45,7 @@ public class MyPostsFragment extends Fragment {
   private RecyclerView recyclerView;
 
   public MyPostsFragment() {
-    super(R.layout.fragment_my_posts);
+    super(R.layout.fragment_user_posts);
   }
 
   public static MyPostsFragment newInstance() {
@@ -51,15 +56,15 @@ public class MyPostsFragment extends Fragment {
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
-    ImageButton backButton = view.findViewById(R.id.my_posts_back_button);
-    progressBar = view.findViewById(R.id.my_posts_loading_state);
-    errorState = view.findViewById(R.id.my_posts_error_state);
-    recyclerView = view.findViewById(R.id.my_posts_recycler_view);
+    ImageButton backButton = view.findViewById(R.id.user_posts_back_button);
+    progressBar = view.findViewById(R.id.user_posts_loading_state);
+    errorState = view.findViewById(R.id.user_posts_error_state);
+    recyclerView = view.findViewById(R.id.user_posts_recycler_view);
 
     backButton.setOnClickListener(v -> requireActivity().onBackPressed());
 
     recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-    emptyState = view.findViewById(R.id.my_posts_empty_state);
+    emptyState = view.findViewById(R.id.user_posts_empty_state);
     postAdapter = new PostAdapter();
     postAdapter.setOnPostActionListener(new PostAdapter.OnPostActionListener() {
       @Override
@@ -69,7 +74,7 @@ public class MyPostsFragment extends Fragment {
             if (result instanceof Result.Success) {
               post.setLiked(false);
               post.setLikeCount(Math.max(0, post.getLikeCount() - 1));
-              postAdapter.notifyItemChanged(position);
+              postAdapter.notifyItemChanged(position, PostAdapter.PAYLOAD_LIKE);
             }
           });
         } else {
@@ -77,7 +82,7 @@ public class MyPostsFragment extends Fragment {
             if (result instanceof Result.Success) {
               post.setLiked(true);
               post.setLikeCount(post.getLikeCount() + 1);
-              postAdapter.notifyItemChanged(position);
+              postAdapter.notifyItemChanged(position, PostAdapter.PAYLOAD_LIKE);
             }
           });
         }
@@ -117,9 +122,9 @@ public class MyPostsFragment extends Fragment {
         ).show(getChildFragmentManager(), "ShareBottomSheet");
       }
 
-            @Override
-            public void onReportClicked(Post post) {
-            }
+      @Override
+      public void onReportClicked(Post post) {
+      }
 
             @Override
             public void onPostClicked(Post post) {
@@ -127,6 +132,16 @@ public class MyPostsFragment extends Fragment {
                     appNavigator.openPostDetail(MyPostsFragment.this, post.getPostId());
                 }
             }
+
+      // profile section
+      @Override
+      public void onOwnerClicked(Post post) {
+        if (post.getOwnerId() == sessionManager.getUserId()) {
+          appNavigator.openMyProfile(MyPostsFragment.this);
+          return;
+        }
+        appNavigator.openUserProfile(MyPostsFragment.this, post.getOwnerId());
+      }
     });
     recyclerView.setAdapter(postAdapter);
 

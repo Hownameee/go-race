@@ -45,7 +45,7 @@ public class NetworkPost {
     @SerializedName("fullname")
     private String fullName;
 
-    @SerializedName("profile_picture_url")
+    @SerializedName(value = "profile_picture_url", alternate = { "avatar_url" })
     private String profilePictureUrl;
 
     @SerializedName("activity_type")

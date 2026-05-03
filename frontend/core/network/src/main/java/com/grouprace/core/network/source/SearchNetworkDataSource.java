@@ -1,5 +1,7 @@
 package com.grouprace.core.network.source;
 
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
@@ -9,19 +11,19 @@ import com.grouprace.core.network.model.search.ClubActionResultResponse;
 import com.grouprace.core.network.model.search.NetworkUserSearch;
 import com.grouprace.core.network.utils.ApiResponse;
 
+import java.util.List;
+
 import javax.inject.Inject;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-import android.util.Log;
-
-import java.util.List;
-
 public class SearchNetworkDataSource {
 
-    private final SearchApiService apiService;
     private static final String TAG = "SearchNetworkDataSource";
+
+    private final SearchApiService apiService;
 
     @Inject
     public SearchNetworkDataSource(SearchApiService apiService) {
@@ -44,11 +46,6 @@ public class SearchNetworkDataSource {
         return liveData;
     }
 
-    // --- CLUB METHODS (Thêm mới) ---
-
-    /**
-     * Tìm kiếm Câu lạc bộ theo tên.
-     */
     public LiveData<Result<List<NetworkUserSearch>>> searchClubs(String query) {
         MutableLiveData<Result<List<NetworkUserSearch>>> liveData = new MutableLiveData<>();
         liveData.postValue(new Result.Loading<>());
@@ -57,60 +54,11 @@ public class SearchNetworkDataSource {
         return liveData;
     }
 
-    /**
-     * Lấy danh sách Câu lạc bộ gợi ý.
-     */
     public LiveData<Result<List<NetworkUserSearch>>> getSuggestedClubs() {
         MutableLiveData<Result<List<NetworkUserSearch>>> liveData = new MutableLiveData<>();
         liveData.postValue(new Result.Loading<>());
 
         apiService.getSuggestedClubs().enqueue(new ListCallback(liveData, "getSuggestedClubs"));
-        return liveData;
-    }
-
-    public LiveData<Result<Boolean>> followUser(int targetUserId) {
-        MutableLiveData<Result<Boolean>> liveData = new MutableLiveData<>();
-        liveData.postValue(new Result.Loading<>());
-
-        apiService.followUser(targetUserId).enqueue(new Callback<ApiResponse<Void>>() {
-            @Override
-            public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
-                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                    liveData.postValue(new Result.Success<>(true));
-                } else {
-                    String msg = response.body() != null ? response.body().getMessage() : "HTTP " + response.code();
-                    liveData.postValue(new Result.Error<>(new Exception(msg), msg));
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
-                liveData.postValue(new Result.Error<>(new Exception(t), "Network Failure: " + t.getMessage()));
-            }
-        });
-        return liveData;
-    }
-
-    public LiveData<Result<Boolean>> unfollowUser(int targetUserId) {
-        MutableLiveData<Result<Boolean>> liveData = new MutableLiveData<>();
-        liveData.postValue(new Result.Loading<>());
-
-        apiService.unfollowUser(targetUserId).enqueue(new Callback<ApiResponse<Void>>() {
-            @Override
-            public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
-                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                    liveData.postValue(new Result.Success<>(true));
-                } else {
-                    String msg = response.body() != null ? response.body().getMessage() : "HTTP " + response.code();
-                    liveData.postValue(new Result.Error<>(new Exception(msg), msg));
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
-                liveData.postValue(new Result.Error<>(new Exception(t), "Network Failure: " + t.getMessage()));
-            }
-        });
         return liveData;
     }
 
@@ -174,7 +122,7 @@ public class SearchNetworkDataSource {
         private final MutableLiveData<Result<List<NetworkUserSearch>>> liveData;
         private final String methodName;
 
-        public ListCallback(MutableLiveData<Result<List<NetworkUserSearch>>> liveData, String methodName) {
+        private ListCallback(MutableLiveData<Result<List<NetworkUserSearch>>> liveData, String methodName) {
             this.liveData = liveData;
             this.methodName = methodName;
         }
@@ -200,9 +148,9 @@ public class SearchNetworkDataSource {
         }
 
         @Override
-        public void onFailure(Call<ApiResponse<List<NetworkUserSearch>>> call, Throwable t) {
-            Log.e(TAG, methodName + " Network Failure: " + t.getMessage());
-            liveData.postValue(new Result.Error<>(new Exception(t), "Network Failure: " + t.getMessage()));
+        public void onFailure(Call<ApiResponse<List<NetworkUserSearch>>> call, Throwable throwable) {
+            Log.e(TAG, methodName + " Network Failure: " + throwable.getMessage());
+            liveData.postValue(new Result.Error<>(new Exception(throwable), "Network Failure: " + throwable.getMessage()));
         }
     }
 }

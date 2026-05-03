@@ -135,7 +135,7 @@ const postService = {
     const effectiveLimit = Math.min(parseInt(limit) || DEFAULT_LIMIT, 100);
 
     const rows = await postRepo.selectFeed(userId, effectiveCursor, effectiveLimit);
-    const posts = await this.resolvePostPhotos(rows);
+    const posts = await attachAvatarUrls(await this.resolvePostPhotos(rows));
 
     const nextCursor =
       posts.length === effectiveLimit
@@ -155,7 +155,7 @@ const postService = {
       effectiveLimit,
     );
 
-    const posts = await this.resolvePostPhotos(rows);
+    const posts = await attachAvatarUrls(await this.resolvePostPhotos(rows));
 
     const nextCursor =
       posts.length === effectiveLimit
@@ -175,7 +175,7 @@ const postService = {
       effectiveLimit,
     );
 
-    const posts = await this.resolvePostPhotos(rows);
+    const posts = await attachAvatarUrls(await this.resolvePostPhotos(rows));
 
     const nextCursor =
       posts.length === effectiveLimit
@@ -183,6 +183,37 @@ const postService = {
         : null;
 
     return { posts, nextCursor };
+  },
+
+  async getUserPosts(ownerId, currentUserId, cursor, limit) {
+    const effectiveCursor = cursor || FAR_FUTURE;
+    const effectiveLimit = Math.min(parseInt(limit) || DEFAULT_LIMIT, 100);
+
+    const rows = await postRepo.selectUserPosts(
+      ownerId,
+      currentUserId,
+      effectiveCursor,
+      effectiveLimit,
+    );
+
+    const posts = await Promise.all(
+      rows.map(async (row) => {
+        const { s3_key, ...postWithoutS3Key } = row;
+        if (s3_key) {
+          const record_image_url = await getImageUrlS3(s3_key);
+          return { ...postWithoutS3Key, record_image_url };
+        }
+        return postWithoutS3Key;
+      }),
+    );
+    const postsWithAvatarUrls = await attachAvatarUrls(posts);
+
+    const nextCursor =
+      postsWithAvatarUrls.length === effectiveLimit
+        ? postsWithAvatarUrls[postsWithAvatarUrls.length - 1].created_at
+        : null;
+
+    return { posts: postsWithAvatarUrls, nextCursor };
   },
 
   async checkPostAccess(postId, userId) {
@@ -230,7 +261,7 @@ const postService = {
     const effectiveLimit = Math.min(parseInt(limit) || DEFAULT_LIMIT, 100);
 
     const rows = await postRepo.selectClubPosts(clubId, userId, effectiveCursor, effectiveLimit);
-    const posts = await this.resolvePostPhotos(rows);
+    const posts = await attachAvatarUrls(await this.resolvePostPhotos(rows));
 
     const nextCursor =
       rows.length === effectiveLimit ? rows[rows.length - 1].created_at : null;
@@ -345,11 +376,14 @@ const postService = {
       effectiveCursor,
       effectiveLimit,
     );
+    const comments = await attachAvatarUrls(rows);
 
     const nextCursor =
-      rows.length === effectiveLimit ? rows[rows.length - 1].created_at : null;
+      comments.length === effectiveLimit
+        ? comments[comments.length - 1].created_at
+        : null;
 
-    return { comments: rows, nextCursor };
+    return { comments, nextCursor };
   },
 
   async getReplies(commentId, userId, cursor, limit) {

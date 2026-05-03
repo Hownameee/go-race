@@ -75,7 +75,7 @@ public class EditProfileViewModel extends ViewModel {
                 fullname,
                 null,
                 birthdate,
-                currentAvatarUrl,
+                null,
                 emptyToNull(bio),
                 emptyToNull(provinceCity),
                 emptyToNull(country),

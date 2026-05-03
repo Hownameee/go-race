@@ -22,6 +22,7 @@ import com.grouprace.core.system.ui.TopAppBarConfig;
 import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.core.system.ui.TodayStatsHelper;
 import com.grouprace.core.navigation.AppNavigator;
+import com.grouprace.core.network.utils.SessionManager;
 
 import java.util.Locale;
 
@@ -33,6 +34,9 @@ public class PostFragment extends Fragment {
 
     @Inject
     AppNavigator appNavigator;
+
+    @Inject
+    SessionManager sessionManager;
 
     private PostViewModel viewModel;
     private RecyclerView rvPosts;
@@ -133,6 +137,16 @@ public class PostFragment extends Fragment {
                 if (appNavigator != null) {
                     appNavigator.openPostDetail(PostFragment.this, post.getPostId());
                 }
+            }
+
+            // profile section
+            @Override
+            public void onOwnerClicked(Post post) {
+                if (post.getOwnerId() == sessionManager.getUserId()) {
+                    appNavigator.openMyProfile(PostFragment.this);
+                    return;
+                }
+                appNavigator.openUserProfile(PostFragment.this, post.getOwnerId());
             }
         });
         rvPosts.setAdapter(postAdapter);

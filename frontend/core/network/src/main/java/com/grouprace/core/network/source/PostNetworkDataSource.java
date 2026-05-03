@@ -103,6 +103,40 @@ public class PostNetworkDataSource {
         return liveData;
     }
 
+    // ===== Profile Section ====
+    public LiveData<Result<List<NetworkPost>>> getUserPosts(int userId, String cursor, int limit) {
+        MutableLiveData<Result<List<NetworkPost>>> liveData = new MutableLiveData<>();
+        liveData.postValue(new Result.Loading<>());
+
+        apiService.getUserPosts(userId, cursor, limit).enqueue(new Callback<ApiResponse<PostPayload>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<PostPayload>> call, Response<ApiResponse<PostPayload>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<PostPayload> apiResponse = response.body();
+                    if (apiResponse.isSuccess() && apiResponse.getData() != null) {
+                        liveData.postValue(new Result.Success<>(apiResponse.getData().getPosts()));
+                    } else {
+                        String msg = apiResponse.getMessage() != null
+                                ? apiResponse.getMessage()
+                                : "Load user posts failed.";
+                        liveData.postValue(new Result.Error<>(new Exception(msg), msg));
+                    }
+                } else {
+                    String errorMessage = "HTTP Error: " + response.code() + " " + response.message();
+                    liveData.postValue(new Result.Error<>(new Exception(errorMessage), errorMessage));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<PostPayload>> call, Throwable t) {
+                Exception exception = (t instanceof Exception) ? (Exception) t : new Exception(t);
+                liveData.postValue(new Result.Error<>(exception, "Network Failure: " + t.getMessage()));
+            }
+        });
+
+        return liveData;
+    }
+
     public LiveData<Result<Boolean>> likePost(int postId) {
         MutableLiveData<Result<Boolean>> liveData = new MutableLiveData<>();
         liveData.postValue(new Result.Loading<>());

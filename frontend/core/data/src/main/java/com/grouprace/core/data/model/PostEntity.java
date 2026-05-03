@@ -1,6 +1,7 @@
 package com.grouprace.core.data.model;
 
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 import com.grouprace.core.model.Post;
 import java.util.List;
@@ -29,8 +30,17 @@ public class PostEntity {
     public boolean isLiked;
     public Integer clubId;
     public boolean pendingSync;
+    public boolean selfOwner;
 
+    @Ignore
     public PostEntity(int postId, Integer recordId, int ownerId, String title, String description, java.util.List<String> photoUrls, int likeCount, int commentCount, String viewMode, String createdAt, String username, String fullName, String profilePictureUrl, String activityType, Integer durationSeconds, Double distanceKm, Double speed, String recordImageUrl, boolean isLiked, Integer clubId, boolean pendingSync) {
+        this(postId, recordId, ownerId, title, description, photoUrls, likeCount, commentCount,
+                viewMode, createdAt, username, fullName, profilePictureUrl, activityType,
+                durationSeconds, distanceKm, speed, recordImageUrl, isLiked, clubId, pendingSync,
+                false);
+    }
+
+    public PostEntity(int postId, Integer recordId, int ownerId, String title, String description, java.util.List<String> photoUrls, int likeCount, int commentCount, String viewMode, String createdAt, String username, String fullName, String profilePictureUrl, String activityType, Integer durationSeconds, Double distanceKm, Double speed, String recordImageUrl, boolean isLiked, Integer clubId, boolean pendingSync, boolean selfOwner) {
         this.postId = postId;
         this.recordId = recordId;
         this.ownerId = ownerId;
@@ -52,6 +62,7 @@ public class PostEntity {
         this.isLiked = isLiked;
         this.clubId = clubId;
         this.pendingSync = pendingSync;
+        this.selfOwner = selfOwner;
     }
 
     public Post asExternalModel() {

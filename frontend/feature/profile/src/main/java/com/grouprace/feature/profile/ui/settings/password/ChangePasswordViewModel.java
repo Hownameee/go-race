@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.common.validation.FormValidator;
 import com.grouprace.core.data.repository.AuthRepository;
 import com.grouprace.core.data.repository.UserRepository;
 import com.grouprace.core.model.Profile.MyProfileInfo;
@@ -88,8 +89,8 @@ public class ChangePasswordViewModel extends ViewModel {
     }
 
     public LiveData<Result<Void>> verifyCurrentPassword(String currentPassword) {
-        if (isBlank(currentPassword)) {
-            toastMessage.setValue("Please enter your current password.");
+        if (FormValidator.isBlank(currentPassword)) {
+            toastMessage.setValue("Current password is required.");
             return new MutableLiveData<>();
         }
 
@@ -97,8 +98,9 @@ public class ChangePasswordViewModel extends ViewModel {
     }
 
     public LiveData<Result<Void>> requestPasswordResetOtp(String email) {
-        if (isBlank(email)) {
-            toastMessage.setValue("Please enter your email.");
+        String emailError = FormValidator.getEmailError(email);
+        if (emailError != null) {
+            toastMessage.setValue(emailError);
             return new MutableLiveData<>();
         }
 
@@ -124,8 +126,9 @@ public class ChangePasswordViewModel extends ViewModel {
             return new MutableLiveData<>();
         }
 
-        if (isBlank(otpCode)) {
-            toastMessage.setValue("Please enter OTP.");
+        String otpError = FormValidator.getOtpError(otpCode);
+        if (otpError != null) {
+            toastMessage.setValue(otpError);
             return new MutableLiveData<>();
         }
 
@@ -133,8 +136,19 @@ public class ChangePasswordViewModel extends ViewModel {
     }
 
     public LiveData<Result<Void>> submitNewPassword(String newPassword, String confirmPassword) {
-        if (isBlank(newPassword) || isBlank(confirmPassword)) {
-            toastMessage.setValue("Please fill in new password fields.");
+        String passwordError = FormValidator.getPasswordError(newPassword);
+        if (passwordError != null) {
+            toastMessage.setValue(passwordError);
+            return new MutableLiveData<>();
+        }
+
+        if (FormValidator.isBlank(confirmPassword)) {
+            toastMessage.setValue("Please confirm your new password.");
+            return new MutableLiveData<>();
+        }
+
+        if (!newPassword.trim().equals(confirmPassword.trim())) {
+            toastMessage.setValue("Confirm password does not match.");
             return new MutableLiveData<>();
         }
 
@@ -152,6 +166,10 @@ public class ChangePasswordViewModel extends ViewModel {
         }
 
         if (!isBlank(verifiedCurrentPassword)) {
+            if (verifiedCurrentPassword.trim().equals(newPassword.trim())) {
+                toastMessage.setValue("New password must be different from the old password.");
+                return new MutableLiveData<>();
+            }
             return userRepository.changePassword(
                     verifiedCurrentPassword,
                     newPassword.trim(),

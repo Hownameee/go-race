@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.common.validation.FormValidator;
 import com.grouprace.core.data.repository.UserRepository;
 
 import javax.inject.Inject;
@@ -65,8 +66,9 @@ public class ChangeEmailViewModel extends ViewModel {
     }
 
     public LiveData<Result<Void>> verifyOtp(String otpCode) {
-        if (otpCode == null || otpCode.trim().isEmpty()) {
-            toastMessage.setValue("Please enter OTP.");
+        String otpError = FormValidator.getOtpError(otpCode);
+        if (otpError != null) {
+            toastMessage.setValue(otpError);
             return new MutableLiveData<>();
         }
 
@@ -79,8 +81,9 @@ public class ChangeEmailViewModel extends ViewModel {
             return new MutableLiveData<>();
         }
 
-        if (newEmail == null || newEmail.trim().isEmpty()) {
-            toastMessage.setValue("Please enter a new email.");
+        String emailError = FormValidator.getEmailError(newEmail);
+        if (emailError != null) {
+            toastMessage.setValue(emailError);
             return new MutableLiveData<>();
         }
 
@@ -99,13 +102,15 @@ public class ChangeEmailViewModel extends ViewModel {
             return new MutableLiveData<>();
         }
 
-        if (newEmail == null || newEmail.trim().isEmpty()) {
-            toastMessage.setValue("Please enter a new email.");
+        String emailError = FormValidator.getEmailError(newEmail);
+        if (emailError != null) {
+            toastMessage.setValue(emailError);
             return new MutableLiveData<>();
         }
 
-        if (otpCode == null || otpCode.trim().isEmpty()) {
-            toastMessage.setValue("Please enter the OTP sent to your new email.");
+        String otpError = FormValidator.getOtpError(otpCode);
+        if (otpError != null) {
+            toastMessage.setValue(otpError);
             return new MutableLiveData<>();
         }
 
