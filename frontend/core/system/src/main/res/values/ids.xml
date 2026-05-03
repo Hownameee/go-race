@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Used as the key for View.setTag(R.id.tag_icon_key, tag) on right-icon wrappers
+         in TopAppBarHelper, so badges can be looked up by string key instead of index. -->
+    <item name="tag_icon_key" type="id" />
+</resources>

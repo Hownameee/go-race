@@ -39,12 +39,19 @@ public class MainViewModel extends ViewModel {
         executorService.execute(() -> {
             postRepository.deleteOldPosts();
             recordRepository.deleteOldRecords();
-            notificationRepository.deleteOldNotifications();
         });
+    }
+
+    public void markAsRead(int notificationId) {
+        notificationRepository.markAsRead(notificationId);
     }
 
     public LiveData<Boolean> getIsLoggedIn() {
         return authRepository.getIsLoggedIn();
+    }
+
+    public LiveData<Integer> getUnreadNotificationCount() {
+        return notificationRepository.getUnreadCount();
     }
 
     public void logout() {

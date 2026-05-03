@@ -9,7 +9,7 @@ public class NotificationPayload {
     private List<NetworkNotification> notifications;
 
     @SerializedName("nextCursor")
-    private String nextCursor;
+    private Integer nextCursor;
 
     public List<NetworkNotification> getNotifications() {
         return notifications;
@@ -19,11 +19,11 @@ public class NotificationPayload {
         this.notifications = notifications;
     }
 
-    public String getNextCursor() {
+    public Integer getNextCursor() {
         return nextCursor;
     }
 
-    public void setNextCursor(String nextCursor) {
+    public void setNextCursor(Integer nextCursor) {
         this.nextCursor = nextCursor;
     }
 }

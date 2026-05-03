@@ -14,4 +14,6 @@
 
     <color name="error_red">#FF5252</color>
     <color name="cyan_accent">#00DFB6</color>
+    <!-- Badge dot on toolbar icons -->
+    <color name="badge_red">#E53935</color>
 </resources>
