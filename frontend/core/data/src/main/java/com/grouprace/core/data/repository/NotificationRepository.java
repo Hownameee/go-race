@@ -11,12 +11,15 @@ public interface NotificationRepository {
 
     LiveData<Result<List<NotificationModel>>> getNotifications();
     void refreshNotifications();
+    void loadMoreNotifications();
 
     void addNotification(NotificationModel notification);
 
     LiveData<Result<Boolean>> markAsRead(int notificationId);
 
+    LiveData<Integer> getUnreadCount();
+
     void clearAll();
 
-    void deleteOldNotifications();
+    void handleFcmMessage(java.util.Map<String, String> data);
 }

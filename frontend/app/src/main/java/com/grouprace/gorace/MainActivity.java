@@ -25,6 +25,9 @@ import com.grouprace.feature.register.ui.RegisterFragment;
 import com.grouprace.feature.tracking.ui.NearbyRouteFragment;
 import com.grouprace.feature.tracking.ui.TrackingFragment;
 import com.grouprace.feature.map.ui.DrawRouteFragment;
+import com.grouprace.feature.profile.ui.main.UserProfileFragment;
+import com.grouprace.feature.posts.ui.PostDetailFragment;
+import android.content.Intent;
 
 import androidx.lifecycle.ViewModelProvider;
 
@@ -51,6 +54,8 @@ public class MainActivity extends AppCompatActivity {
         bottomNav = findViewById(R.id.bottom_navigation);
         viewModel = new ViewModelProvider(this).get(MainViewModel.class);
 
+        handleNotificationIntent(getIntent());
+
         bottomNav.setOnItemSelectedListener(item -> {
             Fragment fragment = null;
             int itemId = item.getItemId();
@@ -68,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             if (fragment != null) {
-                loadFragment(fragment);
+                loadFragment(fragment, false);
             }
             return true;
         });
@@ -98,15 +103,67 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new LoginFragment();
             }
             if (fragment != null) {
-                loadFragment(fragment);
+                loadFragment(fragment, false);
             }
         });
     }
 
-    private void loadFragment(Fragment fragment) {
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, fragment)
-                .commit();
+    private void loadFragment(Fragment fragment, boolean addToBackStack) {
+        androidx.fragment.app.FragmentTransaction transaction = 
+            getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, fragment);
+        
+        if (addToBackStack) {
+            transaction.addToBackStack(null);
+        }
+        
+        transaction.commit();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleNotificationIntent(intent);
+    }
+
+    private void handleNotificationIntent(Intent intent) {
+        if (intent == null || !intent.getBooleanExtra("from_notification", false)) {
+            return;
+        }
+
+        int notificationId = intent.getIntExtra("id", -1);
+        String type = intent.getStringExtra("type");
+
+        if (notificationId != -1) {
+            viewModel.markAsRead(notificationId);
+        }
+
+        if (type != null) {
+            Fragment fragment = null;
+            try {
+                if ("follow".equals(type)) {
+                    String actorIdStr = intent.getStringExtra("actor_id");
+                    int actorId = actorIdStr != null ? Integer.parseInt(actorIdStr) : -1;
+                    if (actorId != -1) {
+                        fragment = UserProfileFragment.newInstance(actorId);
+                    }
+                } else if ("comment".equals(type) || "post".equals(type)) {
+                    String activityIdStr = intent.getStringExtra("activity_id");
+                    int activityId = activityIdStr != null ? Integer.parseInt(activityIdStr) : -1;
+                    if (activityId != -1) {
+                        fragment = PostDetailFragment.newInstance(activityId);
+                    }
+                }
+            } catch (NumberFormatException e) {
+                Log.e("MainActivity", "Error parsing notification extras: " + e.getMessage());
+            }
+
+            if (fragment != null) {
+                boolean hasCurrentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container) != null;
+                loadFragment(fragment, hasCurrentFragment);
+            }
+        }
     }
 
     @Override

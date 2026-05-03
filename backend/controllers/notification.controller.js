@@ -4,10 +4,15 @@ const notificationController = {
   async getList(req, res) {
     try {
       const userId = req.user.userId;
-      const data = await notificationService.getNotifications(userId);
+      const limit = req.query.limit ? parseInt(req.query.limit) : 20;
+      const cursor = req.query.cursor ? parseInt(req.query.cursor) : null;
+      const data = await notificationService.getNotifications(userId, cursor, limit);
+      
+      const nextCursor = data.length === limit ? data[data.length - 1].id : null;
+      
       return res.ok({
         notifications: data,
-        nextCursor: null,
+        nextCursor: nextCursor,
       });
     } catch (err) {
       console.error('[Notification][getList]', err);

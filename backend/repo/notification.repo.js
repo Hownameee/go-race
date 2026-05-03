@@ -1,16 +1,30 @@
 import db from '../utils/db/db.js';
 
 const notificationRepository = {
-  findByUserId: async function (userId, offset = 0, limit = 20) {
-    const sql = `
-      SELECT n.*, u.avatar_url AS actor_avatar_url 
-      FROM notifications n
-      LEFT JOIN USERS u ON n.actor_id = u.user_id
-      WHERE n.user_id = ?
-      ORDER BY n.created_at DESC
-      LIMIT ? OFFSET ?
-    `;
-    return await db.prepare(sql).all(userId, limit, offset);
+  findByUserId: async function (userId, cursor, limit = 20) {
+    let sql, params;
+    if (cursor) {
+      sql = `
+        SELECT n.*, u.avatar_url AS actor_avatar_url 
+        FROM notifications n
+        LEFT JOIN USERS u ON n.actor_id = u.user_id
+        WHERE n.user_id = ? AND n.id < ?
+        ORDER BY n.id DESC
+        LIMIT ?
+      `;
+      params = [userId, cursor, limit];
+    } else {
+      sql = `
+        SELECT n.*, u.avatar_url AS actor_avatar_url 
+        FROM notifications n
+        LEFT JOIN USERS u ON n.actor_id = u.user_id
+        WHERE n.user_id = ?
+        ORDER BY n.id DESC
+        LIMIT ?
+      `;
+      params = [userId, limit];
+    }
+    return await db.prepare(sql).all(...params);
   },
 
   findById: async function (notificationId) {
