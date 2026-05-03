@@ -148,6 +148,15 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
                 listener.onPostClicked(getItem(currentPos));
             }
         });
+
+        View.OnClickListener ownerClickListener = v -> {
+            int currentPos = holder.getBindingAdapterPosition();
+            if (listener != null && currentPos != androidx.recyclerview.widget.RecyclerView.NO_POSITION) {
+                listener.onOwnerClicked(getItem(currentPos));
+            }
+        };
+        holder.ivAvatar.setOnClickListener(ownerClickListener);
+        holder.tvUsername.setOnClickListener(ownerClickListener);
     }
 
     public String getLastPostCreatedAt() {
@@ -159,7 +168,7 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
 
     static class PostViewHolder extends RecyclerView.ViewHolder {
         final ImageView ivAvatar;
-        private final TextView tvUsername;
+        final TextView tvUsername;
         private final TextView tvTime;
         private final TextView tvTitle;
         private final TextView tvDistance;
@@ -208,6 +217,7 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
             tvTime.setText(post.getCreatedAt() != null ? post.getCreatedAt() : "");
             Glide.with(itemView.getContext())
                     .load(post.getProfilePictureUrl())
+                    .circleCrop()
                     .placeholder(com.grouprace.core.system.R.drawable.bg_avatar_placeholder)
                     .error(com.grouprace.core.system.R.drawable.bg_avatar_placeholder)
                     .into(ivAvatar);

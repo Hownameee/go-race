@@ -142,6 +142,11 @@ public class ProfilePostsFragment extends Fragment {
             }
 
             @Override
+            public void onPostClicked(Post post) {
+                navigator.openPostDetail(ProfilePostsFragment.this, post.getPostId());
+            }
+
+            @Override
             public void onOwnerClicked(Post post) {
                 if (post.getOwnerId() == sessionManager.getUserId()) {
                     navigator.openMyProfile(ProfilePostsFragment.this);

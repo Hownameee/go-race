@@ -103,6 +103,63 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
+    public LiveData<List<Post>> getLocalMyPosts(int limit) {
+        int currentUserId = sessionManager.getUserId();
+        if (currentUserId <= 0) {
+            return new MutableLiveData<>(java.util.Collections.emptyList());
+        }
+
+        return Transformations.map(postDao.getPostsByOwner(currentUserId, limit), entities ->
+                entities.stream()
+                        .map(PostEntity::asExternalModel)
+                        .collect(Collectors.toList()));
+    }
+
+    @Override
+    public LiveData<List<Post>> getLocalUserPosts(int userId, int limit) {
+        if (userId <= 0) {
+            return new MutableLiveData<>(java.util.Collections.emptyList());
+        }
+
+        return Transformations.map(postDao.getPostsByOwner(userId, limit), entities ->
+                entities.stream()
+                        .map(PostEntity::asExternalModel)
+                        .collect(Collectors.toList()));
+    }
+
+    @Override
+    public LiveData<Result<List<Post>>> getUserPosts(int userId, String cursor, int limit) {
+        LiveData<Result<List<NetworkPost>>> networkCall = postNetworkDataSource.getUserPosts(userId, cursor, limit);
+        MediatorLiveData<Result<List<Post>>> result = new MediatorLiveData<>();
+        result.addSource(networkCall, r -> {
+            if (r instanceof Result.Success) {
+                executorService.execute(() -> {
+                    List<Post> posts = ((Result.Success<List<NetworkPost>>) r).data.stream()
+                            .map(NetworkPost::asExternalModel)
+                            .collect(Collectors.toList());
+                    result.postValue(new Result.Success<>(posts));
+                });
+            } else if (r instanceof Result.Error) {
+                Result.Error<List<NetworkPost>> error = (Result.Error<List<NetworkPost>>) r;
+                result.postValue(new Result.Error<>(error.exception, error.message));
+            } else {
+                result.postValue(new Result.Loading<>());
+            }
+        });
+        return result;
+    }
+
+    @Override
+    public LiveData<Result<Boolean>> syncMyPosts(String cursor, int limit) {
+        return syncInternal(postNetworkDataSource.getMyPosts(cursor, limit));
+    }
+
+    @Override
+    public LiveData<Result<Boolean>> syncUserPosts(int userId, String cursor, int limit) {
+        return syncInternal(postNetworkDataSource.getUserPosts(userId, cursor, limit));
+    }
+
+    @Override
     public LiveData<Result<Boolean>> syncPosts(String cursor, int limit) {
         return syncInternal(postNetworkDataSource.getPosts(cursor, limit));
     }

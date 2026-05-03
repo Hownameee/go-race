@@ -26,15 +26,10 @@ import java.util.Locale;
 
 import javax.inject.Inject;
 
-import javax.inject.Inject;
-import com.grouprace.core.navigation.AppNavigator;
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class MyPostsFragment extends Fragment {
-
-  @Inject
-  AppNavigator appNavigator;
 
   @Inject
   AppNavigator appNavigator;
@@ -79,7 +74,7 @@ public class MyPostsFragment extends Fragment {
             if (result instanceof Result.Success) {
               post.setLiked(false);
               post.setLikeCount(Math.max(0, post.getLikeCount() - 1));
-              postAdapter.notifyItemChanged(position);
+              postAdapter.notifyItemChanged(position, PostAdapter.PAYLOAD_LIKE);
             }
           });
         } else {
@@ -87,7 +82,7 @@ public class MyPostsFragment extends Fragment {
             if (result instanceof Result.Success) {
               post.setLiked(true);
               post.setLikeCount(post.getLikeCount() + 1);
-              postAdapter.notifyItemChanged(position);
+              postAdapter.notifyItemChanged(position, PostAdapter.PAYLOAD_LIKE);
             }
           });
         }

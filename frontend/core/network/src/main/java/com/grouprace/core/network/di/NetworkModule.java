@@ -10,6 +10,7 @@ import com.grouprace.core.network.api.SearchBoxApiService;
 import com.grouprace.core.network.api.UserApiService;
 import com.grouprace.core.network.utils.AuthInterceptor;
 import com.grouprace.core.network.utils.SessionManager;
+import com.grouprace.core.network.api.RecordApiService;
 
 import java.util.concurrent.TimeUnit;
 
