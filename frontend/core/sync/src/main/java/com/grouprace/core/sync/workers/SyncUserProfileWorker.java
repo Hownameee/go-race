@@ -52,6 +52,22 @@ public class SyncUserProfileWorker extends Worker {
         }
 
         try {
+            MyProfileInfoEntity pendingMyInfo = profileDao.getMyInfoSync(currentUserId);
+            if (pendingMyInfo != null && pendingMyInfo.pendingSync) {
+                userNetworkDataSource.updateMyInfoSync(new MyProfileInfoPayload(
+                        pendingMyInfo.username,
+                        pendingMyInfo.fullname,
+                        pendingMyInfo.email,
+                        pendingMyInfo.birthdate,
+                        pendingMyInfo.avatarUrl,
+                        pendingMyInfo.bio,
+                        pendingMyInfo.provinceCity,
+                        pendingMyInfo.country,
+                        pendingMyInfo.heightCm,
+                        pendingMyInfo.weightKg
+                ));
+            }
+
             ProfileOverviewResponse overview = userNetworkDataSource.getMyOverviewSync();
             MyProfileInfoPayload info = userNetworkDataSource.getMyInfoSync();
 
@@ -71,6 +87,7 @@ public class SyncUserProfileWorker extends Worker {
 
             profileDao.upsertMyInfo(new MyProfileInfoEntity(
                     currentUserId,
+                    false,
                     info.getUsername(),
                     info.getFullname(),
                     info.getEmail(),

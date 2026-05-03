@@ -304,6 +304,20 @@ public class UserNetworkDataSource {
         return executeVoidCall(apiService.updateMyInfo(payload), "Update profile failed.");
     }
 
+    public void updateMyInfoSync(MyProfileInfoPayload payload) throws Exception {
+        Response<ApiResponse<Void>> response = apiService.updateMyInfo(payload).execute();
+        if (!response.isSuccessful() || response.body() == null) {
+            throw new Exception("HTTP Error: " + response.code() + " " + response.message());
+        }
+
+        ApiResponse<Void> apiResponse = response.body();
+        if (!apiResponse.isSuccess()) {
+            throw new Exception(apiResponse.getMessage() != null
+                    ? apiResponse.getMessage()
+                    : "Update profile failed.");
+        }
+    }
+
     public ProfileOverviewResponse getMyOverviewSync() throws Exception {
         Response<ApiResponse<ProfileOverviewResponse>> response = apiService.getMyOverview().execute();
         if (!response.isSuccessful() || response.body() == null) {

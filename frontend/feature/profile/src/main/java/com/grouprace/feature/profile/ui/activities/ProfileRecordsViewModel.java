@@ -2,6 +2,7 @@ package com.grouprace.feature.profile.ui.activities;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModel;
 
@@ -81,15 +82,19 @@ public class ProfileRecordsViewModel extends ViewModel {
             return;
         }
 
-        source.observeForever(result -> {
+        final Observer<Result<Boolean>>[] observerRef = new Observer[1];
+        observerRef[0] = result -> {
             if (result instanceof Result.Loading) {
                 syncStatus.setValue(new Result.Loading<>());
             } else if (result instanceof Result.Success) {
                 syncStatus.setValue(new Result.Success<>(true));
+                source.removeObserver(observerRef[0]);
             } else if (result instanceof Result.Error) {
                 Result.Error<Boolean> error = (Result.Error<Boolean>) result;
                 syncStatus.setValue(new Result.Error<>(error.exception, error.message));
+                source.removeObserver(observerRef[0]);
             }
-        });
+        };
+        source.observeForever(observerRef[0]);
     }
 }

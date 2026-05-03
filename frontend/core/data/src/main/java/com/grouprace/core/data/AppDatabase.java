@@ -29,7 +29,7 @@ import com.grouprace.core.data.model.EventEntity;
                 ClubAdminEntity.class, EventEntity.class,
                 NotificationEntity.class,
                 // ===== Profile Feature Section =====
-                ProfileOverviewEntity.class, MyProfileInfoEntity.class, ProfileCacheEntity.class }, version = 15, exportSchema = false)
+                ProfileOverviewEntity.class, MyProfileInfoEntity.class, ProfileCacheEntity.class }, version = 16, exportSchema = false)
 @androidx.room.TypeConverters(com.grouprace.core.data.utils.Converters.class)
 public abstract class AppDatabase extends RoomDatabase {
 

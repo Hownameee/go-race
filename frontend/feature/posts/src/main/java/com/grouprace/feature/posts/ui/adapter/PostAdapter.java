@@ -215,12 +215,16 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
             tvUsername.setText(post.getFullName() != null ? post.getFullName() : "Unknown");
             tvTitle.setText(post.getTitle() != null ? post.getTitle() : "Untitled Activity");
             tvTime.setText(post.getCreatedAt() != null ? post.getCreatedAt() : "");
-            Glide.with(itemView.getContext())
-                    .load(post.getProfilePictureUrl())
-                    .circleCrop()
-                    .placeholder(com.grouprace.core.system.R.drawable.bg_avatar_placeholder)
-                    .error(com.grouprace.core.system.R.drawable.bg_avatar_placeholder)
-                    .into(ivAvatar);
+            if (post.getProfilePictureUrl() != null && !post.getProfilePictureUrl().isEmpty()) {
+                Glide.with(itemView.getContext())
+                        .load(post.getProfilePictureUrl())
+                        .placeholder(com.grouprace.core.system.R.drawable.ic_default_avt)
+                        .error(com.grouprace.core.system.R.drawable.ic_default_avt)
+                        .circleCrop()
+                        .into(ivAvatar);
+            } else {
+                ivAvatar.setImageResource(com.grouprace.core.system.R.drawable.ic_default_avt);
+            }
 
             if (post.getDescription() != null && !post.getDescription().isEmpty()) {
                 tvDescription.setVisibility(View.VISIBLE);

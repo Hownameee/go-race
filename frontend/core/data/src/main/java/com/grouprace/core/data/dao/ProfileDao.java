@@ -24,6 +24,9 @@ public interface ProfileDao {
     @Query("SELECT * FROM my_profile_info WHERE id = :userId LIMIT 1")
     LiveData<MyProfileInfoEntity> getMyInfo(int userId);
 
+    @Query("SELECT * FROM my_profile_info WHERE id = :userId LIMIT 1")
+    MyProfileInfoEntity getMyInfoSync(int userId);
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void upsertMyInfo(MyProfileInfoEntity info);
 
@@ -34,7 +37,13 @@ public interface ProfileDao {
     @Query("SELECT * FROM profile_cache WHERE cacheKey = :cacheKey LIMIT 1")
     LiveData<ProfileCacheEntity> getProfileCache(String cacheKey);
 
+    @Query("SELECT * FROM profile_cache WHERE cacheKey = :cacheKey LIMIT 1")
+    ProfileCacheEntity getProfileCacheSync(String cacheKey);
+
     // ===== Profile Feature Section =====
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void upsertProfileCache(ProfileCacheEntity cache);
+
+    @Query("DELETE FROM profile_cache WHERE cacheKey = :cacheKey")
+    void deleteProfileCache(String cacheKey);
 }

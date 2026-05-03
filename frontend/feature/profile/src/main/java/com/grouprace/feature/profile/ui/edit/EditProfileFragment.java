@@ -158,7 +158,7 @@ public class EditProfileFragment extends Fragment {
             } else if (result instanceof Result.Success) {
                 saveButton.setEnabled(true);
                 saveButton.setText("Save");
-                Toast.makeText(requireContext(), "Profile updated successfully!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Profile saved.", Toast.LENGTH_SHORT).show();
                 requireActivity().onBackPressed();
             } else if (result instanceof Result.Error) {
                 saveButton.setEnabled(true);

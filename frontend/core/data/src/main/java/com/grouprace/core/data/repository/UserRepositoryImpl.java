@@ -3,6 +3,7 @@ package com.grouprace.core.data.repository;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 
 import com.google.gson.Gson;
 import com.grouprace.core.common.result.Result;
@@ -20,6 +21,9 @@ import com.grouprace.core.network.model.user.MyProfileInfoPayload;
 import com.grouprace.core.network.model.user.ProfileOverviewResponse;
 import com.grouprace.core.network.source.UserNetworkDataSource;
 
+import android.os.Handler;
+import android.os.Looper;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +36,7 @@ public class UserRepositoryImpl implements UserRepository {
     private final SyncManager syncManager;
     // ===== Profile Feature Section =====
     private final Gson gson = new Gson();
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     @Inject
     public UserRepositoryImpl(
@@ -112,7 +117,7 @@ public class UserRepositoryImpl implements UserRepository {
                 MyProfileInfoPayload response = ((Result.Success<MyProfileInfoPayload>) result).data;
                 MyProfileInfo info = mapToMyProfileInfo(response);
                 if (info != null) {
-                    cacheMyInfo(info);
+                    cacheMyInfo(info, false);
                 }
                 resultData.setValue(new Result.Success<>(info));
             } else if (!hasLocal[0]) {
@@ -190,23 +195,47 @@ public class UserRepositoryImpl implements UserRepository {
     public LiveData<Result<Void>> updateMyInfo(MyProfileInfo myProfileInfo) {
         MutableLiveData<Result<Void>> resultData = new MutableLiveData<>();
         resultData.postValue(new Result.Loading<>());
+        int currentUserId = sessionManager.getUserId();
+        if (currentUserId <= 0) {
+            resultData.postValue(new Result.Error<>(new IllegalStateException("Current user is unavailable."), "Current user is unavailable."));
+            return resultData;
+        }
 
-        userNetworkDataSource.updateMyInfo(mapToMyProfileInfoPayload(myProfileInfo)).observeForever(result -> {
-            if (result instanceof Result.Success) {
-                syncManager.scheduleUserProfileSync();
-                userNetworkDataSource.getMyInfo().observeForever(syncResult -> {
-                    if (syncResult instanceof Result.Success) {
-                        cacheMyInfo(mapToMyProfileInfo(((Result.Success<MyProfileInfoPayload>) syncResult).data));
+        new Thread(() -> {
+            MyProfileInfoEntity previousInfoEntity = profileDao.getMyInfoSync(currentUserId);
+            MyProfileInfo previousInfo = previousInfoEntity != null ? previousInfoEntity.asExternalModel() : null;
+            MyProfileInfo mergedInfo = mergeMyProfileInfo(previousInfo, myProfileInfo);
+            MyProfileInfoPayload pendingPayload = mapToMyProfileInfoPayload(myProfileInfo);
+
+            cacheMyInfo(mergedInfo, true);
+            mainHandler.post(() -> {
+                LiveData<Result<Void>> source = userNetworkDataSource.updateMyInfo(pendingPayload);
+                final Observer<Result<Void>>[] observerRef = new Observer[1];
+                observerRef[0] = result -> {
+                    if (result instanceof Result.Success) {
+                        cacheMyInfo(mergedInfo, false);
+                        syncManager.scheduleUserProfileSync();
+                        resultData.postValue(new Result.Success<>(null));
+                        source.removeObserver(observerRef[0]);
+                    } else if (result instanceof Result.Error) {
+                        Result.Error<?> error = (Result.Error<?>) result;
+                        if (isNetworkFailure(error.message)) {
+                            syncManager.scheduleUserProfileSync();
+                            resultData.postValue(new Result.Success<>(null));
+                        } else {
+                            if (previousInfo != null) {
+                                cacheMyInfo(previousInfo, false);
+                            }
+                            resultData.postValue(new Result.Error<>(error.exception, error.message));
+                        }
+                        source.removeObserver(observerRef[0]);
+                    } else {
+                        resultData.postValue(new Result.Loading<>());
                     }
-                });
-                resultData.postValue(new Result.Success<>(null));
-            } else if (result instanceof Result.Error) {
-                Result.Error<?> error = (Result.Error<?>) result;
-                resultData.postValue(new Result.Error<>(error.exception, error.message));
-            } else {
-                resultData.postValue(new Result.Loading<>());
-            }
-        });
+                };
+                source.observeForever(observerRef[0]);
+            });
+        }).start();
 
         return resultData;
     }
@@ -270,7 +299,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     // ===== Profile Feature Section =====
-    private void cacheMyInfo(MyProfileInfo info) {
+    private void cacheMyInfo(MyProfileInfo info, boolean pendingSync) {
         if (info == null) {
             return;
         }
@@ -281,7 +310,7 @@ public class UserRepositoryImpl implements UserRepository {
         }
 
         new Thread(() -> {
-            profileDao.upsertMyInfo(mapToMyProfileInfoEntity(currentUserId, info));
+            profileDao.upsertMyInfo(mapToMyProfileInfoEntity(currentUserId, info, pendingSync));
             profileDao.clearMyInfoExcept(currentUserId);
         }).start();
     }
@@ -405,9 +434,10 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     // ===== Profile Feature Section =====
-    private MyProfileInfoEntity mapToMyProfileInfoEntity(int userId, MyProfileInfo info) {
+    private MyProfileInfoEntity mapToMyProfileInfoEntity(int userId, MyProfileInfo info, boolean pendingSync) {
         return new MyProfileInfoEntity(
                 userId,
+                pendingSync,
                 info.getUsername(),
                 info.getFullname(),
                 info.getEmail(),
@@ -438,6 +468,29 @@ public class UserRepositoryImpl implements UserRepository {
                 profileInfo.getHeightCm(),
                 profileInfo.getWeightKg()
         );
+    }
+
+    private MyProfileInfo mergeMyProfileInfo(MyProfileInfo currentInfo, MyProfileInfo updatedInfo) {
+        if (updatedInfo == null) {
+            return currentInfo;
+        }
+
+        return new MyProfileInfo(
+                updatedInfo.getUsername() != null ? updatedInfo.getUsername() : currentInfo != null ? currentInfo.getUsername() : null,
+                updatedInfo.getFullname() != null ? updatedInfo.getFullname() : currentInfo != null ? currentInfo.getFullname() : null,
+                currentInfo != null ? currentInfo.getEmail() : null,
+                updatedInfo.getBirthdate() != null ? updatedInfo.getBirthdate() : currentInfo != null ? currentInfo.getBirthdate() : null,
+                currentInfo != null ? currentInfo.getAvatarUrl() : null,
+                updatedInfo.getBio() != null ? updatedInfo.getBio() : currentInfo != null ? currentInfo.getBio() : null,
+                updatedInfo.getProvinceCity() != null ? updatedInfo.getProvinceCity() : currentInfo != null ? currentInfo.getProvinceCity() : null,
+                updatedInfo.getCountry() != null ? updatedInfo.getCountry() : currentInfo != null ? currentInfo.getCountry() : null,
+                updatedInfo.getHeightCm() != null ? updatedInfo.getHeightCm() : currentInfo != null ? currentInfo.getHeightCm() : null,
+                updatedInfo.getWeightKg() != null ? updatedInfo.getWeightKg() : currentInfo != null ? currentInfo.getWeightKg() : null
+        );
+    }
+
+    private boolean isNetworkFailure(String message) {
+        return message != null && message.startsWith("Network Failure:");
     }
 
     private List<FollowUser> mapToFollowUsers(FollowListResponse response, boolean followersTab) {
