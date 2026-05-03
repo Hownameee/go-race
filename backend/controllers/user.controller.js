@@ -18,9 +18,9 @@ const userController = {
     try {
       const user_id = req.params.userId;
       const user = await userService.getUserById(user_id);
-      res.ok(user, "User fetched successfully");
+      res.ok(user, 'User fetched successfully');
     } catch (error) {
-      if (error.message === "User not found") {
+      if (error.message === 'User not found') {
         return res.notFound();
       }
       next(error);
@@ -96,12 +96,9 @@ const userController = {
         total_followings: followingCount,
       };
 
-      res.ok(
-        returnUser,
-        "User overview fetched successfully",
-      );
+      res.ok(returnUser, 'User overview fetched successfully');
     } catch (error) {
-      if (error.message === "User not found") {
+      if (error.message === 'User not found') {
         return res.notFound();
       }
       next(error);
@@ -117,7 +114,10 @@ const userController = {
 
       const followersCount = await followService.countFollowers(targetUserId);
       const followingCount = await followService.countFollowings(targetUserId);
-      const isFollowing = await followService.isFollowing(currentUserId, targetUserId);
+      const isFollowing = await followService.isFollowing(
+        currentUserId,
+        targetUserId,
+      );
 
       const returnUser = {
         user_id: user.user_id,
@@ -133,7 +133,7 @@ const userController = {
 
       return res.ok(returnUser, 'User overview fetched successfully');
     } catch (error) {
-      if (error.message === "User not found") {
+      if (error.message === 'User not found') {
         return res.notFound();
       }
       return next(error);
@@ -145,9 +145,9 @@ const userController = {
     try {
       const userId = req.user.userId;
       const user = await userService.getUserById(userId);
-      res.ok(user, "User fetched successfully");
+      res.ok(user, 'User fetched successfully');
     } catch (error) {
-      if (error.message === "User not found") {
+      if (error.message === 'User not found') {
         return res.notFound();
       }
       next(error);
@@ -158,7 +158,7 @@ const userController = {
       const userId = req.user.userId;
       const updateData = req.body;
       await userService.updateUserById(userId, updateData);
-      res.ok(null, "User updated successfully");
+      res.ok(null, 'User updated successfully');
     } catch (error) {
       if (error.message === 'Username already exists' || error.message === 'Email already exists') {
         return res.violate(null, error.message);
@@ -230,7 +230,11 @@ const userController = {
     try {
       const userId = req.user.userId;
       const { old_password, new_password } = req.body;
-      await userService.changePasswordWithCurrentPassword(userId, old_password, new_password);
+      await userService.changePasswordWithCurrentPassword(
+        userId,
+        old_password,
+        new_password,
+      );
       return res.ok(null, 'Password changed successfully');
     } catch (error) {
       if (error.message === 'Current password is incorrect') {
@@ -293,10 +297,7 @@ const userController = {
       await userService.updateUserById(userId, { avatarUrl: avatarKey });
       const avatarUrl = await getImageUrlS3(avatarKey);
 
-      res.ok(
-        { avatar_url: avatarUrl },
-        "Avatar uploaded successfully",
-      );
+      res.ok({ avatar_url: avatarUrl }, 'Avatar uploaded successfully');
     } catch (error) {
       if (error.message === 'Username already exists' || error.message === 'Email already exists') {
         return res.violate(null, error.message);
@@ -304,7 +305,6 @@ const userController = {
       next(error);
     }
   },
-}
-
+};
 
 export default userController;

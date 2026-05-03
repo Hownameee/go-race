@@ -3,9 +3,11 @@ import db from '../utils/db/db.js';
 const notificationRepository = {
   findByUserId: async function (userId, offset = 0, limit = 20) {
     const sql = `
-      SELECT * FROM notifications
-      WHERE user_id = ?
-      ORDER BY created_at DESC
+      SELECT n.*, u.avatar_url AS actor_avatar_url 
+      FROM notifications n
+      LEFT JOIN USERS u ON n.actor_id = u.user_id
+      WHERE n.user_id = ?
+      ORDER BY n.created_at DESC
       LIMIT ? OFFSET ?
     `;
     return await db.prepare(sql).all(userId, limit, offset);
@@ -41,7 +43,13 @@ const notificationRepository = {
   markAllAsRead: async function (userId) {
     const sql = `UPDATE notifications SET \`read\` = 1 WHERE user_id = ?`;
     const info = await db.prepare(sql).run(userId);
-    return info.changes; 
+    return info.changes;
+  },
+
+  countUnreadByUserId: async function (userId) {
+    const sql = `SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND \`read\` = 0`;
+    const row = await db.prepare(sql).get(userId);
+    return row.count;
   },
 };
 

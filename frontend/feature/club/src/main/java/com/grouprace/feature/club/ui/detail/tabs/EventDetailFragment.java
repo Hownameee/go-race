@@ -74,7 +74,6 @@ public class EventDetailFragment extends Fragment {
         TextView tvProgressSummary = view.findViewById(R.id.tv_detail_progress_summary);
         LinearProgressIndicator pbProgress = view.findViewById(R.id.pb_detail_progress);
         TextView tvStartTime = view.findViewById(R.id.tv_detail_start_time);
-        TextView tvDuration = view.findViewById(R.id.tv_detail_duration);
         TextView tvParticipants = view.findViewById(R.id.tv_detail_participants);
         RecyclerView rvLeaderboard = view.findViewById(R.id.rv_event_leaderboard);
         rvLeaderboard.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -89,17 +88,13 @@ public class EventDetailFragment extends Fragment {
                 tvDesc.setText(event.getDescription());
                 
                 // Set initial progress from local sync
-                double current = event.getGlobalDistance() > 0 ? event.getGlobalDistance() : event.getGlobalDurationSeconds();
-                double target = event.getTargetDistance() > 0 ? event.getTargetDistance() : event.getTargetDurationSeconds();
+                double current = event.getGlobalDistance();
+                double target = event.getTargetDistance();
                 if (target > 0) {
                     layoutProgress.setVisibility(View.VISIBLE);
                     int percent = (int) Math.min((current / target) * 100, 100);
                     tvProgressPercent.setText(percent + "%");
-                    if (event.getTargetDistance() > 0) {
-                        tvProgressSummary.setText(String.format("%.2f / %.2f km", current, event.getTargetDistance()));
-                    } else {
-                        tvProgressSummary.setText(TimeUtils.formatDuration((int)current) + " / " + TimeUtils.formatDuration((int)target));
-                    }
+                    tvProgressSummary.setText(String.format("%.2f / %.2f km", Math.min(current, target), target));
                     pbProgress.setProgress(percent);
                 }
 
@@ -114,7 +109,6 @@ public class EventDetailFragment extends Fragment {
                     if (startDate != null && endDate != null) {
                         java.text.SimpleDateFormat displayFormat = new java.text.SimpleDateFormat("MMM dd, yyyy HH:mm", java.util.Locale.US);
                         tvStartTime.setText("Starts: " + displayFormat.format(startDate));
-                        tvDuration.setText("Duration: " + formatEventDuration(endDate.getTime() - startDate.getTime()));
                     }
                 } catch (Exception ignored) {}
             }
@@ -134,41 +128,20 @@ public class EventDetailFragment extends Fragment {
                 tvParticipants.setText(pCount + (pCount == 1 ? " participant" : " participants"));
 
                 // Update progress bar with live global progress data
-                double liveGlobal = stats.getTotalDistance() > 0 ? stats.getTotalDistance() : stats.getTotalDurationSeconds();
-                double liveTarget = stats.getTargetDistance() > 0 ? stats.getTargetDistance() : stats.getTargetDurationSeconds();
+                double liveGlobal = stats.getTotalDistance();
+                double liveTarget = stats.getTargetDistance();
                 if (liveTarget > 0) {
                     layoutProgress.setVisibility(View.VISIBLE);
                     int livePercent = (int) Math.min((liveGlobal / liveTarget) * 100, 100);
                     tvProgressPercent.setText(livePercent + "%");
-                    if (stats.getTargetDistance() > 0) {
-                        tvProgressSummary.setText(String.format("%.2f / %.2f km", liveGlobal, stats.getTargetDistance()));
-                    } else {
-                        tvProgressSummary.setText(com.grouprace.core.common.TimeUtils.formatDuration((int) liveGlobal) + " / " + com.grouprace.core.common.TimeUtils.formatDuration((int) liveTarget));
-                    }
+                    tvProgressSummary.setText(String.format("%.2f / %.2f km", Math.min(liveGlobal, liveTarget), liveTarget));
                     pbProgress.setProgress(livePercent);
                 }
 
                 if (stats.getLeaderboard() != null) {
                     adapter.submitList(stats.getLeaderboard());
                 }
-            } else if (result instanceof Result.Error) {
-                android.util.Log.e("EventDetail", "Failed to fetch live stats: " + ((Result.Error<?>) result).message);
             }
         });
-    }
-
-    private String formatEventDuration(long diffMs) {
-        long seconds = diffMs / 1000;
-        long minutes = seconds / 60;
-        long hours = minutes / 60;
-        long days = hours / 24;
-
-        if (days >= 1) {
-            return days + (days == 1 ? " day" : " days");
-        } else {
-            long remainingHours = hours % 24;
-            long remainingMinutes = minutes % 60;
-            return remainingHours + " hours " + remainingMinutes + " minutes";
-        }
     }
 }

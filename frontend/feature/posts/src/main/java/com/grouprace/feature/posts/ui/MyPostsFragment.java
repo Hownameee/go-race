@@ -26,10 +26,15 @@ import java.util.Locale;
 
 import javax.inject.Inject;
 
+import javax.inject.Inject;
+import com.grouprace.core.navigation.AppNavigator;
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class MyPostsFragment extends Fragment {
+
+  @Inject
+  AppNavigator appNavigator;
 
   @Inject
   AppNavigator appNavigator;
@@ -125,6 +130,13 @@ public class MyPostsFragment extends Fragment {
       @Override
       public void onReportClicked(Post post) {
       }
+
+            @Override
+            public void onPostClicked(Post post) {
+                if (appNavigator != null) {
+                    appNavigator.openPostDetail(MyPostsFragment.this, post.getPostId());
+                }
+            }
 
       // profile section
       @Override

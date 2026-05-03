@@ -19,6 +19,7 @@ import recordRoute from './routes/record.route.js';
 import notificationRouter from './routes/notification.route.js';
 import deviceTokenRouter from './routes/device-token.route.js';
 import clubRouter from './routes/club.route.js';
+import userRouteRouter from './routes/user-route.route.js';
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -45,6 +46,7 @@ app.use('/api/device-tokens', deviceTokenRouter);
 app.use(followRoutes);
 app.use(postRoutes);
 app.use(userRoute);
+app.use(userRouteRouter);
 
 app.use(notFound);
 app.use(errorHandler);

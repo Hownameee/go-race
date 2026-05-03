@@ -214,4 +214,34 @@ public class AuthNetworkDataSource {
 
         return result;
     }
+
+    public LiveData<Result<Boolean>> unregisterDeviceToken(String token) {
+        MutableLiveData<Result<Boolean>> result = new MutableLiveData<>();
+        result.setValue(new Result.Loading<>());
+
+        RegisterDeviceTokenRequest body = new RegisterDeviceTokenRequest(token, "android");
+
+        apiService.unregisterDeviceToken(body).enqueue(new Callback<ApiResponse<Object>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Object>> call, Response<ApiResponse<Object>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    Log.d("DeviceToken", "unregister success=true");
+                    result.postValue(new Result.Success<>(true));
+                } else {
+                    String message = extractErrorMessage(response, "Unregister device token failed.");
+                    Log.e("DeviceToken", "unregister HTTP " + response.code() + " " + message);
+                    result.postValue(new Result.Error<>(new Exception(message), message));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<Object>> call, Throwable t) {
+                Log.e("DeviceToken", "unregister failure: " + t.getMessage());
+                Exception exception = (t instanceof Exception) ? (Exception) t : new Exception(t);
+                result.postValue(new Result.Error<>(exception, "Network Failure: " + t.getMessage()));
+            }
+        });
+
+        return result;
+    }
 }

@@ -80,4 +80,10 @@ public interface ClubApiService {
             @Path("userId") int userId,
             @Body java.util.Map<String, String> body
     );
+
+    @POST("api/clubs/{clubId}/transfer-leadership")
+    Call<ApiResponse<Object>> transferLeadership(
+            @Path("clubId") int clubId,
+            @Body java.util.Map<String, Integer> body
+    );
 }

@@ -26,7 +26,7 @@ const authService = {
     return { accessToken, refreshToken };
   },
   verifyToken: (token) => {
-    return jwt.verify(token, config.JWT_ACCESS_SECRET); 
+    return jwt.verify(token, config.JWT_ACCESS_SECRET);
   },
   verifyRefreshToken: (token) => {
     return jwt.verify(token, config.JWT_REFRESH_SECRET);
@@ -65,7 +65,13 @@ const authService = {
       throw new Error('User not found');
     }
 
-    const isValid = otpService.verifyOtp(user.user_id, 'reset-password', otpCode, email, false);
+    const isValid = otpService.verifyOtp(
+      user.user_id,
+      'reset-password',
+      otpCode,
+      email,
+      false,
+    );
     if (!isValid) {
       throw new Error('Invalid or expired OTP');
     }
@@ -78,13 +84,20 @@ const authService = {
       throw new Error('User not found');
     }
 
-    const isValid = otpService.verifyOtp(user.user_id, 'reset-password', otpCode, email);
+    const isValid = otpService.verifyOtp(
+      user.user_id,
+      'reset-password',
+      otpCode,
+      email,
+    );
     if (!isValid) {
       throw new Error('Invalid or expired OTP');
     }
 
     const hashedPassword = await authService.hashPassword(newPassword);
-    return await userRepo.updateUserById(user.user_id, { hashed_password: hashedPassword });
+    return await userRepo.updateUserById(user.user_id, {
+      hashed_password: hashedPassword,
+    });
   },
 };
 

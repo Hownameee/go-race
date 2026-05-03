@@ -54,4 +54,7 @@ dependencies {
     // Hilt
     implementation(libs.hilt.android)
     annotationProcessor(libs.hilt.compiler)
+
+    // Glide
+    implementation(libs.glide)
 }

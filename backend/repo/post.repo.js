@@ -36,19 +36,21 @@ const postRepo = {
     return stmt.all(postId);
   },
 
-  async selectClubPosts(clubId, cursor, limit) {
+  async selectClubPosts(clubId, userId, cursor, limit) {
     const stmt = db.prepare(
       `SELECT p.*, u.username, u.fullname, u.avatar_url,
+              CASE WHEN l.user_id IS NOT NULL THEN 1 ELSE 0 END as is_liked,
               r.activity_type, r.duration_seconds, r.distance_km, r.speed, r.s3_key as record_s3_key,
               (SELECT GROUP_CONCAT(s3_key) FROM POST_IMAGES WHERE post_id = p.post_id) as photos
        FROM POST p
        JOIN USERS u ON u.user_id = p.owner_id
+       LEFT JOIN LIKE l ON l.post_id = p.post_id AND l.user_id = ?
        LEFT JOIN RECORD r ON r.record_id = p.record_id
        WHERE p.club_id = ? AND p.created_at < ?
        ORDER BY p.created_at DESC
        LIMIT ?`,
     );
-    return stmt.all(clubId, cursor, limit);
+    return stmt.all(userId || null, clubId, cursor, limit);
   },
 
   async selectPostById(postId) {
@@ -71,19 +73,21 @@ const postRepo = {
     return stmt.get(userId, postId);
   },
 
-  async selectFeed(cursor, limit) {
+  async selectFeed(userId, cursor, limit) {
     const stmt = db.prepare(
       `SELECT p.*, u.username, u.fullname, u.avatar_url,
+              CASE WHEN l.user_id IS NOT NULL THEN 1 ELSE 0 END as is_liked,
               r.activity_type, r.duration_seconds, r.distance_km, r.speed, r.s3_key as record_s3_key,
               (SELECT GROUP_CONCAT(s3_key) FROM POST_IMAGES WHERE post_id = p.post_id) as photos
        FROM POST p
        JOIN USERS u ON u.user_id = p.owner_id
+       LEFT JOIN LIKE l ON l.post_id = p.post_id AND l.user_id = ?
        LEFT JOIN RECORD r ON r.record_id = p.record_id
        WHERE p.created_at < ? AND p.club_id IS NULL
        ORDER BY p.created_at DESC
        LIMIT ?`,
     );
-    return stmt.all(cursor, limit);
+    return stmt.all(userId || null, cursor, limit);
   },
 
   async selectFollowingFeed(userId, cursor, limit) {
@@ -255,7 +259,9 @@ const postRepo = {
 
   async deleteComment(postId, commentId, userId) {
     const tx = db.transaction((pId, cId, uId) => {
-      const checkStmt = db.prepare(`SELECT parent_id FROM COMMENT WHERE comment_id = ? AND post_id = ? AND user_id = ?`);
+      const checkStmt = db.prepare(
+        `SELECT parent_id FROM COMMENT WHERE comment_id = ? AND post_id = ? AND user_id = ?`,
+      );
       const commentTarget = checkStmt.get(cId, pId, uId);
       if (!commentTarget) return 0;
 
@@ -305,6 +311,21 @@ const postRepo = {
        LIMIT ?`,
     );
     return stmt.all(currentUserId, commentId, cursor, limit);
+  },
+
+  async getPostOwner(postId) {
+    const stmt = db.prepare(`SELECT owner_id FROM POST WHERE post_id = ?`);
+    return stmt.get(postId);
+  },
+
+  async getCommentOwner(commentId) {
+    const stmt = db.prepare(`SELECT user_id FROM COMMENT WHERE comment_id = ?`);
+    return stmt.get(commentId);
+  },
+
+  async getPostFromCommentId(commentId) {
+    const stmt = db.prepare(`SELECT post_id FROM COMMENT WHERE comment_id = ?`);
+    return stmt.get(commentId);
   },
 };
 

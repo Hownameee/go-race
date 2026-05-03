@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.network.api.SearchApiService;
+import com.grouprace.core.network.model.search.ClubActionResultResponse;
 import com.grouprace.core.network.model.search.NetworkUserSearch;
 import com.grouprace.core.network.utils.ApiResponse;
 
@@ -61,6 +62,108 @@ public class SearchNetworkDataSource {
         return liveData;
     }
 
+    public LiveData<Result<Boolean>> followUser(int targetUserId) {
+        MutableLiveData<Result<Boolean>> liveData = new MutableLiveData<>();
+        liveData.postValue(new Result.Loading<>());
+
+        apiService.followUser(targetUserId).enqueue(new Callback<ApiResponse<Void>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    liveData.postValue(new Result.Success<>(true));
+                } else {
+                    String msg = response.body() != null ? response.body().getMessage() : "HTTP " + response.code();
+                    liveData.postValue(new Result.Error<>(new Exception(msg), msg));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
+                liveData.postValue(new Result.Error<>(new Exception(t), "Network Failure: " + t.getMessage()));
+            }
+        });
+        return liveData;
+    }
+
+    public LiveData<Result<Boolean>> unfollowUser(int targetUserId) {
+        MutableLiveData<Result<Boolean>> liveData = new MutableLiveData<>();
+        liveData.postValue(new Result.Loading<>());
+
+        apiService.unfollowUser(targetUserId).enqueue(new Callback<ApiResponse<Void>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    liveData.postValue(new Result.Success<>(true));
+                } else {
+                    String msg = response.body() != null ? response.body().getMessage() : "HTTP " + response.code();
+                    liveData.postValue(new Result.Error<>(new Exception(msg), msg));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
+                liveData.postValue(new Result.Error<>(new Exception(t), "Network Failure: " + t.getMessage()));
+            }
+        });
+        return liveData;
+    }
+
+    public LiveData<Result<String>> joinClub(int clubId) {
+        MutableLiveData<Result<String>> liveData = new MutableLiveData<>();
+        liveData.postValue(new Result.Loading<>());
+
+        apiService.joinClub(clubId).enqueue(new Callback<ApiResponse<ClubActionResultResponse>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<ClubActionResultResponse>> call,
+                    Response<ApiResponse<ClubActionResultResponse>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    String resultText = response.body().getData() != null ? response.body().getData().getResult()
+                            : response.body().getMessage();
+                    liveData.postValue(new Result.Success<>(resultText));
+                } else {
+                    String msg = response.body() != null ? response.body().getMessage() : "HTTP " + response.code();
+                    liveData.postValue(new Result.Error<>(new Exception(msg), msg));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<ClubActionResultResponse>> call, Throwable t) {
+                liveData.postValue(new Result.Error<>(new Exception(t), "Network Failure: " + t.getMessage()));
+            }
+        });
+        return liveData;
+    }
+
+    public LiveData<Result<String>> leaveClub(int clubId) {
+        MutableLiveData<Result<String>> liveData = new MutableLiveData<>();
+        liveData.postValue(new Result.Loading<>());
+
+        apiService.leaveClub(clubId).enqueue(new Callback<ApiResponse<ClubActionResultResponse>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<ClubActionResultResponse>> call,
+                    Response<ApiResponse<ClubActionResultResponse>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    String resultText = response.body().getData() != null ? response.body().getData().getResult()
+                            : response.body().getMessage();
+                    liveData.postValue(new Result.Success<>(resultText));
+                } else {
+                    String msg = response.body() != null ? response.body().getMessage() : "HTTP " + response.code();
+                    liveData.postValue(new Result.Error<>(new Exception(msg), msg));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<ClubActionResultResponse>> call, Throwable t) {
+                liveData.postValue(new Result.Error<>(new Exception(t), "Network Failure: " + t.getMessage()));
+            }
+        });
+        return liveData;
+    }
+
+    /**
+     * Helper class để tái sử dụng logic xử lý Callback cho danh sách kết quả
+     * (User/Club).
+     */
     private static class ListCallback implements Callback<ApiResponse<List<NetworkUserSearch>>> {
         private final MutableLiveData<Result<List<NetworkUserSearch>>> liveData;
         private final String methodName;
@@ -71,7 +174,8 @@ public class SearchNetworkDataSource {
         }
 
         @Override
-        public void onResponse(Call<ApiResponse<List<NetworkUserSearch>>> call, Response<ApiResponse<List<NetworkUserSearch>>> response) {
+        public void onResponse(Call<ApiResponse<List<NetworkUserSearch>>> call,
+                Response<ApiResponse<List<NetworkUserSearch>>> response) {
             if (response.isSuccessful() && response.body() != null) {
                 ApiResponse<List<NetworkUserSearch>> apiResponse = response.body();
                 if (apiResponse.isSuccess() && apiResponse.getData() != null) {
@@ -79,7 +183,8 @@ public class SearchNetworkDataSource {
                     liveData.postValue(new Result.Success<>(apiResponse.getData()));
                 } else {
                     Log.e(TAG, methodName + " API Error: " + apiResponse.getMessage());
-                    liveData.postValue(new Result.Error<>(new Exception(apiResponse.getMessage()), apiResponse.getMessage()));
+                    liveData.postValue(
+                            new Result.Error<>(new Exception(apiResponse.getMessage()), apiResponse.getMessage()));
                 }
             } else {
                 String error = "HTTP Error: " + response.code();

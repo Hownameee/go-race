@@ -19,5 +19,6 @@ public interface AuthRepository {
     LiveData<Result<GoogleAuthResponse>> googleAuth(GoogleAuthPayload payload);
 
     LiveData<Result<Boolean>>  registerDeviceToken(String token);
+    LiveData<Result<Boolean>>  unregisterDeviceToken(String token);
     void logout();
 }

@@ -41,7 +41,11 @@ const recordController = {
       const userId = req.user.userId;
       const { activityType, weeks } = req.query;
 
-      const summary = recordService.getWeeklySummary(userId, activityType, weeks);
+      const summary = recordService.getWeeklySummary(
+        userId,
+        activityType,
+        weeks,
+      );
       return res.ok(summary, 'Weekly record summary fetched successfully');
     } catch (error) {
       return next(error);
@@ -53,7 +57,10 @@ const recordController = {
       const userId = req.user.userId;
       const { activityType } = req.query;
 
-      const statistics = recordService.getProfileStatistics(userId, activityType ?? null);
+      const statistics = recordService.getProfileStatistics(
+        userId,
+        activityType ?? null,
+      );
       return res.ok(statistics, 'Profile statistics fetched successfully');
     } catch (error) {
       return next(error);
@@ -73,7 +80,11 @@ const recordController = {
       const userId = Number(req.params.userId);
       const { activityType, weeks } = req.query;
 
-      const summary = recordService.getWeeklySummary(userId, activityType, weeks);
+      const summary = recordService.getWeeklySummary(
+        userId,
+        activityType,
+        weeks,
+      );
       return res.ok(summary, 'User weekly record summary fetched successfully');
     } catch (error) {
       return next(error);
@@ -85,7 +96,10 @@ const recordController = {
       const userId = Number(req.params.userId);
       const { activityType } = req.query;
 
-      const statistics = recordService.getProfileStatistics(userId, activityType ?? null);
+      const statistics = recordService.getProfileStatistics(
+        userId,
+        activityType ?? null,
+      );
       return res.ok(statistics, 'User profile statistics fetched successfully');
     } catch (error) {
       return next(error);
@@ -96,8 +110,8 @@ const recordController = {
     try {
       const userId = req.user.userId;
       const streak = recordService.getStreakByUserId(userId);
-      return res.ok(streak, "Streak fetched successfully");
-    } catch(err) {
+      return res.ok(streak, 'Streak fetched successfully');
+    } catch (err) {
       return next(err);
     }
   },
@@ -111,7 +125,6 @@ const recordController = {
       return next(error);
     }
   },
-
 };
 
 export default recordController;

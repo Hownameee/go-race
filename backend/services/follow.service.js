@@ -29,14 +29,14 @@ const followService = {
 
     try {
       await notificationService.createAndSend({
-        userId: followingId,          
-        type: "follow",
-        actorId: followerId,          
-        title: "New follower",
-        message: `${followerName} started following you`,
+        userId: followingId,
+        type: 'follow',
+        actorId: followerId,
+        title: 'New follower',
+        message: `Nice! ${followerName} is following you on GoRace.`,
       });
     } catch (err) {
-      console.error("[follow][notification error]", err);
+      console.error('[follow][notification error]', err);
     }
 
     return newFollow;
@@ -63,7 +63,9 @@ const followService = {
     const followers = await attachAvatarUrls(rows);
 
     const nextCursor =
-      followers.length === effectiveLimit ? followers[followers.length - 1].created_at : null;
+      followers.length === effectiveLimit
+        ? followers[followers.length - 1].created_at
+        : null;
 
     return { followers, nextCursor };
   },
@@ -80,7 +82,9 @@ const followService = {
     const following = await attachAvatarUrls(rows);
 
     const nextCursor =
-      following.length === effectiveLimit ? following[following.length - 1].created_at : null;
+      following.length === effectiveLimit
+        ? following[following.length - 1].created_at
+        : null;
 
     return { following, nextCursor };
   },
@@ -91,7 +95,7 @@ const followService = {
 
   async countFollowings(userId) {
     return await followRepo.countFollowings(userId);
-  }
+  },
 };
 
 export default followService;

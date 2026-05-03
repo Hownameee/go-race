@@ -1,10 +1,7 @@
 import { z } from 'zod';
 
 export const clubIdSchema = z.object({
-  clubId: z.coerce
-    .number()
-    .int()
-    .positive('clubId must be a positive number'),
+  clubId: z.coerce.number().int().positive('clubId must be a positive number'),
 });
 
 export const createClubSchema = z.object({
@@ -27,12 +24,21 @@ export const memberIdSchema = z.object({
 
 export const updateMemberStatusSchema = z.object({
   status: z.enum(['approved', 'rejected', 'left'], {
-    errorMap: () => ({ message: "Status must be 'approved', 'rejected', or 'left'" })
+    errorMap: () => ({
+      message: "Status must be 'approved', 'rejected', or 'left'",
+    }),
   }),
 });
 
 export const updateMemberRoleSchema = z.object({
   role: z.enum(['admin', 'member'], {
-    errorMap: () => ({ message: "Role must be 'admin' or 'member'" })
+    errorMap: () => ({ message: "Role must be 'admin' or 'member'" }),
   }),
+});
+
+export const transferLeadershipSchema = z.object({
+  new_leader_id: z.coerce
+    .number()
+    .int()
+    .positive('new_leader_id must be a positive number'),
 });

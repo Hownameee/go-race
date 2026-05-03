@@ -100,8 +100,19 @@ public class ProfileSettingsFragment extends Fragment {
     }
 
     private void logout() {
-        viewModel.logout();
-        restartMainActivity();
+        String token = com.grouprace.core.data.TokenManager.getToken(requireContext());
+        if (token != null && com.grouprace.core.data.TokenManager.isRegistered(requireContext())) {
+            viewModel.unregisterDeviceToken(token).observe(getViewLifecycleOwner(), result -> {
+                if (!(result instanceof Result.Loading)) {
+                    com.grouprace.core.data.TokenManager.clearRegistration(requireContext());
+                    viewModel.logout();
+                    restartMainActivity();
+                }
+            });
+        } else {
+            viewModel.logout();
+            restartMainActivity();
+        }
     }
 
     private void deleteMyAccount() {

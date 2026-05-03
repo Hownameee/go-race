@@ -6,4 +6,10 @@
     </style>
 
     <style name="Theme.GoRace" parent="Base.Theme.GoRace" />
+
+    <style name="Theme.GoRace.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/black</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/logo_splash</item>
+        <item name="postSplashScreenTheme">@style/Theme.GoRace</item>
+    </style>
 </resources>

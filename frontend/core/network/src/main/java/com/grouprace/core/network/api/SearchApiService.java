@@ -1,5 +1,6 @@
 package com.grouprace.core.network.api;
 
+import com.grouprace.core.network.model.search.ClubActionResultResponse;
 import com.grouprace.core.network.model.search.NetworkUserSearch;
 import com.grouprace.core.network.utils.ApiResponse;
 
@@ -22,4 +23,16 @@ public interface SearchApiService {
 
     @GET("api/clubs/suggest")
     Call<ApiResponse<List<NetworkUserSearch>>> getSuggestedClubs();
+    /**
+     * Tham gia Câu lạc bộ.
+     */
+    @POST("api/clubs/{clubId}/join")
+    Call<ApiResponse<ClubActionResultResponse>> joinClub(@Path("clubId") int clubId);
+
+    /**
+     * Rời Câu lạc bộ.
+     */
+    @POST("api/clubs/{clubId}/leave")
+    Call<ApiResponse<ClubActionResultResponse>> leaveClub(@Path("clubId") int clubId);
+
 }

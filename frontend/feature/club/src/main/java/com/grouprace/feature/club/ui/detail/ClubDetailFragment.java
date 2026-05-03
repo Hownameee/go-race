@@ -104,7 +104,8 @@ public class ClubDetailFragment extends Fragment {
         View.OnClickListener shareListener = v -> {
             com.grouprace.core.model.Club club = viewModel.getClub().getValue();
             if (club != null) {
-                ShareClubFragment.newInstance(club.getName(), club.getMemberCount(), club.getAvatarUrl()).show(getChildFragmentManager(), "ShareClubBottomSheet");
+                ShareClubFragment.newInstance(club.getName(), club.getMemberCount(), club.getAvatarUrl())
+                        .show(getChildFragmentManager(), "ShareClubBottomSheet");
             }
         };
         btnInvite.setOnClickListener(shareListener);
@@ -216,7 +217,17 @@ public class ClubDetailFragment extends Fragment {
                 double speedVal = post.getSpeed() != null ? post.getSpeed() : 0.0;
                 String speedStr = String.format(Locale.getDefault(), "%.1f km/h", speedVal);
 
-                ShareActivityFragment.newInstance(post.getTitle(), String.format(Locale.getDefault(), "%.2f km", distance), pace, TimeUtils.formatDuration(seconds), post.getFullName(), post.getRecordImageUrl(), speedStr).show(getChildFragmentManager(), "ShareBottomSheet");
+                ShareActivityFragment.newInstance(post.getTitle(),
+                        String.format(Locale.getDefault(), "%.2f km", distance), pace,
+                        TimeUtils.formatDuration(seconds), post.getFullName(), post.getRecordImageUrl(), speedStr)
+                        .show(getChildFragmentManager(), "ShareBottomSheet");
+            }
+
+            @Override
+            public void onPostClicked(Post post) {
+                if (appNavigator != null) {
+                    appNavigator.openPostDetail(ClubDetailFragment.this, post.getPostId());
+                }
             }
 
             // profile section
@@ -276,7 +287,8 @@ public class ClubDetailFragment extends Fragment {
 
                 if (isPrivate) {
                     tvPrivacyBadge.setText("Private");
-                    tvPrivacyBadge.setTextColor(getResources().getColor(com.grouprace.core.system.R.color.error_red, null));
+                    tvPrivacyBadge
+                            .setTextColor(getResources().getColor(com.grouprace.core.system.R.color.error_red, null));
                     tvPrivacyBadge.setBackgroundResource(R.drawable.bg_badge_private);
                 } else {
                     tvPrivacyBadge.setText("Public");
@@ -302,18 +314,24 @@ public class ClubDetailFragment extends Fragment {
                 if (rvNav.getAdapter() instanceof ClubNavAdapter) {
                     ClubNavAdapter adapter = (ClubNavAdapter) rvNav.getAdapter();
                     List<ClubNavAdapter.NavItem> items = new ArrayList<>();
-                    items.add(new ClubNavAdapter.NavItem("NAV_OVERVIEW", "Overview", android.R.drawable.ic_dialog_info));
+                    items.add(
+                            new ClubNavAdapter.NavItem("NAV_OVERVIEW", "Overview", android.R.drawable.ic_dialog_info));
 
                     if (isApproved) {
-                        items.add(new ClubNavAdapter.NavItem("ACTION_CREATE_POST", "Create Post", android.R.drawable.ic_menu_edit));
-                        items.add(new ClubNavAdapter.NavItem("ACTION_CREATE_ACTIVITY", "Create Activity", android.R.drawable.ic_menu_add));
+                        items.add(new ClubNavAdapter.NavItem("ACTION_CREATE_POST", "Create Post",
+                                android.R.drawable.ic_menu_edit));
+                        items.add(new ClubNavAdapter.NavItem("ACTION_CREATE_ACTIVITY", "Create Activity",
+                                android.R.drawable.ic_menu_add));
                     }
 
-                    items.add(new ClubNavAdapter.NavItem("NAV_EVENTS", "Events", android.R.drawable.ic_menu_my_calendar));
-                    items.add(new ClubNavAdapter.NavItem("NAV_STATS", "Statistics", android.R.drawable.ic_menu_gallery));
-                    
+                    items.add(
+                            new ClubNavAdapter.NavItem("NAV_EVENTS", "Events", android.R.drawable.ic_menu_my_calendar));
+                    items.add(
+                            new ClubNavAdapter.NavItem("NAV_STATS", "Statistics", android.R.drawable.ic_menu_gallery));
+
                     if (isApproved) {
-                        items.add(new ClubNavAdapter.NavItem("ACTION_LEAVE", "Leave Club", android.R.drawable.ic_delete));
+                        items.add(
+                                new ClubNavAdapter.NavItem("ACTION_LEAVE", "Leave Club", android.R.drawable.ic_delete));
                     }
 
                     adapter.updateItems(items);
@@ -349,7 +367,8 @@ public class ClubDetailFragment extends Fragment {
         });
 
         viewModel.getSyncStatus().observe(getViewLifecycleOwner(), result -> {
-            if (result == null) return;
+            if (result == null)
+                return;
 
             if (result instanceof Result.Loading) {
                 if (postAdapter.getItemCount() == 0) {
@@ -378,6 +397,7 @@ public class ClubDetailFragment extends Fragment {
     }
 
     private TopAppBarConfig getTopAppBarConfig() {
-        return new TopAppBarConfig.Builder().setTitle("Club Details").setLeftIcon(com.grouprace.core.system.R.drawable.ic_app).build();
+        return new TopAppBarConfig.Builder().setTitle("Club Details")
+                .setLeftIcon(com.grouprace.core.system.R.drawable.ic_app).build();
     }
 }

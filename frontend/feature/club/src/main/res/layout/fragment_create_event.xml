@@ -73,58 +73,29 @@
                         android:textColor="@color/white" />
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <LinearLayout
-                    android:id="@+id/layout_targets"
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/til_distance"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:orientation="horizontal"
+                    android:hint="Club Collective Goal (km)"
+                    android:textColorHint="@color/text_secondary"
+                    app:boxStrokeColor="@color/surface_medium"
+                    app:hintTextColor="@color/white"
+                    app:helperText="The total distance goal to be achieved by all participants combined."
+                    app:helperTextTextColor="@color/text_tertiary"
+                    app:startIconDrawable="@android:drawable/ic_menu_directions"
+                    app:startIconTint="@color/text_secondary"
                     app:layout_constraintTop_toBottomOf="@id/til_desc">
 
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/til_distance"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                        android:layout_width="0dp"
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_target_distance"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="8dp"
-                        android:hint="Distance (km)"
-                        android:textColorHint="@color/text_secondary"
-                        app:boxStrokeColor="@color/surface_medium"
-                        app:hintTextColor="@color/white"
-                        app:startIconDrawable="@android:drawable/ic_menu_directions"
-                        app:startIconTint="@color/text_secondary">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/et_target_distance"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="numberDecimal"
-                            android:textColor="@color/white" />
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/til_duration"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="8dp"
-                        android:hint="Duration (min)"
-                        android:textColorHint="@color/text_secondary"
-                        app:boxStrokeColor="@color/surface_medium"
-                        app:hintTextColor="@color/white"
-                        app:startIconDrawable="@android:drawable/ic_menu_recent_history"
-                        app:startIconTint="@color/text_secondary">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/et_target_duration"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="number"
-                            android:textColor="@color/white" />
-                    </com.google.android.material.textfield.TextInputLayout>
-                </LinearLayout>
+                        android:inputType="numberDecimal"
+                        android:textColor="@color/white" />
+                </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/til_start_date"
@@ -138,7 +109,7 @@
                     app:hintTextColor="@color/white"
                     app:startIconDrawable="@android:drawable/ic_menu_my_calendar"
                     app:startIconTint="@color/text_secondary"
-                    app:layout_constraintTop_toBottomOf="@id/layout_targets">
+                    app:layout_constraintTop_toBottomOf="@id/til_distance">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/et_start_date"

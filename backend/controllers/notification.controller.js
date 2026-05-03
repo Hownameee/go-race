@@ -7,9 +7,8 @@ const notificationController = {
       const data = await notificationService.getNotifications(userId);
       return res.ok({
         notifications: data,
-        nextCursor: null, 
+        nextCursor: null,
       });
-
     } catch (err) {
       console.error('[Notification][getList]', err);
       return res.error(null, err.message);
@@ -18,14 +17,7 @@ const notificationController = {
 
   async createNotification(req, res) {
     try {
-      const {
-        user_id,
-        type,
-        actor_id,
-        activity_id,
-        title,
-        message,
-      } = req.body;
+      const { user_id, type, actor_id, activity_id, title, message } = req.body;
 
       const notification = await notificationService.createAndSend({
         userId: user_id,
@@ -37,7 +29,6 @@ const notificationController = {
       });
 
       return res.created(notification, 'Notification created');
-
     } catch (err) {
       console.error('[Notification][create]', err);
       return res.error(null, err.message);
@@ -53,13 +44,22 @@ const notificationController = {
       return res.ok({
         message: 'Marked as read',
       });
-
     } catch (err) {
       console.error('[Notification][markAsRead]', err);
       return res.error(null, err.message);
     }
   },
 
+  async getUnreadCount(req, res) {
+    try {
+      const userId = req.user.userId;
+      const count = await notificationService.getUnreadCount(userId);
+      return res.ok({ count });
+    } catch (err) {
+      console.error('[Notification][getUnreadCount]', err);
+      return res.error(null, err.message);
+    }
+  },
 };
 
 export default notificationController;

@@ -45,4 +45,5 @@ public interface RecordRepository {
     LiveData<List<Record>> getTodayRecords();
 
     LiveData<TodaySummary> getTodaySummary();
+    void deleteOldRecords();
 }

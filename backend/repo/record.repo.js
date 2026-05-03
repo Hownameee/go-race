@@ -1,7 +1,12 @@
 import db from '../utils/db/db.js';
 
 const recordRepo = {
-  getAggregateStats(userId, activityType = null, fromDate = null, toDate = null) {
+  getAggregateStats(
+    userId,
+    activityType = null,
+    fromDate = null,
+    toDate = null,
+  ) {
     const sql = `
       SELECT
         COUNT(*) AS total_activities,
@@ -103,7 +108,7 @@ const recordRepo = {
       ORDER BY activity_date DESC
     `;
     return db.prepare(sql).all(userId);
-  }
+  },
 };
 
 export default recordRepo;

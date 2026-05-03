@@ -8,10 +8,7 @@ export const followCreateSchema = z.object({
 });
 
 export const followUserIdSchema = z.object({
-  userId: z.coerce
-    .number()
-    .int()
-    .positive('userId must be a positive number'),
+  userId: z.coerce.number().int().positive('userId must be a positive number'),
 });
 
 export const getFollowsQuerySchema = z.object({

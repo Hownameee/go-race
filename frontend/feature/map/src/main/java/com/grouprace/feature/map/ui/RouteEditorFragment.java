@@ -320,19 +320,29 @@ public class RouteEditorFragment extends Fragment {
     }
 
     private void showSaveDialog() {
-        EditText input = new EditText(requireContext());
-        input.setHint(R.string.dialog_route_name_hint);
-        new AlertDialog.Builder(requireContext(), com.google.android.material.R.style.Theme_MaterialComponents_Dialog_Alert)
-                .setTitle(R.string.dialog_route_name_title)
-                .setView(input)
-                .setPositiveButton("Save", (dialog, which) -> {
-                    String name = input.getText().toString().trim();
-                    if (name.isEmpty()) name = "New Route";
-                    viewModel.saveRoute(name);
-                    Toast.makeText(requireContext(), R.string.msg_route_saved, Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_save_route, null);
+        EditText input = dialogView.findViewById(R.id.et_route_name);
+        Button btnCancel = dialogView.findViewById(R.id.btn_dialog_cancel);
+        Button btnSave = dialogView.findViewById(R.id.btn_dialog_save);
+
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnSave.setOnClickListener(v -> {
+            String name = input.getText().toString().trim();
+            if (name.isEmpty()) name = "New Route";
+            viewModel.saveRoute(name);
+            Toast.makeText(requireContext(), R.string.msg_route_saved, Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        });
+
+        dialog.show();
     }
 
     private void requestLocationPermission() {

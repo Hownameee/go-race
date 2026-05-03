@@ -18,9 +18,6 @@ public class NetworkClubEvent {
     @SerializedName("target_distance")
     public double targetDistance;
 
-    @SerializedName("target_duration_seconds")
-    public int targetDurationSeconds;
-
     @SerializedName("start_time")
     public String startTime;
 
@@ -33,15 +30,9 @@ public class NetworkClubEvent {
     @SerializedName("current_distance")
     public double currentDistance;
 
-    @SerializedName("current_duration_seconds")
-    public int currentDurationSeconds;
-
     @SerializedName("participants_count")
     public int participantsCount;
 
     @SerializedName("global_distance")
     public double globalDistance;
-
-    @SerializedName("global_duration_seconds")
-    public int globalDurationSeconds;
 }

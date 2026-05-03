@@ -11,13 +11,18 @@ import com.grouprace.core.data.model.UserRouteWithWaypoints;
 
 import java.util.List;
 
+import androidx.room.OnConflictStrategy;
+
 @Dao
 public interface UserRouteDao {
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insertRoute(UserRouteEntity route);
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertRoutes(List<UserRouteEntity> routes);
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertWaypoints(List<UserRouteWaypointEntity> waypoints);
 
     @Query("SELECT * FROM user_routes ORDER BY createdAt DESC")

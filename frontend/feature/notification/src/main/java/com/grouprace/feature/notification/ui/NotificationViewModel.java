@@ -4,7 +4,6 @@ import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
-import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.grouprace.core.common.result.Result;
@@ -23,7 +22,6 @@ public class NotificationViewModel extends ViewModel {
 
     private final NotificationRepository repository;
     private final MediatorLiveData<Result<List<NotificationModel>>> notificationsResult = new MediatorLiveData<>();
-    private final MutableLiveData<Boolean> refreshTrigger = new MutableLiveData<>();
     private final List<NotificationModel> allNotifications = new ArrayList<>();
     private boolean hasLoaded = false;
 
@@ -34,20 +32,17 @@ public class NotificationViewModel extends ViewModel {
     }
 
     private void setupNotificationsStream() {
-        notificationsResult.addSource(refreshTrigger, trigger -> {
-            LiveData<Result<List<NotificationModel>>> source = repository.getNotifications();
+        LiveData<Result<List<NotificationModel>>> source = repository.getNotifications();
 
-            notificationsResult.addSource(source, result -> {
-                if (result instanceof Result.Loading) {
-                    notificationsResult.setValue(new Result.Loading<>());
-                } else if (result instanceof Result.Success) {
-                    handleSuccess(((Result.Success<List<NotificationModel>>) result).data);
-                } else if (result instanceof Result.Error) {
-                    Result.Error<?> error = (Result.Error<?>) result;
-                    notificationsResult.setValue(new Result.Error<>(error.exception, error.message));
-                }
-                notificationsResult.removeSource(source);
-            });
+        notificationsResult.addSource(source, result -> {
+            if (result instanceof Result.Loading) {
+                notificationsResult.setValue(new Result.Loading<>());
+            } else if (result instanceof Result.Success) {
+                handleSuccess(((Result.Success<List<NotificationModel>>) result).data);
+            } else if (result instanceof Result.Error) {
+                Result.Error<?> error = (Result.Error<?>) result;
+                notificationsResult.setValue(new Result.Error<>(error.exception, error.message));
+            }
         });
     }
 
@@ -61,13 +56,11 @@ public class NotificationViewModel extends ViewModel {
 
     public void refreshNotifications() {
         hasLoaded = true;
-        refreshTrigger.setValue(true);
         repository.refreshNotifications();
     }
 
     public void addNotification(NotificationModel notification) {
-        allNotifications.add(0, notification);
-        notificationsResult.setValue(new Result.Success<>(new ArrayList<>(allNotifications)));
+        repository.addNotification(notification);
     }
 
     public LiveData<Result<List<NotificationModel>>> getNotifications() {
@@ -76,6 +69,7 @@ public class NotificationViewModel extends ViewModel {
         }
         return notificationsResult;
     }
+    
     public void markAsRead(NotificationModel notification) {
         notification.setRead(true);
         notificationsResult.setValue(new Result.Success<>(new ArrayList<>(allNotifications)));
@@ -86,7 +80,9 @@ public class NotificationViewModel extends ViewModel {
                 notification.setRead(false);
                 notificationsResult.setValue(new Result.Success<>(new ArrayList<>(allNotifications)));
             }
-            notificationsResult.removeSource(source);
+            if (!(result instanceof Result.Loading)) {
+                notificationsResult.removeSource(source);
+            }
         });
     }
 }

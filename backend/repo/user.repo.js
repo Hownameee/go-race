@@ -33,8 +33,15 @@ const userRepo = {
 
     return db
       .prepare(sql)
-      .run(username, fullname, email, hashedPassword, birthdate, googleSub, avatarUrl)
-      .lastInsertRowid;
+      .run(
+        username,
+        fullname,
+        email,
+        hashedPassword,
+        birthdate,
+        googleSub,
+        avatarUrl,
+      ).lastInsertRowid;
   },
 
   getAllUsers: (offset = 0, limit = 10) => {
@@ -118,7 +125,8 @@ const userRepo = {
       LIMIT ?
     `;
 
-    return db.prepare(sql)
+    return db
+      .prepare(sql)
       .all(currentUserId, currentUserId, currentUserId, limit);
   },
 
@@ -150,7 +158,8 @@ const userRepo = {
       LIMIT ?
     `;
 
-    return db.prepare(sql)
+    return db
+      .prepare(sql)
       .all(currentUserId, keyword, currentUserId, prefixKeyword, limit);
   },
 
@@ -168,7 +177,7 @@ const userRepo = {
 
     values.push(userId);
 
-    const sql = `UPDATE USERS SET ${fields.join(", ")}, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`;
+    const sql = `UPDATE USERS SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`;
     return db.prepare(sql).run(...values);
   },
 

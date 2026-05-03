@@ -25,6 +25,7 @@ router.post(
 
 router.get(
   '/api/posts/feed',
+  auth,
   validation(getPostFeedQuerySchema, 'query'),
   postController.getFeed,
 );
