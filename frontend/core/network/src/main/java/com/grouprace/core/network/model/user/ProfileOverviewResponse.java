@@ -12,6 +12,9 @@ public class ProfileOverviewResponse {
     @SerializedName("avatar_url")
     private String avatarUrl;
 
+    @SerializedName("bio")
+    private String bio;
+
     @SerializedName("city")
     private String city;
 
@@ -24,6 +27,9 @@ public class ProfileOverviewResponse {
     @SerializedName("total_followers")
     private int totalFollowers;
 
+    @SerializedName("is_following")
+    private boolean isFollowing;
+
     public ProfileOverviewResponse() {}
 
     public int getUserId() { return userId; }
@@ -34,6 +40,9 @@ public class ProfileOverviewResponse {
 
     public String getAvatarUrl() { return avatarUrl; }
     public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
+
+    public String getBio() { return bio; }
+    public void setBio(String bio) { this.bio = bio; }
 
     public String getCity() { return city; }
     public void setCity(String city) { this.city = city; }
@@ -46,4 +55,7 @@ public class ProfileOverviewResponse {
 
     public int getTotalFollowers() { return totalFollowers; }
     public void setTotalFollowers(int totalFollowers) { this.totalFollowers = totalFollowers; }
+
+    public boolean isFollowing() { return isFollowing; }
+    public void setFollowing(boolean following) { isFollowing = following; }
 }

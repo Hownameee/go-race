@@ -1,20 +1,6 @@
 package com.grouprace.core.network.model.notification;
 
 import com.google.gson.annotations.SerializedName;
-//CREATE TABLE IF NOT EXISTS NOTIFICATIONS (
-//        id INTEGER PRIMARY KEY AUTOINCREMENT,
-//        user_id INTEGER NOT NULL,
-//        type TEXT CHECK (type IN ('like','comment','follow','system')) NOT NULL,
-//actor_id INTEGER,
-//activity_id INTEGER,
-//title TEXT NOT NULL,
-//message TEXT,
-//read INTEGER DEFAULT 0,
-//created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-//
-//FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-//FOREIGN KEY (actor_id) REFERENCES users(user_id) ON DELETE SET NULL
-//);
 
 public class NetworkNotification {
     @SerializedName("id")
@@ -43,6 +29,9 @@ public class NetworkNotification {
 
     @SerializedName("created_at")
     private String createdAt;
+
+    @SerializedName("actor_avatar_url")
+    private String avtUrl;
 
     public int getId() {
         return id;
@@ -78,6 +67,10 @@ public class NetworkNotification {
 
     public String getTitle() {
         return title;
+    }
+
+    public String getAvtUrl() {
+        return avtUrl;
     }
 
     public void setRead(boolean read) {

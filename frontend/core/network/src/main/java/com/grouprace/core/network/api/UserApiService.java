@@ -5,8 +5,9 @@ import com.grouprace.core.network.model.user.ChangePasswordPayload;
 import com.grouprace.core.network.model.user.ConfirmEmailChangePayload;
 import com.grouprace.core.network.model.user.MyProfileInfoPayload;
 import com.grouprace.core.network.model.user.ProfileOverviewResponse;
-import com.grouprace.core.network.model.user.RequestEmailOtpPayload;
+import com.grouprace.core.network.model.user.RequestNewEmailOtpPayload;
 import com.grouprace.core.network.model.user.ResetPasswordWithOtpPayload;
+import com.grouprace.core.network.model.user.VerifyEmailOtpPayload;
 import com.grouprace.core.network.model.user.VerifyCurrentPasswordPayload;
 import com.grouprace.core.network.utils.ApiResponse;
 
@@ -19,13 +20,21 @@ import retrofit2.http.POST;
 import retrofit2.http.Part;
 import retrofit2.http.DELETE;
 import okhttp3.MultipartBody;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface UserApiService {
     @GET("/api/users/me")
     Call<ApiResponse<MyProfileInfoPayload>> getMyInfo();
 
     @POST("/api/users/me/email/request-otp")
-    Call<ApiResponse<Void>> requestEmailChangeOtp(@Body RequestEmailOtpPayload payload);
+    Call<ApiResponse<Void>> requestEmailChangeOtp();
+
+    @POST("/api/users/me/email/verify-otp")
+    Call<ApiResponse<Void>> verifyEmailChangeOtp(@Body VerifyEmailOtpPayload payload);
+
+    @POST("/api/users/me/email/request-new-otp")
+    Call<ApiResponse<Void>> requestNewEmailChangeOtp(@Body RequestNewEmailOtpPayload payload);
 
     @PATCH("/api/users/me/email")
     Call<ApiResponse<Void>> confirmEmailChange(@Body ConfirmEmailChangePayload payload);
@@ -54,4 +63,19 @@ public interface UserApiService {
 
     @GET("/api/users/me/overview")
     Call<ApiResponse<ProfileOverviewResponse>> getMyOverview();
+
+    @GET("/api/users/{userId}/overview")
+    Call<ApiResponse<ProfileOverviewResponse>> getUserOverview(@Path("userId") int userId);
+
+    @GET("/api/users/{userId}/followers")
+    Call<ApiResponse<com.grouprace.core.network.model.user.FollowListResponse>> getFollowers(
+            @Path("userId") int userId,
+            @Query("limit") int limit
+    );
+
+    @GET("/api/users/{userId}/following")
+    Call<ApiResponse<com.grouprace.core.network.model.user.FollowListResponse>> getFollowing(
+            @Path("userId") int userId,
+            @Query("limit") int limit
+    );
 }

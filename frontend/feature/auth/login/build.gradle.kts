@@ -53,6 +53,10 @@ dependencies {
     implementation(project(":core:system"))
     implementation(project(":core:navigation"))
 
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

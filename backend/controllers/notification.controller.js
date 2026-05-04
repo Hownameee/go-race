@@ -4,12 +4,16 @@ const notificationController = {
   async getList(req, res) {
     try {
       const userId = req.user.userId;
-      const data = await notificationService.getNotifications(userId);
+      const limit = req.query.limit ? parseInt(req.query.limit) : 20;
+      const cursor = req.query.cursor ? parseInt(req.query.cursor) : null;
+      const data = await notificationService.getNotifications(userId, cursor, limit);
+      
+      const nextCursor = data.length === limit ? data[data.length - 1].id : null;
+      
       return res.ok({
         notifications: data,
-        nextCursor: null, 
+        nextCursor: nextCursor,
       });
-
     } catch (err) {
       console.error('[Notification][getList]', err);
       return res.error(null, err.message);
@@ -18,14 +22,7 @@ const notificationController = {
 
   async createNotification(req, res) {
     try {
-      const {
-        user_id,
-        type,
-        actor_id,
-        activity_id,
-        title,
-        message,
-      } = req.body;
+      const { user_id, type, actor_id, activity_id, title, message } = req.body;
 
       const notification = await notificationService.createAndSend({
         userId: user_id,
@@ -37,7 +34,6 @@ const notificationController = {
       });
 
       return res.created(notification, 'Notification created');
-
     } catch (err) {
       console.error('[Notification][create]', err);
       return res.error(null, err.message);
@@ -53,13 +49,22 @@ const notificationController = {
       return res.ok({
         message: 'Marked as read',
       });
-
     } catch (err) {
       console.error('[Notification][markAsRead]', err);
       return res.error(null, err.message);
     }
   },
 
+  async getUnreadCount(req, res) {
+    try {
+      const userId = req.user.userId;
+      const count = await notificationService.getUnreadCount(userId);
+      return res.ok({ count });
+    } catch (err) {
+      console.error('[Notification][getUnreadCount]', err);
+      return res.error(null, err.message);
+    }
+  },
 };
 
 export default notificationController;

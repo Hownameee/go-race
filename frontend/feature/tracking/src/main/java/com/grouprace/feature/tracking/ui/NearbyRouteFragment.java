@@ -216,6 +216,7 @@ public class NearbyRouteFragment extends Fragment {
             viewModel.clearError(); // prevent re-show on rotation
             Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
         });
+
     }
 
     // --- search ---

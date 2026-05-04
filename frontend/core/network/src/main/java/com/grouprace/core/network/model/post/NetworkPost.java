@@ -2,6 +2,7 @@ package com.grouprace.core.network.model.post;
 
 import com.google.gson.annotations.SerializedName;
 import com.grouprace.core.model.Post;
+import java.util.List;
 
 public class NetworkPost {
 
@@ -20,14 +21,17 @@ public class NetworkPost {
     @SerializedName("description")
     private String description;
 
-    @SerializedName("photo_url")
-    private String photoUrl;
+    @SerializedName("photo_urls")
+    private List<String> photoUrls;
 
     @SerializedName("like_count")
     private int likeCount;
 
     @SerializedName("comment_count")
     private int commentCount;
+
+    @SerializedName("is_liked")
+    private int isLiked;
 
     @SerializedName("view_mode")
     private String viewMode;
@@ -41,7 +45,7 @@ public class NetworkPost {
     @SerializedName("fullname")
     private String fullName;
 
-    @SerializedName("profile_picture_url")
+    @SerializedName(value = "profile_picture_url", alternate = { "avatar_url" })
     private String profilePictureUrl;
 
     @SerializedName("activity_type")
@@ -58,6 +62,9 @@ public class NetworkPost {
 
     @SerializedName("record_image_url")
     private String recordImageUrl;
+
+    @SerializedName("club_id")
+    private Integer clubId;
 
     public NetworkPost() {}
 
@@ -76,14 +83,17 @@ public class NetworkPost {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public String getPhotoUrl() { return photoUrl; }
-    public void setPhotoUrl(String photoUrl) { this.photoUrl = photoUrl; }
+    public List<String> getPhotoUrls() { return photoUrls; }
+    public void setPhotoUrls(List<String> photoUrls) { this.photoUrls = photoUrls; }
 
     public int getLikeCount() { return likeCount; }
     public void setLikeCount(int likeCount) { this.likeCount = likeCount; }
 
     public int getCommentCount() { return commentCount; }
     public void setCommentCount(int commentCount) { this.commentCount = commentCount; }
+
+    public int getIsLiked() { return isLiked; }
+    public void setIsLiked(int isLiked) { this.isLiked = isLiked; }
 
     public String getViewMode() { return viewMode; }
     public void setViewMode(String viewMode) { this.viewMode = viewMode; }
@@ -116,10 +126,12 @@ public class NetworkPost {
     public void setRecordImageUrl(String recordImageUrl) { this.recordImageUrl = recordImageUrl; }
 
     public Post asExternalModel() {
-        return new Post(
-            postId, recordId, ownerId, title, description, photoUrl,
+        Post post = new Post(
+            postId, recordId, ownerId, title, description, photoUrls,
             likeCount, commentCount, viewMode, createdAt, username, fullName, profilePictureUrl,
-            activityType, durationSeconds, distanceKm, speed, recordImageUrl
+            activityType, durationSeconds, distanceKm, speed, recordImageUrl, clubId
         );
+        post.setLiked(isLiked == 1);
+        return post;
     }
 }

@@ -2,13 +2,9 @@ package com.grouprace.core.data.model;
 
 import androidx.room.Entity;
 import androidx.room.Ignore;
-import androidx.room.PrimaryKey;
 
-@Entity(tableName = "user_route_waypoints")
+@Entity(tableName = "user_route_waypoints", primaryKeys = {"routeId", "orderIndex"})
 public class UserRouteWaypointEntity {
-
-    @PrimaryKey(autoGenerate = true)
-    public long id;
 
     public long routeId;
     public int orderIndex;

@@ -1,40 +1,25 @@
-import fs from 'fs';
 import path from 'path';
 import multer from 'multer';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const avatarUploadDir = path.resolve(__dirname, '../uploads/avatars');
-
-fs.mkdirSync(avatarUploadDir, { recursive: true });
 
 const allowedMimeTypes = new Set([
   'image/jpeg',
   'image/png',
   'image/webp',
+  'image/heic',
+  'image/heif',
 ]);
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, avatarUploadDir);
-  },
-  filename: (req, file, cb) => {
-    const extension = path.extname(file.originalname) || '.jpg';
-    const userId = req.user?.userId ?? 'unknown';
-    cb(null, `avatar-${userId}-${Date.now()}${extension}`);
-  },
-});
-
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: {
     fileSize: 5 * 1024 * 1024,
     files: 1,
   },
   fileFilter: (req, file, cb) => {
     if (!allowedMimeTypes.has(file.mimetype)) {
-      const error = new Error('Only JPG, PNG, and WEBP images are allowed.');
+      const error = new Error(
+        'Only JPG, PNG, WEBP, HEIC, and HEIF images are allowed.',
+      );
       error.status = 400;
       return cb(error);
     }
@@ -53,6 +38,35 @@ export function uploadAvatar(req, res, next) {
       return res.badRequest(null, 'Avatar image is required.');
     }
 
+    next();
+  });
+}
+
+const postUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB
+    files: 10, // max 10 photos
+  },
+  fileFilter: (req, file, cb) => {
+    if (!allowedMimeTypes.has(file.mimetype)) {
+      const error = new Error('Only JPG, PNG, WEBP, HEIC, and HEIF images are allowed.');
+      error.status = 400;
+      return cb(error);
+    }
+    cb(null, true);
+  },
+}).array('photos', 10);
+
+export function uploadPhotos(req, res, next) {
+  postUpload(req, res, (error) => {
+    if (error) {
+      if (error.code === 'LIMIT_FILE_COUNT') {
+        error.message = 'You can upload up to 10 photos per post.';
+        error.status = 400;
+      }
+      return next(error);
+    }
     next();
   });
 }

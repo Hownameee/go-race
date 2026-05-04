@@ -3,7 +3,9 @@ package com.grouprace.core.system.ui;
 import android.content.Context;
 import android.graphics.PorterDuff;
 import android.util.TypedValue;
+import android.view.LayoutInflater;
 import android.view.View;
+
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -20,89 +22,117 @@ public class TopAppBarHelper {
         if (config == null || rootView == null) return;
 
         View topBar = rootView.findViewById(R.id.top_bar);
-        if (topBar == null) return; // Top App Bar not found
+        if (topBar == null) return;
 
         TextView tvTitle = topBar.findViewById(R.id.tv_app_title);
-        ImageView ivLeftIcon = topBar.findViewById(R.id.iv_app_logo); // Maps to left icon
-        LinearLayout llRightIconsContainer = topBar.findViewById(R.id.ll_right_icons_container);// Maps to right icon
-
         if (tvTitle != null) {
-            if (config.getTitle() != null) {
-                tvTitle.setText(config.getTitle());
+            String title = config.getTitle();
+            if (title != null) {
+                tvTitle.setText(title);
                 tvTitle.setVisibility(View.VISIBLE);
             }
         }
 
+        ImageView ivLeftIcon = topBar.findViewById(R.id.iv_app_logo);
         if (ivLeftIcon != null) {
             if (config.getLeftIconResId() != 0) {
                 ivLeftIcon.setImageResource(config.getLeftIconResId());
                 ivLeftIcon.setVisibility(View.VISIBLE);
-                
-                if (config.getOnLeftIconClick() != null) {
-                    ivLeftIcon.setOnClickListener(config.getOnLeftIconClick());
-                } else {
-                    ivLeftIcon.setOnClickListener(null);
-                }
+                ivLeftIcon.setOnClickListener(config.getOnLeftIconClick()); // null is fine → clears listener
             } else {
                 ivLeftIcon.setVisibility(View.GONE);
             }
         }
 
-        // --- 3. XỬ LÝ DANH SÁCH ICON PHẢI (LOGIC MỚI) ---
-        if (llRightIconsContainer != null) {
-            /// Xóa toàn bộ icon cũ để tránh bị nhân bản khi Fragment vẽ lại UI
-            llRightIconsContainer.removeAllViews();
+        LinearLayout container = topBar.findViewById(R.id.ll_right_icons_container);
+        if (container == null) return;
 
-            List<TopAppBarConfig.ActionIcon> rightIcons = config.getRightIcons();
+        List<TopAppBarConfig.ActionIcon> icons = config.getRightIcons();
 
-            if (rightIcons != null && !rightIcons.isEmpty()) {
-                llRightIconsContainer.setVisibility(View.VISIBLE);
-                Context context = rootView.getContext();
+        if (icons == null || icons.isEmpty()) {
+            container.setVisibility(View.GONE);
+            return;
+        }
 
-                // Quy đổi kích thước từ dp sang px
-                int iconSizePx = (int) TypedValue.applyDimension(
-                        TypedValue.COMPLEX_UNIT_DIP, 28, context.getResources().getDisplayMetrics());
-                int marginPx = (int) TypedValue.applyDimension(
-                        TypedValue.COMPLEX_UNIT_DIP, 16, context.getResources().getDisplayMetrics());
+        container.setVisibility(View.VISIBLE);
+        Context context = rootView.getContext();
+        int marginPx = context.getResources().getDimensionPixelSize(R.dimen.toolbar_icon_spacing);
 
-                // Duyệt qua danh sách icon được cấu hình và vẽ lên màn hình
-                int whiteColor = ContextCompat.getColor(context, R.color.white);
-                for (int i = 0; i < rightIcons.size(); i++) {
-                    TopAppBarConfig.ActionIcon actionIcon = rightIcons.get(i);
+        // Inflate missing wrappers (only runs on first call or when icon count grows).
+        int existing = container.getChildCount();
+        for (int i = existing; i < icons.size(); i++) {
+            View wrapper = LayoutInflater.from(context)
+                    .inflate(R.layout.item_top_app_bar_icon, container, false);
 
-                    // Khởi tạo ImageView động
-                    ImageView iconView = new ImageView(context);
-                    iconView.setImageResource(actionIcon.iconResId);
-
-                    // Nhuộm trắng icon (tương đương app:tint="@color/white" trong XML)
-                    iconView.setColorFilter(whiteColor, PorterDuff.Mode.SRC_IN);
-
-                    // Thiết lập kích thước (28dp x 28dp)
-                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(iconSizePx, iconSizePx);
-
-                    // Thêm khoảng cách (margin) bên trái cho các icon (trừ icon đầu tiên)
-                    if (i > 0) {
-                        params.setMarginStart(marginPx);
-                    }
-                    iconView.setLayoutParams(params);
-
-                    // Thêm hiệu ứng gợn sóng (ripple) chuẩn Material Design khi bấm
-                    TypedValue outValue = new TypedValue();
-                    context.getTheme().resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, outValue, true);
-                    iconView.setBackgroundResource(outValue.resourceId);
-
-                    // Gắn sự kiện click
-                    if (actionIcon.onClickListener != null) {
-                        iconView.setOnClickListener(actionIcon.onClickListener);
-                    }
-
-                    // Nhét ImageView vừa tạo vào vùng chứa
-                    llRightIconsContainer.addView(iconView);
-                }
-            } else {
-                // Nếu không có icon nào bên phải thì ẩn luôn vùng chứa
-                llRightIconsContainer.setVisibility(View.GONE);
+            // Spacing: all icons except the first get a start margin.
+            if (i > 0) {
+                LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) wrapper.getLayoutParams();
+                lp.setMarginStart(marginPx);
+                wrapper.setLayoutParams(lp);
             }
+
+            // Ripple on the icon itself (borderless).
+            ImageView icon = wrapper.findViewById(R.id.iv_toolbar_icon);
+            TypedValue ripple = new TypedValue();
+            context.getTheme().resolveAttribute(
+                    android.R.attr.selectableItemBackgroundBorderless, ripple, true);
+            icon.setBackgroundResource(ripple.resourceId);
+
+            container.addView(wrapper);
+        }
+
+        // Remove surplus wrappers (icon count shrank — unusual but safe).
+        while (container.getChildCount() > icons.size()) {
+            container.removeViewAt(container.getChildCount() - 1);
+        }
+
+        // Bind / refresh every wrapper with the latest config data.
+        int whiteColor = ContextCompat.getColor(context, R.color.white);
+        for (int i = 0; i < icons.size(); i++) {
+            TopAppBarConfig.ActionIcon actionIcon = icons.get(i);
+            View wrapper = container.getChildAt(i);
+
+            // Enum key stored on wrapper for type-safe updateBadge() lookups.
+            if (actionIcon.tag != null) {
+                wrapper.setTag(R.id.tag_icon_key, actionIcon.tag);
+            }
+
+            ImageView iconView = wrapper.findViewById(R.id.iv_toolbar_icon);
+            iconView.setImageResource(actionIcon.iconResId);
+            iconView.setColorFilter(whiteColor, PorterDuff.Mode.SRC_IN);
+            iconView.setOnClickListener(actionIcon.onClickListener);
+
+            TextView badgeView = wrapper.findViewById(R.id.tv_toolbar_badge);
+            applyBadgeCount(badgeView, actionIcon.badgeCount);
+        }
+    }
+
+    public static void updateBadge(View rootView, TopAppBarConfig.IconTag iconTag, int count) {
+        if (rootView == null || iconTag == null) return;
+        View topBar = rootView.findViewById(R.id.top_bar);
+        if (topBar == null) return;
+
+        LinearLayout container = topBar.findViewById(R.id.ll_right_icons_container);
+        if (container == null) return;
+
+        for (int i = 0; i < container.getChildCount(); i++) {
+            View child = container.getChildAt(i);
+            if (iconTag == child.getTag(R.id.tag_icon_key)) {
+                TextView badge = child.findViewById(R.id.tv_toolbar_badge);
+                if (badge != null) applyBadgeCount(badge, count);
+                return;
+            }
+        }
+    }
+
+
+
+    private static void applyBadgeCount(TextView badge, int count) {
+        if (count <= 0) {
+            badge.setVisibility(View.GONE);
+        } else {
+            badge.setVisibility(View.VISIBLE);
+            badge.setText(count > 9 ? "9+" : String.valueOf(count));
         }
     }
 }

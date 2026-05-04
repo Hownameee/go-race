@@ -15,16 +15,33 @@ const followRepo = {
     return stmt.run(followerId, followingId);
   },
 
-  async selectFollowers(userId, cursor, limit) {
+  async existsFollow(followerId, followingId) {
     const stmt = db.prepare(
-      `SELECT u.user_id, u.username, u.fullname, u.avatar_url, f.created_at
-         FROM FOLLOW f
-         JOIN USERS u ON u.user_id = f.follower_id
-         WHERE f.following_id = ? AND f.created_at < ?
-         ORDER BY f.created_at DESC
-         LIMIT ?`,
+      `SELECT 1 AS is_following
+         FROM FOLLOW
+        WHERE follower_id = ? AND following_id = ?`,
     );
-    return stmt.all(userId, cursor, limit);
+    return stmt.get(followerId, followingId);
+  },
+
+  async selectFollowers(userId, cursor, limit) {
+    let sql = `
+      SELECT u.user_id, u.username, u.fullname, u.avatar_url, f.created_at
+      FROM FOLLOW f
+      JOIN USERS u ON u.user_id = f.follower_id
+      WHERE f.following_id = ? AND f.created_at < ?
+      ORDER BY f.created_at DESC
+    `;
+
+    const params = [userId, cursor];
+
+    if (limit != null) {
+      sql += ` LIMIT ?`;
+      params.push(limit);
+    }
+
+    const stmt = db.prepare(sql);
+    return stmt.all(...params);
   },
 
   async selectFollowing(userId, cursor, limit) {
@@ -39,26 +56,25 @@ const followRepo = {
     return stmt.all(userId, cursor, limit);
   },
 
-countFollowers: async function (userId) {
-  const sql = `
+  countFollowers: async function (userId) {
+    const sql = `
     SELECT COUNT(*) AS total
     FROM FOLLOW
     WHERE following_id = ?
   `;
-  const row = await db.prepare(sql).get(userId);
-  return row.total;
-},
+    const row = await db.prepare(sql).get(userId);
+    return row.total;
+  },
 
-countFollowings: async function (userId) {
-  const sql = `
+  countFollowings: async function (userId) {
+    const sql = `
     SELECT COUNT(*) AS total
     FROM FOLLOW
     WHERE follower_id = ?
   `;
-  const row = await db.prepare(sql).get(userId);
-  return row.total;
-},
-
+    const row = await db.prepare(sql).get(userId);
+    return row.total;
+  },
 };
 
 export default followRepo;

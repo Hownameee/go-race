@@ -14,17 +14,16 @@ public class UserSearchResult {
     // Ánh xạ từ cột `avatar_url` trong bảng USERS
     private String avatarUrl;
 
-    // Trạng thái để đổi màu/chữ của nút Follow
-    // (Được tính toán bằng cách JOIN bảng FOLLOW với USERS)
-    private boolean isFollowing;
+    // 0: Not Following/Joined, 1: Following/Joined, 2: Requested
+    private int followStatus;
 
     // Constructor đầy đủ
-    public UserSearchResult(int userId, String fullname, String subtitle, String avatarUrl, boolean isFollowing) {
+    public UserSearchResult(int userId, String fullname, String subtitle, String avatarUrl, int followStatus) {
         this.userId = userId;
         this.fullname = fullname;
         this.address = subtitle;
         this.avatarUrl = avatarUrl;
-        this.isFollowing = isFollowing;
+        this.followStatus = followStatus;
     }
 
     // --- Getters và Setters ---
@@ -48,11 +47,11 @@ public class UserSearchResult {
         return avatarUrl;
     }
 
-    public boolean isFollowing() {
-        return isFollowing;
+    public int getFollowStatus() {
+        return followStatus;
     }
 
-    public void setFollowing(boolean following) {
-        isFollowing = following;
+    public void setFollowStatus(int followStatus) {
+        this.followStatus = followStatus;
     }
 }

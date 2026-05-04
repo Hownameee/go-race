@@ -5,20 +5,23 @@ import com.grouprace.core.model.UserSearchResult;
 
 public class NetworkUserSearch {
 
-    @SerializedName("user_id")
+    @SerializedName(value = "user_id", alternate = {"club_id"})
     private int userId;
 
-    @SerializedName("fullname")
+    @SerializedName(value = "fullname", alternate = {"name"})
     private String fullname;
 
-    @SerializedName("address")
+    @SerializedName(value = "address", alternate = {"description"})
     private String address;
 
-    @SerializedName("avatar_url")
+    @SerializedName(value = "avatar_url", alternate = {"avatar_s3_key"})
     private String avatarUrl;
 
-    @SerializedName("is_following")
+    @SerializedName(value = "is_following", alternate = {"is_joined"})
     private int isFollowing;
+
+    @SerializedName("status")
+    private String status;
 
     public NetworkUserSearch() {}
 
@@ -39,12 +42,22 @@ public class NetworkUserSearch {
 
     // Hàm chuyển đổi sang Model của UI (External Model)
     public UserSearchResult asExternalModel() {
+        int followStatus = isFollowing;
+        if (status != null) {
+            if ("approved".equals(status)) {
+                followStatus = 1;
+            } else if ("pending".equals(status)) {
+                followStatus = 2;
+            } else {
+                followStatus = 0;
+            }
+        }
         return new UserSearchResult(
                 userId,
                 fullname,
                 address,
                 avatarUrl,
-                isFollowing()
+                followStatus
         );
     }
 }

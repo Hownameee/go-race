@@ -2,10 +2,12 @@ import { Router } from 'express';
 import postController from '../controllers/post.controller.js';
 import validation from '../middlewares/validation.js';
 import { auth } from '../middlewares/auth.middleware.js';
+import { uploadPhotos } from '../middlewares/upload.middleware.js';
 import {
   createPostSchema,
   getPostFeedQuerySchema,
   postIdSchema,
+  userPostsParamsSchema,
   createCommentBodySchema,
   getCommentsQuerySchema,
   commentIdParamsSchema,
@@ -16,12 +18,14 @@ const router = Router();
 router.post(
   '/api/posts',
   auth,
+  uploadPhotos,
   validation(createPostSchema, 'body'),
   postController.createPost,
 );
 
 router.get(
   '/api/posts/feed',
+  auth,
   validation(getPostFeedQuerySchema, 'query'),
   postController.getFeed,
 );
@@ -38,6 +42,14 @@ router.get(
   auth,
   validation(getPostFeedQuerySchema, 'query'),
   postController.getMyPosts,
+);
+
+router.get(
+  '/api/posts/users/:userId',
+  auth,
+  validation(userPostsParamsSchema, 'params'),
+  validation(getPostFeedQuerySchema, 'query'),
+  postController.getUserPosts,
 );
 
 router.post(

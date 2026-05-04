@@ -61,6 +61,7 @@ public class SavedRoutesFragment extends Fragment implements SavedRouteAdapter.O
     private void setupTopBar(View view) {
         TopAppBarConfig config = new TopAppBarConfig.Builder()
                 .setTitle(getString(R.string.title_my_routes))
+                .setLeftIcon(com.grouprace.core.system.R.drawable.ic_app)
                 .build();
         TopAppBarHelper.setupTopAppBar(view, config);
     }
@@ -102,15 +103,23 @@ public class SavedRoutesFragment extends Fragment implements SavedRouteAdapter.O
 
     @Override
     public void onDeleteClick(UserRoute route) {
-        new AlertDialog.Builder(requireContext())
-                .setTitle(R.string.confirm_delete_title)
-                .setMessage(R.string.confirm_delete_message)
-                .setPositiveButton("Delete", (dialog, which) -> {
-                    viewModel.deleteRoute(route);
-                    Toast.makeText(requireContext(), R.string.msg_route_deleted, Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_delete_route, null);
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        dialogView.findViewById(R.id.btn_dialog_delete_cancel).setOnClickListener(v -> dialog.dismiss());
+        dialogView.findViewById(R.id.btn_dialog_delete_confirm).setOnClickListener(v -> {
+            viewModel.deleteRoute(route);
+            Toast.makeText(requireContext(), R.string.msg_route_deleted, Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        });
+
+        dialog.show();
     }
 
     private boolean isOnline() {

@@ -11,7 +11,7 @@ public interface TrackingRepository {
 
     void savePoint(RoutePoint point);
 
-    LiveData<Result<Long>> createRecord(Record record);
+    LiveData<Result<Long>> createRecord(Record record, List<RoutePoint> points);
  
     LiveData<Result<Void>> updateRecord(Record record);
  

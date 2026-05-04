@@ -19,15 +19,18 @@ import recordRoute from './routes/record.route.js';
 import notificationRouter from './routes/notification.route.js';
 import deviceTokenRouter from './routes/device-token.route.js';
 import aiRoute from './routes/ai.route.js';
+import clubRouter from './routes/club.route.js';
+import userRouteRouter from './routes/user-route.route.js';
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 initDatabase();
 
-app.use(bodyParser.json());
 app.use(cors());
 app.use(restResponse);
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use('/uploads', express.static(path.resolve(__dirname, 'uploads')));
 
 app.use('/api/auth', authRoute);
@@ -35,7 +38,9 @@ app.use('/api/auth', authRoute);
 app.use(auth);
 
 app.use('/api/users', userRoute);
+app.use('/api/clubs', clubRouter);
 app.use('/api/records', recordRoute);
+
 app.use('/api/notifications', notificationRouter);
 app.use('/api/device-tokens', deviceTokenRouter);
 app.use('/api/ai', aiRoute);
@@ -43,6 +48,7 @@ app.use('/api/ai', aiRoute);
 app.use(followRoutes);
 app.use(postRoutes);
 app.use(userRoute);
+app.use(userRouteRouter);
 
 app.use(notFound);
 app.use(errorHandler);

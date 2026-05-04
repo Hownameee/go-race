@@ -35,6 +35,8 @@ dependencies {
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.mpandroidchart)
+    implementation(libs.glide)
+    implementation(libs.recyclerview)
 
     implementation(project(":core:data"))
     implementation(project(":core:model"))
@@ -45,6 +47,9 @@ dependencies {
 
     // Hilt
     implementation(libs.hilt.android)
+    implementation(libs.androidx.legacy.support.v4)
+    implementation(libs.androidx.lifecycle.livedata.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
     annotationProcessor(libs.hilt.compiler)
 
     implementation(project(":core:common"))
@@ -53,6 +58,10 @@ dependencies {
     implementation(project(":core:map"))
     implementation(project(":core:system"))
     implementation(project(":core:navigation"))
+    implementation(project(":feature:posts"))
+    implementation(project(":feature:club"))
+    implementation(project(":feature:records"))
+    implementation(project(":feature:map"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

@@ -18,6 +18,7 @@ import com.grouprace.core.model.RoutePoint;
 import com.grouprace.core.service.LocationTrackingService;
 import com.grouprace.feature.tracking.domain.FinishActivityUseCase;
 import com.grouprace.feature.tracking.domain.SavePointUseCase;
+import com.grouprace.feature.tracking.domain.SaveAsRouteUseCase;
 import com.mapbox.geojson.Point;
 
 import java.util.ArrayList;
@@ -32,10 +33,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 @HiltViewModel
 public class TrackingViewModel extends AndroidViewModel {
 
-    public enum TrackingState { IDLE, TRACKING, PAUSED }
+    public enum TrackingState {
+        IDLE, TRACKING, PAUSED
+    }
 
     private final SavePointUseCase savePointUseCase;
     private final FinishActivityUseCase finishActivityUseCase;
+    private final SaveAsRouteUseCase saveAsRouteUseCase;
 
     private final MutableLiveData<TrackingState> trackingState = new MutableLiveData<>(TrackingState.IDLE);
     private final MutableLiveData<List<Point>> polylinePoints = new MutableLiveData<>(new ArrayList<>());
@@ -43,8 +47,21 @@ public class TrackingViewModel extends AndroidViewModel {
     private final MutableLiveData<Double> distanceKm = new MutableLiveData<>(0.0);
     private final MutableLiveData<String> pace = new MutableLiveData<>("--:--");
     private final MutableLiveData<Long> finishedActivityId = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> navigateToSummary = new MutableLiveData<>(false);
+
+    // Temp storage for final metrics
+    private long finalStartTime;
+    private long finalEndTime;
+    private float finalDistKm;
+    private long finalElapsed;
+    private float finalSpeedKmH;
+    private float finalHrAvg;
+    private float finalCalories;
+    private List<com.grouprace.core.model.RoutePoint> finalPoints;
 
     private final List<Point> routePointsCache = new ArrayList<>();
+    private final List<com.grouprace.core.model.RoutePoint> sessionRoutePoints = new ArrayList<>();
+
     private long currentActivityId = -1;
     private double totalDistanceMeters = 0;
     private static final double MIN_DISPLACEMENT_METERS = 2.0; // Filter out jitter
@@ -58,7 +75,7 @@ public class TrackingViewModel extends AndroidViewModel {
     private int hrMeasureCount = 0;
     private static final double MET_RUNNING = 8.0;
     private static final double DEFAULT_WEIGHT_KG = 70.0;
- 
+
     private final Handler timerHandler = new Handler(Looper.getMainLooper());
     private final ExecutorService backgroundExecutor = Executors.newSingleThreadExecutor();
     private Observer<Location> locationObserver;
@@ -67,36 +84,60 @@ public class TrackingViewModel extends AndroidViewModel {
 
     @Inject
     public TrackingViewModel(@NonNull Application application,
-                             SavePointUseCase savePointUseCase,
-                             FinishActivityUseCase finishActivityUseCase) {
+            SavePointUseCase savePointUseCase,
+            FinishActivityUseCase finishActivityUseCase,
+            SaveAsRouteUseCase saveAsRouteUseCase) {
         super(application);
         this.savePointUseCase = savePointUseCase;
         this.finishActivityUseCase = finishActivityUseCase;
+        this.saveAsRouteUseCase = saveAsRouteUseCase;
     }
 
     // --- Getters for Fragment to observe ---
 
-    public LiveData<TrackingState> getTrackingState() { return trackingState; }
-    public LiveData<List<Point>> getPolylinePoints() { return polylinePoints; }
-    public LiveData<Long> getElapsedTimeMs() { return elapsedTimeMs; }
-    public LiveData<Double> getDistanceKm() { return distanceKm; }
-    public LiveData<String> getPace() { return pace; }
-    public LiveData<Long> getFinishedActivityId() { return finishedActivityId; }
- 
+    public LiveData<TrackingState> getTrackingState() {
+        return trackingState;
+    }
+
+    public LiveData<List<Point>> getPolylinePoints() {
+        return polylinePoints;
+    }
+
+    public LiveData<Long> getElapsedTimeMs() {
+        return elapsedTimeMs;
+    }
+
+    public LiveData<Double> getDistanceKm() {
+        return distanceKm;
+    }
+
+    public LiveData<String> getPace() {
+        return pace;
+    }
+
+    public LiveData<Long> getFinishedActivityId() {
+        return finishedActivityId;
+    }
+
+    public LiveData<Boolean> getNavigateToSummary() {
+        return navigateToSummary;
+    }
+
     public void resetFinishedActivityId() {
         finishedActivityId.setValue(null);
     }
- 
+
     // --- Actions ---
 
     /**
      * Phase 1: Start Tracking.
-     * Clears unassigned points, creates a placeholder activity (ID 0), and starts GPS service.
+     * Clears unassigned points, creates a placeholder activity (ID 0), and starts
+     * GPS service.
      */
     public void startTracking() {
         backgroundExecutor.execute(() -> {
-            savePointUseCase.clearUnassignedPoints(); 
-            
+            savePointUseCase.clearUnassignedPoints();
+
             currentActivityId = 0;
             new Handler(Looper.getMainLooper()).post(() -> {
                 trackingStartTime = System.currentTimeMillis();
@@ -105,10 +146,10 @@ public class TrackingViewModel extends AndroidViewModel {
                 lastLocation = null;
                 lastSavedLocation = null;
                 routePointsCache.clear();
+                sessionRoutePoints.clear();
 
                 getApplication().startForegroundService(
-                        new Intent(getApplication(), LocationTrackingService.class)
-                );
+                        new Intent(getApplication(), LocationTrackingService.class));
                 attachLocationObserver();
                 startTimer();
                 trackingState.setValue(TrackingState.TRACKING);
@@ -133,8 +174,8 @@ public class TrackingViewModel extends AndroidViewModel {
     }
 
     /**
-     * Phase 4: Finish Tracking.
-     * Stops GPS, calculates final stats (subtracting pause), and syncs to backend.
+     * Phase 4: Prepare to Finish Tracking.
+     * Stops GPS, calculates final stats, and requests a title from the UI.
      */
     public void finishTracking() {
         if (routePointsCache.isEmpty() && finishRetryCount < MAX_FINISH_RETRIES) {
@@ -153,26 +194,57 @@ public class TrackingViewModel extends AndroidViewModel {
         }
 
         getApplication().stopService(
-                new Intent(getApplication(), LocationTrackingService.class)
-        );
+                new Intent(getApplication(), LocationTrackingService.class));
 
-        long endTime = System.currentTimeMillis();
-        long elapsed = endTime - trackingStartTime - totalPausedTime;
-        float distKm = (float) (totalDistanceMeters / 1000.0);
-        float speedKmH = (distKm > 0 && elapsed > 0) ? (float) (distKm / (elapsed / 3600000.0)) : 0f;
- 
-        long startTime = trackingStartTime;
-        float hrAvg = hrMeasureCount > 0 ? (float) totalHeartRate / hrMeasureCount : 0f;
-        float calories = (float) (MET_RUNNING * DEFAULT_WEIGHT_KG * (elapsed / 3600000.0));
+        finalEndTime = System.currentTimeMillis();
+        finalElapsed = finalEndTime - trackingStartTime - totalPausedTime;
+        finalDistKm = (float) (totalDistanceMeters / 1000.0);
+        finalSpeedKmH = (finalDistKm > 0 && finalElapsed > 0) ? (float) (finalDistKm / (finalElapsed / 3600000.0)) : 0f;
+
+        finalStartTime = trackingStartTime;
+        finalHrAvg = hrMeasureCount > 0 ? (float) totalHeartRate / hrMeasureCount : 0f;
+        finalCalories = (float) (MET_RUNNING * DEFAULT_WEIGHT_KG * (finalElapsed / 3600000.0));
+        finalPoints = new ArrayList<>(sessionRoutePoints);
+
+        // Notify Fragment to navigate to summary screen
+        navigateToSummary.setValue(true);
+    }
+    
+    public void onNavigatedToSummary() {
+        navigateToSummary.setValue(false);
+    }
+
+    /**
+     * Phase 5: Confirm Save.
+     * Actually creates the record in DB with the final title.
+     */
+    public void confirmSave(String title, boolean saveAsRoute) {
 
         timerHandler.post(() -> {
-            LiveData<Result<Long>> resultLiveData = finishActivityUseCase.execute(startTime, endTime, distKm, elapsed, speedKmH, hrAvg, calories);
+            LiveData<Result<Long>> resultLiveData = finishActivityUseCase.execute(
+                    title, finalStartTime, finalEndTime, finalDistKm, finalElapsed,
+                    finalSpeedKmH, finalHrAvg, finalCalories, finalPoints);
             resultLiveData.observeForever(new Observer<Result<Long>>() {
                 @Override
                 public void onChanged(Result<Long> result) {
                     if (result instanceof Result.Success) {
-                        finishedActivityId.setValue(((Result.Success<Long>) result).data);
-                        trackingState.setValue(TrackingState.IDLE);
+                        if (saveAsRoute) {
+                            List<Point> points = getFinalPolylinePoints();
+                            LiveData<Result<Long>> saveRouteCall = saveAsRouteUseCase.execute(
+                                    title, points, finalDistKm, (int) (finalElapsed / 1000));
+                            saveRouteCall.observeForever(new Observer<Result<Long>>() {
+                                @Override
+                                public void onChanged(Result<Long> routeResult) {
+                                    if (routeResult instanceof Result.Loading) return;
+                                    saveRouteCall.removeObserver(this);
+                                    finishedActivityId.setValue(((Result.Success<Long>) result).data);
+                                    trackingState.setValue(TrackingState.IDLE);
+                                }
+                            });
+                        } else {
+                            finishedActivityId.setValue(((Result.Success<Long>) result).data);
+                            trackingState.setValue(TrackingState.IDLE);
+                        }
                         resultLiveData.removeObserver(this);
                     } else if (result instanceof Result.Error) {
                         Log.e("TrackingViewModel", "Failed to finish record: " + ((Result.Error<Long>) result).message);
@@ -184,11 +256,21 @@ public class TrackingViewModel extends AndroidViewModel {
         });
     }
 
+    public void cancelSave() {
+        trackingState.setValue(TrackingState.IDLE);
+    }
+
+    // Expose final metrics for the Summary Fragment
+    public float getFinalDistKm() { return finalDistKm; }
+    public long getFinalElapsed() { return finalElapsed; }
+    public List<Point> getFinalPolylinePoints() { return new ArrayList<>(routePointsCache); }
+
     // --- Location observer ---
 
     private void attachLocationObserver() {
         locationObserver = location -> {
-            if (location == null) return;
+            if (location == null)
+                return;
 
             // 1. Filter out stale locations from before the 'Start' button was clicked
             if (location.getTime() < trackingStartTime) {
@@ -216,20 +298,19 @@ public class TrackingViewModel extends AndroidViewModel {
     }
 
     private void saveAndRecordPoint(Location location) {
-        // Add to polyline
+        // Add to polyline (for UI)
         Point point = Point.fromLngLat(location.getLongitude(), location.getLatitude());
         routePointsCache.add(point);
         polylinePoints.setValue(new ArrayList<>(routePointsCache));
 
-        // Save to DB via use case
-        savePointUseCase.execute(new RoutePoint(
+        // Buffer full data in-memory (for atomic offline save later)
+        sessionRoutePoints.add(new RoutePoint(
                 currentActivityId,
                 location.getLatitude(),
                 location.getLongitude(),
                 location.getAltitude(),
                 location.getTime(),
-                location.getAccuracy()
-        ));
+                location.getAccuracy()));
     }
 
     private void detachLocationObserver() {

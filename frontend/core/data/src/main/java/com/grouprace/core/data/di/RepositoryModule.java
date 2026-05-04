@@ -2,16 +2,20 @@ package com.grouprace.core.data.di;
 
 import com.grouprace.core.data.repository.AuthRepository;
 import com.grouprace.core.data.repository.AuthRepositoryImpl;
+import com.grouprace.core.data.repository.ClubRepository;
+import com.grouprace.core.data.repository.ClubRepositoryImpl;
+import com.grouprace.core.data.repository.FollowRepository;
+import com.grouprace.core.data.repository.FollowRepositoryImpl;
 import com.grouprace.core.data.repository.NearbyRouteRepository;
 import com.grouprace.core.data.repository.NearbyRouteRepositoryImpl;
 import com.grouprace.core.data.repository.NotificationRepository;
 import com.grouprace.core.data.repository.NotificationRepositoryImpl;
 import com.grouprace.core.data.repository.PostRepository;
 import com.grouprace.core.data.repository.PostRepositoryImpl;
-import com.grouprace.core.data.repository.SearchRepository;
-import com.grouprace.core.data.repository.SearchRepositoryImpl;
 import com.grouprace.core.data.repository.RecordRepository;
 import com.grouprace.core.data.repository.RecordRepositoryImpl;
+import com.grouprace.core.data.repository.SearchRepository;
+import com.grouprace.core.data.repository.SearchRepositoryImpl;
 import com.grouprace.core.data.repository.TrackingRepository;
 import com.grouprace.core.data.repository.TrackingRepositoryImpl;
 import com.grouprace.core.data.repository.UserRepository;
@@ -49,6 +53,9 @@ public abstract class RepositoryModule {
     public abstract SearchRepository bindSearchRepository(SearchRepositoryImpl impl);
 
     @Binds
+    public abstract FollowRepository bindFollowRepository(FollowRepositoryImpl impl);
+
+    @Binds
     public abstract UserRepository bindUserRepository(UserRepositoryImpl impl);
 
     @Binds
@@ -59,4 +66,7 @@ public abstract class RepositoryModule {
 
     @Binds
     public abstract AIRepository bindAIRepository(AIRepositoryImpl impl);
+
+    @Binds
+    public abstract ClubRepository bindClubRepository(ClubRepositoryImpl impl);
 }

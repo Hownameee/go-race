@@ -39,6 +39,11 @@ const deviceTokenRepository = {
     const sql = `DELETE FROM device_tokens WHERE token IN (${placeholders})`;
     await db.prepare(sql).run(...tokens);
   },
+
+  deleteByUserIdAndToken: async function (userId, token) {
+    const sql = `DELETE FROM device_tokens WHERE user_id = ? AND token = ?`;
+    await db.prepare(sql).run(userId, token);
+  },
 };
 
 export default deviceTokenRepository;

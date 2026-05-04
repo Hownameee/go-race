@@ -1,6 +1,7 @@
 package com.grouprace.core.data.repository;
 
 import androidx.lifecycle.LiveData;
+
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.UserSearchResult;
 
@@ -20,13 +21,6 @@ public interface SearchRepository {
      */
     LiveData<Result<List<UserSearchResult>>> getSuggestedUsers();
 
-    /**
-     * Follow và Unfollow user.
-     */
-    LiveData<Result<Boolean>> followUser(int targetUserId);
-
-    LiveData<Result<Boolean>> unfollowUser(int targetUserId);
-
 
     // --- CLUB METHODS ---
 
@@ -39,4 +33,8 @@ public interface SearchRepository {
      * Lấy danh sách câu lạc bộ gợi ý (Popular/Local Clubs).
      */
     LiveData<Result<List<UserSearchResult>>> getSuggestedClubs();
+
+    LiveData<Result<String>> joinClub(int clubId);
+
+    LiveData<Result<String>> leaveClub(int clubId);
 }

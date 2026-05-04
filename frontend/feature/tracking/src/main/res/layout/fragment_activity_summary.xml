@@ -113,6 +113,17 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Save as route toggle -->
+        <CheckBox
+            android:id="@+id/cb_save_as_route"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:text="@string/cb_save_as_route"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp"
+            android:buttonTint="@color/error_red" />
+
         <!-- Save button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_save"

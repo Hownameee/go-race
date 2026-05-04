@@ -7,6 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TopAppBarConfig {
+    public enum IconTag {
+        SEARCH,
+        NOTIFICATION
+    }
     private final String title;
     @DrawableRes
     private final int leftIconResId;
@@ -42,12 +46,16 @@ public class TopAppBarConfig {
     public static class ActionIcon {
         @DrawableRes
         public final int iconResId;
-
         public final View.OnClickListener onClickListener;
+        public int badgeCount; // -1 means no badge
+        /** Enum key used by TopAppBarHelper.updateBadge(rootView, tag, count). */
+        public final IconTag tag;
 
-        public ActionIcon(@DrawableRes int iconResId, View.OnClickListener onClickListener) {
+        public ActionIcon(@DrawableRes int iconResId, IconTag tag, View.OnClickListener onClickListener) {
             this.iconResId = iconResId;
+            this.tag = tag;
             this.onClickListener = onClickListener;
+            this.badgeCount = -1;
         }
     }
     public static class Builder {
@@ -79,7 +87,12 @@ public class TopAppBarConfig {
         }
 
         public Builder addRightIcon(@DrawableRes int iconResId, View.OnClickListener onClickListener) {
-            this.rightIcons.add(new ActionIcon(iconResId, onClickListener));
+            this.rightIcons.add(new ActionIcon(iconResId, null, onClickListener));
+            return this;
+        }
+
+        public Builder addRightIcon(@DrawableRes int iconResId, IconTag tag, View.OnClickListener onClickListener) {
+            this.rightIcons.add(new ActionIcon(iconResId, tag, onClickListener));
             return this;
         }
         public TopAppBarConfig build() {

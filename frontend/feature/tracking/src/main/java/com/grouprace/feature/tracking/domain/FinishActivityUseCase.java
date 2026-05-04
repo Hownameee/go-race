@@ -26,9 +26,10 @@ public class FinishActivityUseCase {
      * Note: Duration and distance are received directly from the UI tracking logic 
      * to keep them perfectly in sync with the user's view.
      */
-    public LiveData<Result<Long>> execute(long startTime, long endTime, float distanceKm,
+    public LiveData<Result<Long>> execute(String title, long startTime, long endTime, float distanceKm,
                                          long elapsedTimeMs, float speedKmH,
-                                         float heartRateAvg, float caloriesBurned) {
+                                         float heartRateAvg, float caloriesBurned,
+                                         java.util.List<com.grouprace.core.model.RoutePoint> points) {
         int durationSeconds = (int) (elapsedTimeMs / 1000);
         // speedKmh calculation for safety
         float speedKmhCalculated = elapsedTimeMs > 0
@@ -36,15 +37,14 @@ public class FinishActivityUseCase {
                 : 0.0f;
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
-        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         Record record = new Record(
-                0, "Running", "New Activity",
+                0, "Running", title != null ? title : "New Activity",
                 sdf.format(new Date(startTime)),
                 sdf.format(new Date(endTime)),
                 0, durationSeconds, distanceKm,
                 caloriesBurned, heartRateAvg, speedKmH, null
         );
-        return repository.createRecord(record);
+        return repository.createRecord(record, points);
     }
 }

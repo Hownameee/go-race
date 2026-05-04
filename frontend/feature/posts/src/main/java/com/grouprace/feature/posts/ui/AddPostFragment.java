@@ -16,6 +16,10 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
+import java.util.ArrayList;
 
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.Record;
@@ -24,6 +28,7 @@ import com.grouprace.core.system.ui.TopAppBarConfig;
 import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.feature.posts.R;
 import com.grouprace.feature.posts.ui.adapter.RecordSelectorAdapter;
+import com.grouprace.feature.posts.ui.adapter.SelectedPhotoAdapter;
 
 import javax.inject.Inject;
 
@@ -33,6 +38,7 @@ import dagger.hilt.android.AndroidEntryPoint;
 public class AddPostFragment extends Fragment {
 
     public static final String ARG_WITH_ACTIVITY = "with_activity";
+    public static final String ARG_CLUB_ID = "club_id";
 
     private AddPostViewModel viewModel;
     private EditText etTitle;
@@ -40,19 +46,38 @@ public class AddPostFragment extends Fragment {
     private View btnAddPhoto;
     private TextView tvRecordHeader;
     private RecyclerView rvRecords;
+    private RecyclerView rvSelectedPhotos;
     private ProgressBar loadingRecords;
     private RecordSelectorAdapter recordAdapter;
+    private SelectedPhotoAdapter photoAdapter;
 
     private boolean withActivity;
     private Integer selectedRecordId = null;
+    private Integer clubId = null;
+
+    private final ActivityResultLauncher<PickVisualMediaRequest> pickMultipleMedia =
+            registerForActivityResult(new ActivityResultContracts.PickMultipleVisualMedia(10), uris -> {
+                if (!uris.isEmpty()) {
+                    for (android.net.Uri uri : uris) {
+                        viewModel.addPhoto(uri.toString());
+                    }
+                }
+            });
 
     @Inject
     AppNavigator appNavigator;
 
     public static AddPostFragment newInstance(boolean withActivity) {
+        return newInstance(withActivity, null);
+    }
+
+    public static AddPostFragment newInstance(boolean withActivity, Integer clubId) {
         AddPostFragment fragment = new AddPostFragment();
         Bundle args = new Bundle();
         args.putBoolean(ARG_WITH_ACTIVITY, withActivity);
+        if (clubId != null) {
+            args.putInt(ARG_CLUB_ID, clubId);
+        }
         fragment.setArguments(args);
         return fragment;
     }
@@ -62,6 +87,9 @@ public class AddPostFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             withActivity = getArguments().getBoolean(ARG_WITH_ACTIVITY);
+            if (getArguments().containsKey(ARG_CLUB_ID)) {
+                clubId = getArguments().getInt(ARG_CLUB_ID);
+            }
         }
         viewModel = new ViewModelProvider(this).get(AddPostViewModel.class);
     }
@@ -78,20 +106,35 @@ public class AddPostFragment extends Fragment {
 
         initViews(view);
         setupTopBar(view);
+        setupPhotosList();
         
         if (withActivity) {
             setupRecordsList();
         }
 
         btnAddPhoto.setOnClickListener(v -> 
-            Toast.makeText(getContext(), "Photo upload coming soon!", Toast.LENGTH_SHORT).show()
+            pickMultipleMedia.launch(new PickVisualMediaRequest.Builder()
+                .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                .build())
         );
+    }
+
+    private void setupPhotosList() {
+        photoAdapter = new SelectedPhotoAdapter(uri -> viewModel.removePhoto(uri));
+        rvSelectedPhotos.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        rvSelectedPhotos.setAdapter(photoAdapter);
+
+        viewModel.selectedPhotoUrls.observe(getViewLifecycleOwner(), uris -> {
+            photoAdapter.submitList(new ArrayList<>(uris));
+            rvSelectedPhotos.setVisibility(uris.isEmpty() ? View.GONE : View.VISIBLE);
+        });
     }
 
     private void initViews(View view) {
         etTitle = view.findViewById(R.id.et_title);
         etDescription = view.findViewById(R.id.et_description);
         btnAddPhoto = view.findViewById(R.id.btn_add_photo);
+        rvSelectedPhotos = view.findViewById(R.id.rv_selected_photos);
         tvRecordHeader = view.findViewById(R.id.tv_record_header);
         rvRecords = view.findViewById(R.id.rv_records);
         loadingRecords = view.findViewById(R.id.loading_records);
@@ -142,7 +185,7 @@ public class AddPostFragment extends Fragment {
             return;
         }
 
-        viewModel.createPost(title, description, selectedRecordId).observe(getViewLifecycleOwner(), result -> {
+        viewModel.createPost(title, description, selectedRecordId, clubId).observe(getViewLifecycleOwner(), result -> {
             if (result instanceof Result.Loading) {
                 // Optionally show a loading dialog or state
                 Log.d("AddPostFragment", "Publishing post...");

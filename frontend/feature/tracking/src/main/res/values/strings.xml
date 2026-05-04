@@ -16,5 +16,6 @@
     <string name="title_choose_destination">Choose a destination</string>
     <string name="msg_waiting_for_location">Waiting for location…</string>
     <string name="msg_no_places_found">No places found</string>
+    <string name="cb_save_as_route">Save as route for future runs</string>
 
 </resources>

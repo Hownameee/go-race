@@ -14,6 +14,9 @@ public interface RoutePointDao {
     @Insert
     void insert(RoutePoint point);
 
+    @Insert
+    void insertAll(List<RoutePoint> points);
+
     @Query("SELECT * FROM route_points ORDER BY timestamp ASC")
     List<RoutePoint> getAll();
 
@@ -22,6 +25,9 @@ public interface RoutePointDao {
 
     @Query("UPDATE route_points SET activityId = :activityId WHERE activityId = 0")
     void assignUnassignedPointsToActivity(long activityId);
+
+    @Query("UPDATE route_points SET activityId = :newActivityId WHERE activityId = :oldActivityId")
+    void updateActivityId(long oldActivityId, long newActivityId);
 
     @Query("DELETE FROM route_points WHERE activityId = 0")
     void deleteUnassignedPoints();

@@ -22,6 +22,8 @@ import com.grouprace.core.system.ui.TopAppBarConfig;
 import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.core.system.ui.TodayStatsHelper;
 import com.grouprace.core.navigation.AppNavigator;
+import com.grouprace.core.network.utils.SessionManager;
+import com.grouprace.core.data.viewmodel.NotificationBadgeViewModel;
 
 import java.util.Locale;
 
@@ -34,7 +36,11 @@ public class PostFragment extends Fragment {
     @Inject
     AppNavigator appNavigator;
 
+    @Inject
+    SessionManager sessionManager;
+
     private PostViewModel viewModel;
+    private NotificationBadgeViewModel notificationBadgeViewModel;
     private RecyclerView rvPosts;
     private PostAdapter postAdapter;
     private ProgressBar progressBar;
@@ -45,6 +51,7 @@ public class PostFragment extends Fragment {
     private View layoutFabActivity;
     private ImageView fabMain;
     private boolean isFabExpanded = false;
+    private Integer lastTopPostId = null;
 
     public PostFragment() {
         super(R.layout.fragment_post);
@@ -118,27 +125,60 @@ public class PostFragment extends Fragment {
                         TimeUtils.formatDuration(seconds),
                         post.getFullName(),
                         post.getRecordImageUrl(),
-                        speedStr
-                ).show(getChildFragmentManager(), "ShareBottomSheet");
+                        speedStr).show(getChildFragmentManager(), "ShareBottomSheet");
             }
 
             @Override
             public void onReportClicked(Post post) {
                 Toast.makeText(requireContext(), "Post reported", Toast.LENGTH_SHORT).show();
             }
+
+            @Override
+            public void onPostClicked(Post post) {
+                if (appNavigator != null) {
+                    appNavigator.openPostDetail(PostFragment.this, post.getPostId());
+                }
+            }
+
+            // profile section
+            @Override
+            public void onOwnerClicked(Post post) {
+                if (post.getOwnerId() == sessionManager.getUserId()) {
+                    appNavigator.openMyProfile(PostFragment.this);
+                    return;
+                }
+                appNavigator.openUserProfile(PostFragment.this, post.getOwnerId());
+            }
         });
         rvPosts.setAdapter(postAdapter);
 
         viewModel = new ViewModelProvider(this).get(PostViewModel.class);
+        // Activity-scoped so the badge count is shared across fragments
+        notificationBadgeViewModel = new ViewModelProvider(requireActivity()).get(NotificationBadgeViewModel.class);
 
         observeViewModel();
+        observeUnreadCount();
         setupInfiniteScroll(layoutManager);
     }
 
     private void observeViewModel() {
         viewModel.getPosts().observe(getViewLifecycleOwner(), posts -> {
             if (posts != null) {
-                postAdapter.submitList(posts);
+                boolean firstPostChanged = false;
+                if (!posts.isEmpty()) {
+                    int currentTopId = posts.get(0).getPostId();
+                    if (lastTopPostId != null && lastTopPostId != currentTopId) {
+                        firstPostChanged = true;
+                    }
+                    lastTopPostId = currentTopId;
+                }
+
+                final boolean shouldScroll = firstPostChanged;
+                postAdapter.submitList(posts, () -> {
+                    if (shouldScroll) {
+                        rvPosts.scrollToPosition(0);
+                    }
+                });
                 if (!posts.isEmpty()) {
                     progressBar.setVisibility(View.GONE);
                     rvPosts.setVisibility(View.VISIBLE);
@@ -150,16 +190,16 @@ public class PostFragment extends Fragment {
         viewModel.getTodaySummary().observe(getViewLifecycleOwner(), summary -> {
             if (summary != null) {
                 TodayStatsHelper.bind(
-                    getView(), 
-                    summary.activityCount, 
-                    summary.totalDurationSeconds, 
-                    summary.totalDistanceKm
-                );
+                        getView(),
+                        summary.activityCount,
+                        summary.totalDurationSeconds,
+                        summary.totalDistanceKm);
             }
         });
 
         viewModel.getSyncStatus().observe(getViewLifecycleOwner(), result -> {
-            if (result == null) return;
+            if (result == null)
+                return;
 
             if (result instanceof Result.Loading) {
                 if (postAdapter.getItemCount() == 0) {
@@ -185,32 +225,38 @@ public class PostFragment extends Fragment {
                     String errorMessage = ((Result.Error<?>) result).message;
                     tvError.setText(errorMessage != null ? errorMessage : "Check your connection.");
                 } else {
-                    // android.widget.Toast.makeText(getContext(), "Sync failed", android.widget.Toast.LENGTH_SHORT).show();
+                    // android.widget.Toast.makeText(getContext(), "Sync failed",
+                    // android.widget.Toast.LENGTH_SHORT).show();
                 }
             }
         });
+    }
+
+    private void observeUnreadCount() {
+        notificationBadgeViewModel.getUnreadCount().observe(getViewLifecycleOwner(), count -> TopAppBarHelper
+                .updateBadge(getView(), TopAppBarConfig.IconTag.NOTIFICATION, count != null ? count : 0));
     }
 
     private void setupInfiniteScroll(LinearLayoutManager layoutManager) {
         rvPosts.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-            super.onScrolled(recyclerView, dx, dy);
+                super.onScrolled(recyclerView, dx, dy);
 
-            if (dy > 0 && !isLoadingPage) {
-                int visibleItemCount = layoutManager.getChildCount();
-                int totalItemCount = layoutManager.getItemCount();
-                int pastVisibleItems = layoutManager.findFirstVisibleItemPosition();
+                if (dy > 0 && !isLoadingPage) {
+                    int visibleItemCount = layoutManager.getChildCount();
+                    int totalItemCount = layoutManager.getItemCount();
+                    int pastVisibleItems = layoutManager.findFirstVisibleItemPosition();
 
-                if ((visibleItemCount + pastVisibleItems) >= totalItemCount) {
-                    isLoadingPage = true;
+                    if ((visibleItemCount + pastVisibleItems) >= totalItemCount) {
+                        isLoadingPage = true;
 
-                    String cursor = postAdapter.getLastPostCreatedAt();
-                    if (cursor != null) {
-                        viewModel.fetchPosts(cursor);
+                        String cursor = postAdapter.getLastPostCreatedAt();
+                        if (cursor != null) {
+                            viewModel.fetchPosts(cursor);
+                        }
                     }
                 }
-            }
             }
         });
     }
@@ -224,11 +270,12 @@ public class PostFragment extends Fragment {
                         appNavigator.navigateToSearch(PostFragment.this);
                     }
                 })
-                .addRightIcon(com.grouprace.core.system.R.drawable.ic_notification, v -> {
-                    if (appNavigator != null) {
-                        appNavigator.navigateToNotification(PostFragment.this);
-                    }
-                })
+                .addRightIcon(com.grouprace.core.system.R.drawable.ic_notification,
+                        TopAppBarConfig.IconTag.NOTIFICATION, v -> {
+                            if (appNavigator != null) {
+                                appNavigator.navigateToNotification(PostFragment.this);
+                            }
+                        })
                 .build();
     }
 
@@ -243,14 +290,14 @@ public class PostFragment extends Fragment {
 
         view.findViewById(R.id.fab_post).setOnClickListener(v -> {
             collapseFab();
-            appNavigator.openAddPost(this, false);
+            appNavigator.openAddPost(this, false, null);
         });
 
         view.findViewById(R.id.fab_activity).setOnClickListener(v -> {
             collapseFab();
-            appNavigator.openAddPost(this, true);
+            appNavigator.openAddPost(this, true, null);
         });
-        
+
         // Ensure initial state
         collapseFabImmediately();
     }
@@ -284,12 +331,15 @@ public class PostFragment extends Fragment {
 
     private void collapseFab() {
         isFabExpanded = false;
-        fabOverlay.animate().alpha(0f).setDuration(200).withEndAction(() -> fabOverlay.setVisibility(View.GONE)).start();
+        fabOverlay.animate().alpha(0f).setDuration(200).withEndAction(() -> fabOverlay.setVisibility(View.GONE))
+                .start();
 
         fabMain.animate().rotation(0f).setDuration(200).start();
 
-        layoutFabPost.animate().alpha(0f).translationY(20f).setDuration(200).withEndAction(() -> layoutFabPost.setVisibility(View.GONE)).start();
-        layoutFabActivity.animate().alpha(0f).translationY(20f).setDuration(200).setStartDelay(50).withEndAction(() -> layoutFabActivity.setVisibility(View.GONE)).start();
+        layoutFabPost.animate().alpha(0f).translationY(20f).setDuration(200)
+                .withEndAction(() -> layoutFabPost.setVisibility(View.GONE)).start();
+        layoutFabActivity.animate().alpha(0f).translationY(20f).setDuration(200).setStartDelay(50)
+                .withEndAction(() -> layoutFabActivity.setVisibility(View.GONE)).start();
     }
 
     private void collapseFabImmediately() {
@@ -298,9 +348,12 @@ public class PostFragment extends Fragment {
             fabOverlay.setVisibility(View.GONE);
             fabOverlay.setAlpha(0f);
         }
-        if (fabMain != null) fabMain.setRotation(0f);
-        if (layoutFabPost != null) layoutFabPost.setVisibility(View.GONE);
-        if (layoutFabActivity != null) layoutFabActivity.setVisibility(View.GONE);
+        if (fabMain != null)
+            fabMain.setRotation(0f);
+        if (layoutFabPost != null)
+            layoutFabPost.setVisibility(View.GONE);
+        if (layoutFabActivity != null)
+            layoutFabActivity.setVisibility(View.GONE);
     }
 
     @Override

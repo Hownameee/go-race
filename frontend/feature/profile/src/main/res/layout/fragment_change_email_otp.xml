@@ -43,7 +43,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Enter OTP sent to your current email."
+            android:text="Enter the OTP sent to your current email."
             android:textColor="@color/text_secondary"
             android:textSize="14sp" />
 
@@ -68,7 +68,7 @@
             android:background="@drawable/bg_button_rounded"
             android:backgroundTint="@null"
             app:backgroundTint="@null"
-            android:text="Submit"
+            android:text="Verify OTP"
             android:textColor="@color/black" />
     </LinearLayout>
 </ScrollView>

@@ -1,9 +1,9 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const createNotificationSchema = z.object({
   user_id: z.number().int().positive(),
 
-  type: z.enum(["follow", "like", "comment", "system"]),
+  type: z.enum(['follow', 'like', 'comment', 'system']),
 
   actor_id: z.number().int().positive().optional().nullable(),
 
@@ -15,5 +15,5 @@ export const createNotificationSchema = z.object({
 });
 
 export const markAsReadSchema = z.object({
-  id: z.coerce.number().int().positive()
+  id: z.coerce.number().int().positive(),
 });

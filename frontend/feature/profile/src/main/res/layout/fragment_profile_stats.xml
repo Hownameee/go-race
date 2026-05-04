@@ -102,27 +102,6 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Elev Gain"
-                android:textColor="@color/text_secondary" />
-
-            <TextView
-                android:id="@+id/profile_record_elevation"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0 m"
-                android:textColor="@color/text_primary"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-        </LinearLayout>
     </LinearLayout>
 
     <com.github.mikephil.charting.charts.LineChart

@@ -1,14 +1,21 @@
 package com.grouprace.core.network.di;
 
+import com.grouprace.core.network.BuildConfig;
+import com.grouprace.core.network.api.ClubApiService;
+import com.grouprace.core.network.api.DirectionsApiService;
+import com.grouprace.core.network.api.FollowApiService;
+import com.grouprace.core.network.api.NotificationApiService;
+import com.grouprace.core.network.api.SearchApiService;
+import com.grouprace.core.network.api.SearchBoxApiService;
+import com.grouprace.core.network.api.UserApiService;
+import com.grouprace.core.network.utils.AuthInterceptor;
+import com.grouprace.core.network.utils.SessionManager;
+import com.grouprace.core.network.api.RecordApiService;
+
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
-import com.grouprace.core.network.api.DirectionsApiService;
-import com.grouprace.core.network.api.NotificationApiService;
-import com.grouprace.core.network.api.RecordApiService;
-import com.grouprace.core.network.api.SearchBoxApiService;
-import com.grouprace.core.network.api.UserApiService;
 import com.grouprace.core.network.api.AIApiService;
 
 import dagger.Module;
@@ -19,17 +26,14 @@ import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-
-import com.grouprace.core.network.api.SearchApiService;
-import com.grouprace.core.network.utils.AuthInterceptor;
-import com.grouprace.core.network.utils.SessionManager;
+import com.grouprace.core.network.api.UserRouteApiService;
+import com.grouprace.core.network.api.PostApiService;
+import com.grouprace.core.network.api.AuthApiService;
 
 @Module
 @InstallIn(SingletonComponent.class)
 public class NetworkModule {
-    // private static final String BASE_URL = "http://172.104.190.228:5000/";
     private static final String BASE_URL = "http://10.0.2.2:5000/";
-
     @Provides
     @Singleton
     public HttpLoggingInterceptor provideLoggingInterceptor() {
@@ -60,26 +64,29 @@ public class NetworkModule {
     @Provides
     @Singleton
     public Retrofit provideRetrofit(OkHttpClient okHttpClient) {
-        return new Retrofit.Builder().baseUrl(BASE_URL).client(okHttpClient)
-                .addConverterFactory(GsonConverterFactory.create()).build();
+        return new Retrofit.Builder()
+                .baseUrl(BuildConfig.BASE_URL + "/")
+                .client(okHttpClient)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
     }
 
     @Provides
     @Singleton
-    public com.grouprace.core.network.api.PostApiService providePostApiService(Retrofit retrofit) {
-        return retrofit.create(com.grouprace.core.network.api.PostApiService.class);
+    public PostApiService providePostApiService(Retrofit retrofit) {
+        return retrofit.create(PostApiService.class);
     }
 
     @Provides
     @Singleton
-    public com.grouprace.core.network.api.RecordApiService provideRecordApiService(Retrofit retrofit) {
-        return retrofit.create(com.grouprace.core.network.api.RecordApiService.class);
+    public RecordApiService provideRecordApiService(Retrofit retrofit) {
+        return retrofit.create(RecordApiService.class);
     }
 
     @Provides
     @Singleton
-    public com.grouprace.core.network.api.AuthApiService provideAuthService(Retrofit retrofit) {
-        return retrofit.create(com.grouprace.core.network.api.AuthApiService.class);
+    public AuthApiService provideAuthService(Retrofit retrofit) {
+        return retrofit.create(AuthApiService.class);
     }
 
     @Provides
@@ -96,6 +103,12 @@ public class NetworkModule {
 
     @Provides
     @Singleton
+    public FollowApiService provideFollowApiService(Retrofit retrofit) {
+        return retrofit.create(FollowApiService.class);
+    }
+
+    @Provides
+    @Singleton
     public UserApiService provideUserApiService(Retrofit retrofit) {
         return retrofit.create(UserApiService.class);
     }
@@ -106,7 +119,6 @@ public class NetworkModule {
         return retrofit.create(AIApiService.class);
     }
 
-    // Mapbox REST APIs (no auth interceptor — token passed as query param)
     @Provides
     @Singleton
     @Named("mapbox")
@@ -133,5 +145,17 @@ public class NetworkModule {
     @Singleton
     public DirectionsApiService provideDirectionsApiService(@Named("mapbox") Retrofit retrofit) {
         return retrofit.create(DirectionsApiService.class);
+    }
+
+    @Provides
+    @Singleton
+    public ClubApiService provideClubApiService(Retrofit retrofit) {
+        return retrofit.create(ClubApiService.class);
+    }
+
+    @Provides
+    @Singleton
+    public UserRouteApiService provideUserRouteApiService(Retrofit retrofit) {
+        return retrofit.create(UserRouteApiService.class);
     }
 }

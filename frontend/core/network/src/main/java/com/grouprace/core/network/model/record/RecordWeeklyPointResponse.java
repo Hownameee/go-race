@@ -15,9 +15,6 @@ public class RecordWeeklyPointResponse {
     @SerializedName("total_duration_seconds")
     private int totalDurationSeconds;
 
-    @SerializedName("total_elevation_gain_m")
-    private double totalElevationGainM;
-
     public String getWeekStart() {
         return weekStart;
     }
@@ -32,9 +29,5 @@ public class RecordWeeklyPointResponse {
 
     public int getTotalDurationSeconds() {
         return totalDurationSeconds;
-    }
-
-    public double getTotalElevationGainM() {
-        return totalElevationGainM;
     }
 }
