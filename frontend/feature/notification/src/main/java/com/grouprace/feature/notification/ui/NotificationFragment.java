@@ -64,6 +64,19 @@ public class NotificationFragment extends Fragment {
         adapter = new NotificationAdapter();
         recyclerView.setAdapter(adapter);
 
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                if (dy > 0) {
+                    LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                    if (layoutManager != null && layoutManager.findLastCompletelyVisibleItemPosition() >= adapter.getItemCount() - 2) {
+                        viewModel.loadMoreNotifications();
+                    }
+                }
+            }
+        });
+
         adapter.setOnNotificationClickListener(notification -> {
             if (!notification.isRead()) {
                 viewModel.markAsRead(notification);
@@ -76,7 +89,7 @@ public class NotificationFragment extends Fragment {
 
                 case "comment":
                 case "post":
-                    navigator.openCommentFragment(this, notification.getActivityId());
+                    navigator.openPostDetail(this, notification.getActivityId());
                     break;
             }
         });

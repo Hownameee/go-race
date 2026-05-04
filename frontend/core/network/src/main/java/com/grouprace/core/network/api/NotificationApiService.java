@@ -11,7 +11,10 @@ import retrofit2.http.Path;
 public interface NotificationApiService {
 
     @GET("api/notifications")
-    Call<ApiResponse<NotificationPayload>> getNotifications();
+    Call<ApiResponse<NotificationPayload>> getNotifications(
+            @retrofit2.http.Query("cursor") Integer cursor,
+            @retrofit2.http.Query("limit") int limit
+    );
     @PUT("api/notifications/{id}/read")
     Call<ApiResponse<Object>> markAsRead(@Path("id") int notificationId);
 }

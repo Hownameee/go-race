@@ -23,6 +23,7 @@ import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.core.system.ui.TodayStatsHelper;
 import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.core.network.utils.SessionManager;
+import com.grouprace.core.data.viewmodel.NotificationBadgeViewModel;
 
 import java.util.Locale;
 
@@ -39,6 +40,7 @@ public class PostFragment extends Fragment {
     SessionManager sessionManager;
 
     private PostViewModel viewModel;
+    private NotificationBadgeViewModel notificationBadgeViewModel;
     private RecyclerView rvPosts;
     private PostAdapter postAdapter;
     private ProgressBar progressBar;
@@ -123,8 +125,7 @@ public class PostFragment extends Fragment {
                         TimeUtils.formatDuration(seconds),
                         post.getFullName(),
                         post.getRecordImageUrl(),
-                        speedStr
-                ).show(getChildFragmentManager(), "ShareBottomSheet");
+                        speedStr).show(getChildFragmentManager(), "ShareBottomSheet");
             }
 
             @Override
@@ -152,8 +153,11 @@ public class PostFragment extends Fragment {
         rvPosts.setAdapter(postAdapter);
 
         viewModel = new ViewModelProvider(this).get(PostViewModel.class);
+        // Activity-scoped so the badge count is shared across fragments
+        notificationBadgeViewModel = new ViewModelProvider(requireActivity()).get(NotificationBadgeViewModel.class);
 
         observeViewModel();
+        observeUnreadCount();
         setupInfiniteScroll(layoutManager);
     }
 
@@ -186,16 +190,16 @@ public class PostFragment extends Fragment {
         viewModel.getTodaySummary().observe(getViewLifecycleOwner(), summary -> {
             if (summary != null) {
                 TodayStatsHelper.bind(
-                    getView(), 
-                    summary.activityCount, 
-                    summary.totalDurationSeconds, 
-                    summary.totalDistanceKm
-                );
+                        getView(),
+                        summary.activityCount,
+                        summary.totalDurationSeconds,
+                        summary.totalDistanceKm);
             }
         });
 
         viewModel.getSyncStatus().observe(getViewLifecycleOwner(), result -> {
-            if (result == null) return;
+            if (result == null)
+                return;
 
             if (result instanceof Result.Loading) {
                 if (postAdapter.getItemCount() == 0) {
@@ -221,10 +225,16 @@ public class PostFragment extends Fragment {
                     String errorMessage = ((Result.Error<?>) result).message;
                     tvError.setText(errorMessage != null ? errorMessage : "Check your connection.");
                 } else {
-                    // android.widget.Toast.makeText(getContext(), "Sync failed", android.widget.Toast.LENGTH_SHORT).show();
+                    // android.widget.Toast.makeText(getContext(), "Sync failed",
+                    // android.widget.Toast.LENGTH_SHORT).show();
                 }
             }
         });
+    }
+
+    private void observeUnreadCount() {
+        notificationBadgeViewModel.getUnreadCount().observe(getViewLifecycleOwner(), count -> TopAppBarHelper
+                .updateBadge(getView(), TopAppBarConfig.IconTag.NOTIFICATION, count != null ? count : 0));
     }
 
     private void setupInfiniteScroll(LinearLayoutManager layoutManager) {
@@ -260,11 +270,12 @@ public class PostFragment extends Fragment {
                         appNavigator.navigateToSearch(PostFragment.this);
                     }
                 })
-                .addRightIcon(com.grouprace.core.system.R.drawable.ic_notification, v -> {
-                    if (appNavigator != null) {
-                        appNavigator.navigateToNotification(PostFragment.this);
-                    }
-                })
+                .addRightIcon(com.grouprace.core.system.R.drawable.ic_notification,
+                        TopAppBarConfig.IconTag.NOTIFICATION, v -> {
+                            if (appNavigator != null) {
+                                appNavigator.navigateToNotification(PostFragment.this);
+                            }
+                        })
                 .build();
     }
 
@@ -286,7 +297,7 @@ public class PostFragment extends Fragment {
             collapseFab();
             appNavigator.openAddPost(this, true, null);
         });
-        
+
         // Ensure initial state
         collapseFabImmediately();
     }

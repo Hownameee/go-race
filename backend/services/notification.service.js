@@ -83,8 +83,8 @@ const notificationService = {
     return notification;
   },
 
-  async getNotifications(userId) {
-    return await notificationRepository.findByUserId(userId);
+  async getNotifications(userId, cursor, limit = 20) {
+    return await notificationRepository.findByUserId(userId, cursor, limit);
   },
 
   async markAsRead(id) {

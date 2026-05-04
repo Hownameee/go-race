@@ -64,7 +64,7 @@ public class NotificationModel {
         return avtUrl;
     }
 
-    public Boolean isRead() {
+    public boolean isRead() {
         return isRead;
     }
 
