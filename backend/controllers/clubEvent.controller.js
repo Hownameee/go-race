@@ -5,7 +5,10 @@ const clubEventController = {
     try {
       const userId = req.user.userId;
       const clubId = parseInt(req.params.clubId);
-      const result = clubEventService.createEvent(clubId, userId, req.body);
+      const result = clubEventService.createEvent(clubId, userId, {
+        ...req.body,
+        fullname: req.user.fullname,
+      });
       res.created(result, 'Event created successfully');
     } catch (error) {
       if (error.status === 403) return res.violate(null, error.message);

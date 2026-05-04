@@ -48,10 +48,12 @@ public class ClubAdminAdapter extends RecyclerView.Adapter<ClubAdminAdapter.View
         if (admin.getAvatarUrl() != null && !admin.getAvatarUrl().isEmpty()) {
             Glide.with(holder.itemView.getContext())
                     .load(admin.getAvatarUrl())
+                    .placeholder(com.grouprace.core.system.R.drawable.ic_default_avt)
+                    .error(com.grouprace.core.system.R.drawable.ic_default_avt)
                     .circleCrop()
                     .into(holder.ivAvatar);
         } else {
-            holder.ivAvatar.setImageResource(android.R.drawable.ic_menu_gallery);
+            holder.ivAvatar.setImageResource(com.grouprace.core.system.R.drawable.ic_default_avt);
         }
     }
 

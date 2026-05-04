@@ -6,6 +6,7 @@ import androidx.lifecycle.Transformations;
 import android.util.Log;
 
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.data.AppDatabase;
 import com.grouprace.core.network.model.auth.GoogleAuthPayload;
 import com.grouprace.core.network.model.auth.GoogleAuthResponse;
 import com.grouprace.core.network.model.auth.LoginPayload;
@@ -22,16 +23,19 @@ public class AuthRepositoryImpl implements AuthRepository {
     private final AuthNetworkDataSource authNetworkDataSource;
     private final SessionManager sessionManager;
     private final SyncManager syncManager;
+    private final AppDatabase appDatabase;
 
     @Inject
     public AuthRepositoryImpl(
             AuthNetworkDataSource authNetworkDataSource,
             SessionManager sessionManager,
-            SyncManager syncManager
+            SyncManager syncManager,
+            AppDatabase appDatabase
     ) {
         this.authNetworkDataSource = authNetworkDataSource;
         this.sessionManager = sessionManager;
         this.syncManager = syncManager;
+        this.appDatabase = appDatabase;
     }
 
     @Override
@@ -89,6 +93,15 @@ public class AuthRepositoryImpl implements AuthRepository {
 
     @Override
     public void logout() {
+        // Clear all local cached data before clearing session
+        // so the next user won't see stale data from the previous session.
+        new Thread(() -> {
+            try {
+                appDatabase.clearAllTables();
+            } catch (Exception e) {
+                Log.e("AuthRepository", "Failed to clear database on logout", e);
+            }
+        }).start();
         sessionManager.clearSession();
     }
 

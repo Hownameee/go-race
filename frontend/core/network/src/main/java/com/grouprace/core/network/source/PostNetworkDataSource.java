@@ -30,27 +30,31 @@ public class PostNetworkDataSource {
     private final android.content.Context context;
 
     @Inject
-    public PostNetworkDataSource(PostApiService apiService, @dagger.hilt.android.qualifiers.ApplicationContext android.content.Context context) {
+    public PostNetworkDataSource(PostApiService apiService,
+            @dagger.hilt.android.qualifiers.ApplicationContext android.content.Context context) {
         this.apiService = apiService;
         this.context = context;
     }
 
     public LiveData<Result<List<NetworkPost>>> getPosts(String cursor, int limit) {
         MutableLiveData<Result<List<NetworkPost>>> liveData = new MutableLiveData<>();
-        
+
         liveData.postValue(new Result.Loading<>());
-        
+
         apiService.getPosts(cursor, limit).enqueue(new Callback<ApiResponse<PostPayload>>() {
             @Override
             public void onResponse(Call<ApiResponse<PostPayload>> call, Response<ApiResponse<PostPayload>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     ApiResponse<PostPayload> apiResponse = response.body();
                     if (apiResponse.isSuccess() && apiResponse.getData() != null) {
-                        Log.d("PostNetworkDataSource", "Successfully fetched " + apiResponse.getData().getPosts().size() + " posts");
+                        Log.d("PostNetworkDataSource",
+                                "Successfully fetched " + apiResponse.getData().getPosts().size() + " posts");
                         liveData.postValue(new Result.Success<>(apiResponse.getData().getPosts()));
                     } else {
-                        Log.e("PostNetworkDataSource", "API returned success false or null data. Message: " + apiResponse.getMessage());
-                        liveData.postValue(new Result.Error<>(new Exception(apiResponse.getMessage()), apiResponse.getMessage()));
+                        Log.e("PostNetworkDataSource",
+                                "API returned success false or null data. Message: " + apiResponse.getMessage());
+                        liveData.postValue(
+                                new Result.Error<>(new Exception(apiResponse.getMessage()), apiResponse.getMessage()));
                     }
                 } else {
                     Log.e("PostNetworkDataSource", "HTTP Error: " + response.code() + " " + response.message());
@@ -66,7 +70,7 @@ public class PostNetworkDataSource {
                 liveData.postValue(new Result.Error<>(exception, "Network Failure: " + t.getMessage()));
             }
         });
-        
+
         return liveData;
     }
 
@@ -192,15 +196,17 @@ public class PostNetworkDataSource {
 
         return liveData;
     }
+
     public LiveData<Result<CommentPayload>> getComments(int postId, String cursor, int limit) {
         MutableLiveData<Result<CommentPayload>> liveData = new MutableLiveData<>();
         liveData.postValue(new Result.Loading<>());
 
         apiService.getComments(postId, cursor, limit).enqueue(new Callback<ApiResponse<CommentPayload>>() {
             @Override
-            public void onResponse(Call<ApiResponse<CommentPayload>> call, Response<ApiResponse<CommentPayload>> response) {
+            public void onResponse(Call<ApiResponse<CommentPayload>> call,
+                    Response<ApiResponse<CommentPayload>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                    Log.d("PostNetworkDataSource", "Successfully fetched comments"); 
+                    Log.d("PostNetworkDataSource", "Successfully fetched comments");
                     liveData.postValue(new Result.Success<>(response.body().getData()));
                 } else {
                     String msg = response.body() != null ? response.body().getMessage() : "HTTP " + response.code();
@@ -276,7 +282,8 @@ public class PostNetworkDataSource {
 
         apiService.getReplies(postId, commentId, cursor, limit).enqueue(new Callback<ApiResponse<CommentPayload>>() {
             @Override
-            public void onResponse(Call<ApiResponse<CommentPayload>> call, Response<ApiResponse<CommentPayload>> response) {
+            public void onResponse(Call<ApiResponse<CommentPayload>> call,
+                    Response<ApiResponse<CommentPayload>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
                     liveData.postValue(new Result.Success<>(response.body().getData()));
                 } else {
@@ -352,10 +359,10 @@ public class PostNetworkDataSource {
 
         return liveData;
     }
+
     public LiveData<Result<Boolean>> createPost(
             CreatePostRequest request,
-            List<String> photoUris
-    ) {
+            List<String> photoUris) {
         MutableLiveData<Result<Boolean>> liveData = new MutableLiveData<>();
         liveData.postValue(new Result.Loading<>());
 
@@ -386,8 +393,7 @@ public class PostNetworkDataSource {
 
     public Result<Boolean> createPostSync(
             CreatePostRequest request,
-            List<String> photoUris
-    ) {
+            List<String> photoUris) {
         try {
             List<MultipartBody.Part> photos = resolvePhotoParts(photoUris);
             Response<ApiResponse<Void>> response = apiService.createPost(request.toPartMap(), photos).execute();
@@ -409,13 +415,15 @@ public class PostNetworkDataSource {
                 try {
                     android.net.Uri uri = android.net.Uri.parse(uriString);
                     String mimeType = context.getContentResolver().getType(uri);
-                    if (mimeType == null) mimeType = "image/jpeg";
+                    if (mimeType == null)
+                        mimeType = "image/jpeg";
 
                     java.io.InputStream inputStream = context.getContentResolver().openInputStream(uri);
                     if (inputStream != null) {
                         byte[] bytes = readAllBytes(inputStream);
                         RequestBody requestBody = RequestBody.create(MediaType.parse(mimeType), bytes);
-                        photoParts.add(MultipartBody.Part.createFormData("photos", "photo_" + System.currentTimeMillis() + ".jpg", requestBody));
+                        photoParts.add(MultipartBody.Part.createFormData("photos",
+                                "photo_" + System.currentTimeMillis() + ".jpg", requestBody));
                     }
                 } catch (Exception e) {
                     Log.e("PostNetworkDataSource", "Failed to read image URI: " + uriString, e);
@@ -448,7 +456,8 @@ public class PostNetworkDataSource {
                     if (apiResponse.isSuccess() && apiResponse.getData() != null) {
                         liveData.postValue(new Result.Success<>(apiResponse.getData().getPosts()));
                     } else {
-                        liveData.postValue(new Result.Error<>(new Exception(apiResponse.getMessage()), apiResponse.getMessage()));
+                        liveData.postValue(
+                                new Result.Error<>(new Exception(apiResponse.getMessage()), apiResponse.getMessage()));
                     }
                 } else {
                     String errorMessage = "HTTP Error: " + response.code();

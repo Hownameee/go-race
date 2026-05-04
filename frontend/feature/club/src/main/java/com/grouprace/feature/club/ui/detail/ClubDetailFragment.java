@@ -297,7 +297,14 @@ public class ClubDetailFragment extends Fragment {
                 }
 
                 if (club.getAvatarUrl() != null && !club.getAvatarUrl().isEmpty()) {
-                    com.bumptech.glide.Glide.with(this).load(club.getAvatarUrl()).circleCrop().into(ivAvatar);
+                    com.bumptech.glide.Glide.with(this)
+                            .load(club.getAvatarUrl())
+                            .placeholder(com.grouprace.core.system.R.drawable.ic_default_avt)
+                            .error(com.grouprace.core.system.R.drawable.ic_default_avt)
+                            .circleCrop()
+                            .into(ivAvatar);
+                } else {
+                    ivAvatar.setImageResource(com.grouprace.core.system.R.drawable.ic_default_avt);
                 }
 
                 // Handle Newsfeed visibility
