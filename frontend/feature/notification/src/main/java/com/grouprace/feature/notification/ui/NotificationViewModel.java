@@ -22,7 +22,6 @@ public class NotificationViewModel extends ViewModel {
 
     private final NotificationRepository repository;
     private final MediatorLiveData<Result<List<NotificationModel>>> notificationsResult = new MediatorLiveData<>();
-    private final List<NotificationModel> allNotifications = new ArrayList<>();
     private boolean hasLoaded = false;
 
     @Inject
@@ -34,29 +33,16 @@ public class NotificationViewModel extends ViewModel {
     private void setupNotificationsStream() {
         LiveData<Result<List<NotificationModel>>> source = repository.getNotifications();
 
-        notificationsResult.addSource(source, result -> {
-            if (result instanceof Result.Loading) {
-                notificationsResult.setValue(new Result.Loading<>());
-            } else if (result instanceof Result.Success) {
-                handleSuccess(((Result.Success<List<NotificationModel>>) result).data);
-            } else if (result instanceof Result.Error) {
-                Result.Error<?> error = (Result.Error<?>) result;
-                notificationsResult.setValue(new Result.Error<>(error.exception, error.message));
-            }
-        });
-    }
-
-    private void handleSuccess(List<NotificationModel> newList) {
-        allNotifications.clear();
-        if (newList != null && !newList.isEmpty()) {
-            allNotifications.addAll(newList);
-        }
-        notificationsResult.setValue(new Result.Success<>(new ArrayList<>(allNotifications)));
+        notificationsResult.addSource(source, notificationsResult::setValue);
     }
 
     public void refreshNotifications() {
         hasLoaded = true;
         repository.refreshNotifications();
+    }
+
+    public void loadMoreNotifications() {
+        repository.loadMoreNotifications();
     }
 
     public void addNotification(NotificationModel notification) {
@@ -69,16 +55,19 @@ public class NotificationViewModel extends ViewModel {
         }
         return notificationsResult;
     }
-    
+
     public void markAsRead(NotificationModel notification) {
-        notification.setRead(true);
-        notificationsResult.setValue(new Result.Success<>(new ArrayList<>(allNotifications)));
-        LiveData<Result<Boolean>> source = repository.markAsRead(notification.getId());
+        // Just trigger repository. Room DB will emit updated state automatically.
+        markAsRead(notification.getId());
+    }
+
+    public void markAsRead(int notificationId) {
+        LiveData<Result<Boolean>> source = repository.markAsRead(notificationId);
 
         notificationsResult.addSource(source, result -> {
             if (result instanceof Result.Error) {
-                notification.setRead(false);
-                notificationsResult.setValue(new Result.Success<>(new ArrayList<>(allNotifications)));
+                // If we have the notification object in our list, we could revert its state,
+                // but for ID-only call, we just complete.
             }
             if (!(result instanceof Result.Loading)) {
                 notificationsResult.removeSource(source);

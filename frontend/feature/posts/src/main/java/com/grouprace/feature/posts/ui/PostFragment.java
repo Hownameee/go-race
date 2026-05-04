@@ -22,6 +22,7 @@ import com.grouprace.core.system.ui.TopAppBarConfig;
 import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.core.system.ui.TodayStatsHelper;
 import com.grouprace.core.navigation.AppNavigator;
+import com.grouprace.core.data.viewmodel.NotificationBadgeViewModel;
 
 import java.util.Locale;
 
@@ -35,6 +36,7 @@ public class PostFragment extends Fragment {
     AppNavigator appNavigator;
 
     private PostViewModel viewModel;
+    private NotificationBadgeViewModel notificationBadgeViewModel;
     private RecyclerView rvPosts;
     private PostAdapter postAdapter;
     private ProgressBar progressBar;
@@ -138,8 +140,11 @@ public class PostFragment extends Fragment {
         rvPosts.setAdapter(postAdapter);
 
         viewModel = new ViewModelProvider(this).get(PostViewModel.class);
+        // Activity-scoped so the badge count is shared across fragments
+        notificationBadgeViewModel = new ViewModelProvider(requireActivity()).get(NotificationBadgeViewModel.class);
 
         observeViewModel();
+        observeUnreadCount();
         setupInfiniteScroll(layoutManager);
     }
 
@@ -213,6 +218,12 @@ public class PostFragment extends Fragment {
         });
     }
 
+    private void observeUnreadCount() {
+        notificationBadgeViewModel.getUnreadCount().observe(getViewLifecycleOwner(), count ->
+            TopAppBarHelper.updateBadge(getView(), TopAppBarConfig.IconTag.NOTIFICATION, count != null ? count : 0)
+        );
+    }
+
     private void setupInfiniteScroll(LinearLayoutManager layoutManager) {
         rvPosts.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -246,7 +257,7 @@ public class PostFragment extends Fragment {
                         appNavigator.navigateToSearch(PostFragment.this);
                     }
                 })
-                .addRightIcon(com.grouprace.core.system.R.drawable.ic_notification, v -> {
+                .addRightIcon(com.grouprace.core.system.R.drawable.ic_notification, TopAppBarConfig.IconTag.NOTIFICATION, v -> {
                     if (appNavigator != null) {
                         appNavigator.navigateToNotification(PostFragment.this);
                     }
