@@ -1,7 +1,5 @@
 package com.grouprace.core.data.repository;
 
-import android.util.Log;
-
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Transformations;
 
@@ -10,9 +8,10 @@ import com.grouprace.core.model.UserSearchResult;
 import com.grouprace.core.network.model.search.NetworkUserSearch;
 import com.grouprace.core.network.source.SearchNetworkDataSource;
 
-import javax.inject.Inject;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import javax.inject.Inject;
 
 public class SearchRepositoryImpl implements SearchRepository {
 
@@ -59,18 +58,8 @@ public class SearchRepositoryImpl implements SearchRepository {
         });
     }
 
-    @Override
-    public LiveData<Result<Boolean>> followUser(int targetUserId) {
-        return searchNetworkDataSource.followUser(targetUserId);
-    }
-
-    @Override
-    public LiveData<Result<Boolean>> unfollowUser(int targetUserId) {
-        return searchNetworkDataSource.unfollowUser(targetUserId);
-    }
-
     // --- CLUB METHODS ---
-
+    
     @Override
     public LiveData<Result<List<UserSearchResult>>> searchClubs(String query) {
         return Transformations.map(searchNetworkDataSource.searchClubs(query), result -> {

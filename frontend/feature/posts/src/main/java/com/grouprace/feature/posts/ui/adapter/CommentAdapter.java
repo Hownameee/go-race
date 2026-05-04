@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.grouprace.core.model.Comment;
 import com.grouprace.feature.posts.R;
 import com.grouprace.core.system.animation.InteractionAnimator;
@@ -25,6 +26,7 @@ public class CommentAdapter extends ListAdapter<Comment, CommentAdapter.CommentV
         void onReplyClicked(Comment comment);
 
         void onViewRepliesClicked(Comment comment);
+        void onOwnerClicked(Comment comment);
     }
 
     private final OnCommentActionListener listener;
@@ -105,6 +107,14 @@ public class CommentAdapter extends ListAdapter<Comment, CommentAdapter.CommentV
                 listener.onViewRepliesClicked(getItem(currentPos));
             }
         });
+
+        View.OnClickListener ownerClickListener = v -> {
+            if (listener != null) {
+                listener.onOwnerClicked(comment);
+            }
+        };
+        holder.ivAvatar.setOnClickListener(ownerClickListener);
+        holder.tvUsername.setOnClickListener(ownerClickListener);
     }
 
     static class CommentViewHolder extends RecyclerView.ViewHolder {
@@ -135,6 +145,11 @@ public class CommentAdapter extends ListAdapter<Comment, CommentAdapter.CommentV
             tvUsername.setText(comment.getFullName() != null ? comment.getFullName() : comment.getUsername());
             tvContent.setText(comment.getContent());
             tvTime.setText(comment.getCreatedAt());
+            Glide.with(itemView.getContext())
+                    .load(comment.getAvatarUrl())
+                    .placeholder(com.grouprace.core.system.R.drawable.bg_avatar_placeholder)
+                    .error(com.grouprace.core.system.R.drawable.bg_avatar_placeholder)
+                    .into(ivAvatar);
 
             tvLikeCount.setText(String.valueOf(comment.getLikeCount()));
             if (comment.isLiked()) {

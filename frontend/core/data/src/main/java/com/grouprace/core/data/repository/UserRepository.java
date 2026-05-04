@@ -10,10 +10,15 @@ import com.grouprace.core.model.Profile.ProfileOverview;
 import java.util.List;
 
 public interface UserRepository {
+    // ===== Profile Feature Section =====
     LiveData<Result<ProfileOverview>> getMyOverview();
+    // ===== Profile Feature Section =====
     LiveData<Result<ProfileOverview>> getUserOverview(int userId);
+    // ===== Profile Feature Section =====
     LiveData<Result<List<FollowUser>>> getFollowers(int userId);
+    // ===== Profile Feature Section =====
     LiveData<Result<List<FollowUser>>> getFollowing(int userId);
+    // ===== Profile Feature Section =====
     LiveData<Result<MyProfileInfo>> getMyInfo();
     LiveData<Result<Void>> requestEmailChangeOtp();
     LiveData<Result<Void>> verifyEmailChangeOtp(String otpCode);

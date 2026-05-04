@@ -1,5 +1,6 @@
 import clubEventRepo from '../repo/clubEvent.repo.js';
 import clubRepo from '../repo/club.repo.js';
+import notificationService from './notification.service.js';
 
 const clubEventService = {
   createEvent(
@@ -11,6 +12,7 @@ const clubEventService = {
       target_distance,
       start_time,
       end_time,
+      fullname,
     },
   ) {
     const isLeader = clubRepo.checkIsLeader(clubId, userId);
@@ -29,6 +31,30 @@ const clubEventService = {
       start_time,
       end_time,
     );
+
+    // Notify all approved members (except the creator) — fire-and-forget
+    (async () => {
+      try {
+        const club = clubRepo.findById(clubId);
+        const members = clubRepo.findApprovedMembers(clubId);
+        const targets = members
+          .filter((m) => m.user_id !== userId)
+          .map((m) => m.user_id);
+
+        for (const targetId of targets) {
+          notificationService.createAndSend({
+            userId: targetId,
+            type: 'club_event',
+            actorId: userId,
+            activityId: eventId,
+            title: 'New Club Event',
+            message: `${fullname ?? 'Club leader'} created a new event "${title}" in ${club?.name ?? 'your club'}`,
+          });
+        }
+      } catch (err) {
+        console.error('[clubEvent][notification error]', err);
+      }
+    })();
 
     return { eventId };
   },

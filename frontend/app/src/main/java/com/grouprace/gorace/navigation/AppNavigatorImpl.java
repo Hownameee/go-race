@@ -3,7 +3,6 @@ package com.grouprace.gorace.navigation;
 import android.view.View;
 import android.view.ViewGroup;
 import androidx.fragment.app.Fragment;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import com.grouprace.feature.posts.ui.CommentFragment;
 import com.grouprace.feature.profile.ui.main.ProfileFragment;
@@ -15,11 +14,14 @@ import com.grouprace.feature.notification.ui.NotificationFragment;
 import com.grouprace.feature.posts.ui.MyPostsFragment;
 import com.grouprace.feature.profile.ui.edit.EditProfileFragment;
 import com.grouprace.feature.profile.ui.follow.FollowListFragment;
-import com.grouprace.feature.profile.ui.main.achievements.ProfileAchievementsFragment;
-import com.grouprace.feature.profile.ui.main.activities.ProfileRecordsFragment;
+import com.grouprace.feature.profile.ui.achievements.ProfileAchievementsFragment;
+import com.grouprace.feature.profile.ui.activities.ProfileRecordsFragment;
+import com.grouprace.feature.profile.ui.clubs.ProfileClubsFragment;
 import com.grouprace.feature.profile.ui.main.ProfileComingSoonFragment;
-import com.grouprace.feature.profile.ui.main.UserProfileFragment;
-import com.grouprace.feature.profile.ui.main.statistics.ProfileStatisticsDetailFragment;
+import com.grouprace.feature.profile.ui.main.ProfileFactory;
+import com.grouprace.feature.profile.ui.posts.ProfilePostsFragment;
+import com.grouprace.feature.profile.ui.routes.ProfileRoutesFragment;
+import com.grouprace.feature.profile.ui.statistics.ProfileStatisticsDetailFragment;
 import com.grouprace.feature.login.ui.LoginFragment;
 import com.grouprace.feature.profile.ui.settings.ProfileSettingsFragment;
 import com.grouprace.feature.profile.ui.settings.email.ChangeEmailFragment;
@@ -41,6 +43,7 @@ import com.grouprace.feature.club.ui.detail.tabs.EditClubFragment;
 import com.grouprace.core.model.PlannedRoute;
 import com.grouprace.feature.club.ui.detail.ClubDetailFragment;
 import com.grouprace.feature.posts.ui.PostDetailFragment;
+import com.grouprace.feature.map.ui.DrawRouteFragment;
 import com.grouprace.feature.tracking.ui.TrackingFragment;
 
 import javax.inject.Inject;
@@ -80,9 +83,30 @@ public class AppNavigatorImpl implements AppNavigator {
 
 //  public void openMyRoutes(Fragment currentFragment)
 
+    // profile section
     @Override
     public void openProfileActivities(Fragment currentFragment, int userId, String profileName, boolean isSelf) {
       navigateTo(currentFragment, ProfileRecordsFragment.newInstance(userId, profileName, isSelf));
+    }
+
+    @Override
+    public void openProfilePosts(Fragment currentFragment, int userId, String profileName, boolean isSelf) {
+      navigateTo(currentFragment, ProfilePostsFragment.newInstance(userId, profileName, isSelf));
+    }
+
+    @Override
+    public void openProfileRoutes(Fragment currentFragment, int userId, String profileName, boolean isSelf) {
+      if (isSelf) {
+        navigateTo(currentFragment, new DrawRouteFragment());
+        return;
+      }
+
+      navigateTo(currentFragment, ProfileRoutesFragment.newInstance(profileName));
+    }
+
+    @Override
+    public void openProfileClubs(Fragment currentFragment, int userId, String profileName, boolean isSelf) {
+      navigateTo(currentFragment, ProfileClubsFragment.newInstance(userId, profileName, isSelf));
     }
 
     @Override
@@ -100,9 +124,15 @@ public class AppNavigatorImpl implements AppNavigator {
       navigateTo(currentFragment, ProfileAchievementsFragment.newInstance(isSelf, userId));
     }
 
+    // profile section
+    @Override
+    public void openMyProfile(Fragment currentFragment) {
+      navigateTo(currentFragment, ProfileFactory.createMyProfile());
+    }
+
     @Override
     public void openUserProfile(Fragment currentFragment, int userId) {
-      navigateTo(currentFragment, UserProfileFragment.newInstance(userId));
+      navigateTo(currentFragment, ProfileFactory.createUserProfile(userId));
     }
 
     // Profile setting
@@ -247,9 +277,10 @@ public class AppNavigatorImpl implements AppNavigator {
     }
 
     private void navigateTo(Fragment currentFragment, Fragment targetFragment) {
-        if (currentFragment != null && currentFragment.getView() != null && currentFragment.getView().getParent() != null) {
-            int containerId = ((ViewGroup) currentFragment.getView().getParent()).getId();
-            currentFragment.requireActivity().getSupportFragmentManager().beginTransaction()
+        Fragment hostFragment = findNavigationHostFragment(currentFragment);
+        if (hostFragment != null && hostFragment.getView() != null && hostFragment.getView().getParent() != null) {
+            int containerId = ((ViewGroup) hostFragment.getView().getParent()).getId();
+            hostFragment.requireActivity().getSupportFragmentManager().beginTransaction()
                     .replace(containerId, targetFragment)
                     .addToBackStack(null)
                     .commit();
@@ -257,9 +288,10 @@ public class AppNavigatorImpl implements AppNavigator {
     }
 
     private void navigateToRoot(Fragment currentFragment, Fragment targetFragment) {
-        if (currentFragment != null && currentFragment.getView() != null && currentFragment.getView().getParent() != null) {
-            int containerId = ((ViewGroup) currentFragment.getView().getParent()).getId();
-            androidx.fragment.app.FragmentManager fm = currentFragment.requireActivity().getSupportFragmentManager();
+        Fragment hostFragment = findNavigationHostFragment(currentFragment);
+        if (hostFragment != null && hostFragment.getView() != null && hostFragment.getView().getParent() != null) {
+            int containerId = ((ViewGroup) hostFragment.getView().getParent()).getId();
+            androidx.fragment.app.FragmentManager fm = hostFragment.requireActivity().getSupportFragmentManager();
             if (fm.getBackStackEntryCount() > 0) {
                 fm.popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE);
             }
@@ -281,4 +313,16 @@ public class AppNavigatorImpl implements AppNavigator {
 //        navigateTo(currentFragment, fragment);
 //    }
 
+
+    private Fragment findNavigationHostFragment(Fragment fragment) {
+        if (fragment == null) {
+            return null;
+        }
+
+        Fragment host = fragment;
+        while (host.getParentFragment() != null) {
+            host = host.getParentFragment();
+        }
+        return host;
+    }
 }

@@ -49,22 +49,12 @@ public class ProfileSettingsFragment extends Fragment {
         ImageButton backButton = view.findViewById(R.id.profile_settings_back_button);
         View changeEmailButton = view.findViewById(R.id.profile_settings_change_email_button);
         View changePasswordButton = view.findViewById(R.id.profile_settings_change_password_button);
-        View contactButton = view.findViewById(R.id.profile_settings_contact_button);
-        View supportButton = view.findViewById(R.id.profile_settings_support_button);
-        View communityButton = view.findViewById(R.id.profile_settings_community_button);
-        View legalButton = view.findViewById(R.id.profile_settings_legal_button);
-        View aboutButton = view.findViewById(R.id.profile_settings_about_button);
         View logoutButton = view.findViewById(R.id.profile_settings_logout_button);
         View deleteAccountButton = view.findViewById(R.id.profile_settings_delete_account_button);
 
         backButton.setOnClickListener(v -> requireActivity().onBackPressed());
         changeEmailButton.setOnClickListener(v -> navigateToChangeEmail());
         changePasswordButton.setOnClickListener(v -> navigateToChangePassword());
-        contactButton.setOnClickListener(v -> openComingSoon("Contact"));
-        supportButton.setOnClickListener(v -> openComingSoon("Support"));
-        communityButton.setOnClickListener(v -> openComingSoon("Community Hub"));
-        legalButton.setOnClickListener(v -> openComingSoon("Legal"));
-        aboutButton.setOnClickListener(v -> openComingSoon("About"));
         logoutButton.setOnClickListener(v -> confirmLogout());
         deleteAccountButton.setOnClickListener(v -> confirmDeleteAccount());
     }
@@ -75,10 +65,6 @@ public class ProfileSettingsFragment extends Fragment {
 
     private void navigateToChangePassword() {
         navigator.openChangePassword(this);
-    }
-
-    private void openComingSoon(String title) {
-        navigator.openComingSoon(this, title);
     }
 
     private void confirmLogout() {

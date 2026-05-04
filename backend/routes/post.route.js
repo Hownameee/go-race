@@ -7,6 +7,7 @@ import {
   createPostSchema,
   getPostFeedQuerySchema,
   postIdSchema,
+  userPostsParamsSchema,
   createCommentBodySchema,
   getCommentsQuerySchema,
   commentIdParamsSchema,
@@ -41,6 +42,14 @@ router.get(
   auth,
   validation(getPostFeedQuerySchema, 'query'),
   postController.getMyPosts,
+);
+
+router.get(
+  '/api/posts/users/:userId',
+  auth,
+  validation(userPostsParamsSchema, 'params'),
+  validation(getPostFeedQuerySchema, 'query'),
+  postController.getUserPosts,
 );
 
 router.post(

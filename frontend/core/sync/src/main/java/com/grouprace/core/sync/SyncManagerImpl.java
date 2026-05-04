@@ -11,6 +11,7 @@ import androidx.work.WorkManager;
 import com.grouprace.core.data.SyncManager;
 import com.grouprace.core.sync.workers.SyncPostWorker;
 import com.grouprace.core.sync.workers.SyncRecordWorker;
+import com.grouprace.core.sync.workers.SyncUserProfileWorker;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -59,6 +60,23 @@ public class SyncManagerImpl implements SyncManager {
         workManager.enqueueUniqueWork(
                 "post_sync_queue",
                 ExistingWorkPolicy.APPEND_OR_REPLACE,
+                request
+        );
+    }
+
+    @Override
+    public void scheduleUserProfileSync() {
+        Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build();
+
+        OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(SyncUserProfileWorker.class)
+                .setConstraints(constraints)
+                .build();
+
+        workManager.enqueueUniqueWork(
+                "user_profile_sync",
+                ExistingWorkPolicy.REPLACE,
                 request
         );
     }

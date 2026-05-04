@@ -70,7 +70,8 @@ export default async function getImageFromRoutePoints(points) {
     viewport = 'auto';
   }
 
-  const url = `https://api.mapbox.com/styles/v1/${mapStyle}/static/${overlay}/${viewport}/${dimensions}?access_token=${token}&padding=120`;
+  const paddingParam = points.length === 1 ? '' : '&padding=120';
+  const url = `https://api.mapbox.com/styles/v1/${mapStyle}/static/${overlay}/${viewport}/${dimensions}?access_token=${token}${paddingParam}`;
 
   try {
     const response = await fetch(url);

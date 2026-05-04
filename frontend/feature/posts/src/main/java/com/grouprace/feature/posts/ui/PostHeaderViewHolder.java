@@ -17,6 +17,7 @@ import com.grouprace.feature.posts.ui.adapter.PostMediaAdapter;
 import java.util.Locale;
 
 public class PostHeaderViewHolder {
+    private final ImageView ivAvatar;
     private final TextView tvUsername;
     private final TextView tvTime;
     private final TextView tvTitle;
@@ -36,6 +37,7 @@ public class PostHeaderViewHolder {
     final ImageView ivMore;
 
     public PostHeaderViewHolder(@NonNull View itemView) {
+        ivAvatar = itemView.findViewById(R.id.iv_avatar);
         tvUsername = itemView.findViewById(R.id.tv_username);
         tvTime = itemView.findViewById(R.id.tv_time);
         tvTitle = itemView.findViewById(R.id.tv_title);
@@ -59,6 +61,17 @@ public class PostHeaderViewHolder {
     }
 
     public void bind(Post post) {
+        if (post.getProfilePictureUrl() != null && !post.getProfilePictureUrl().isEmpty()) {
+            Glide.with(ivAvatar.getContext())
+                    .load(post.getProfilePictureUrl())
+                    .placeholder(com.grouprace.core.system.R.drawable.ic_default_avt)
+                    .error(com.grouprace.core.system.R.drawable.ic_default_avt)
+                    .circleCrop()
+                    .into(ivAvatar);
+        } else {
+            ivAvatar.setImageResource(com.grouprace.core.system.R.drawable.ic_default_avt);
+        }
+
         tvUsername.setText(post.getFullName() != null ? post.getFullName() : "Unknown");
         tvTitle.setText(post.getTitle() != null ? post.getTitle() : "Untitled Activity");
         tvTime.setText(post.getCreatedAt() != null ? post.getCreatedAt() : "");

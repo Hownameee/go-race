@@ -22,8 +22,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.grouprace.core.common.TimeUtils;
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.core.model.Comment;
 import com.grouprace.core.model.Post;
+import com.grouprace.core.network.utils.SessionManager;
 import com.grouprace.core.system.animation.InteractionAnimator;
 import com.grouprace.core.system.ui.TopAppBarConfig;
 import com.grouprace.core.system.ui.TopAppBarHelper;
@@ -36,6 +38,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+
+import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -65,6 +69,12 @@ public class PostDetailFragment extends Fragment {
     private View replyBanner;
     private TextView tvReplyingTo;
     private ImageView btnCancelReply;
+
+    @Inject
+    AppNavigator appNavigator;
+
+    @Inject
+    SessionManager sessionManager;
 
     public static PostDetailFragment newInstance(int postId) {
         PostDetailFragment fragment = new PostDetailFragment();
@@ -182,6 +192,15 @@ public class PostDetailFragment extends Fragment {
                         }
                     });
                 }
+            }
+
+            @Override
+            public void onOwnerClicked(Comment comment) {
+                if (comment.getUserId() == sessionManager.getUserId()) {
+                    appNavigator.openMyProfile(PostDetailFragment.this);
+                    return;
+                }
+                appNavigator.openUserProfile(PostDetailFragment.this, comment.getUserId());
             }
 
             private void insertReplies(Comment parent, List<Comment> replies) {

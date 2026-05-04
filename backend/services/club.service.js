@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import clubRepo from '../repo/club.repo.js';
-import { getImageUrlS3, uploadImageS3 } from '../utils/s3/s3.js';
+import { getImageUrlS3, resolveImageUrl, uploadImageS3 } from '../utils/s3/s3.js';
 
 async function attachAvatarUrls(clubs) {
   return Promise.all(
@@ -230,12 +230,14 @@ const clubService = {
       clubRecordDurationStr: formatDuration(stats.clubRecordDuration),
       personalBestDistanceStr: personalBestDistanceStr,
       personalBestDurationStr: personalBestDurationStr,
-      leaderboard: stats.leaderboard.map((item) => ({
-        memberId: item.member_id.toString(),
-        memberName: item.member_name,
-        avatarUrl: item.avatar_url,
-        distance: item.total_distance,
-      })),
+      leaderboard: await Promise.all(
+        stats.leaderboard.map(async (item) => ({
+          memberId: item.member_id.toString(),
+          memberName: item.member_name,
+          avatarUrl: await resolveImageUrl(item.avatar_url),
+          distance: item.total_distance,
+        }))
+      ),
     };
   },
 
@@ -262,7 +264,7 @@ const clubService = {
         return {
           userId: m.user_id,
           fullname: m.fullname,
-          avatarUrl: m.avatar_url,
+          avatarUrl: await resolveImageUrl(m.avatar_url),
           role: m.role,
           status: m.status,
           joinedAt: m.joined_at,

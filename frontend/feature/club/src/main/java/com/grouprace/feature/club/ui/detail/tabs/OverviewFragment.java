@@ -134,7 +134,14 @@ public class OverviewFragment extends Fragment {
                 tvDesc.setText(club.getDescription());
 
                 if (club.getAvatarUrl() != null && !club.getAvatarUrl().isEmpty()) {
-                    Glide.with(this).load(club.getAvatarUrl()).circleCrop().into(ivAvatar);
+                    Glide.with(this)
+                            .load(club.getAvatarUrl())
+                            .placeholder(com.grouprace.core.system.R.drawable.ic_default_avt)
+                            .error(com.grouprace.core.system.R.drawable.ic_default_avt)
+                            .circleCrop()
+                            .into(ivAvatar);
+                } else {
+                    ivAvatar.setImageResource(com.grouprace.core.system.R.drawable.ic_default_avt);
                 }
 
                 boolean isApproved = "approved".equals(club.getStatus());

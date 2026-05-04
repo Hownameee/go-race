@@ -20,6 +20,7 @@ import com.grouprace.core.common.TimeUtils;
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.Post;
 import com.grouprace.core.navigation.AppNavigator;
+import com.grouprace.core.network.utils.SessionManager;
 import com.grouprace.core.system.ui.TopAppBarConfig;
 import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.feature.club.R;
@@ -41,6 +42,8 @@ import dagger.hilt.android.AndroidEntryPoint;
 public class ClubDetailFragment extends Fragment {
     @Inject
     AppNavigator appNavigator;
+    @Inject
+    SessionManager sessionManager;
     private ClubDetailViewModel viewModel;
     private android.widget.Button btnJoinClub;
     private LinearLayout layoutMemberActions;
@@ -226,6 +229,16 @@ public class ClubDetailFragment extends Fragment {
                     appNavigator.openPostDetail(ClubDetailFragment.this, post.getPostId());
                 }
             }
+
+            // profile section
+            @Override
+            public void onOwnerClicked(Post post) {
+                if (post.getOwnerId() == sessionManager.getUserId()) {
+                    appNavigator.openMyProfile(ClubDetailFragment.this);
+                    return;
+                }
+                appNavigator.openUserProfile(ClubDetailFragment.this, post.getOwnerId());
+            }
         });
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
@@ -284,7 +297,14 @@ public class ClubDetailFragment extends Fragment {
                 }
 
                 if (club.getAvatarUrl() != null && !club.getAvatarUrl().isEmpty()) {
-                    com.bumptech.glide.Glide.with(this).load(club.getAvatarUrl()).circleCrop().into(ivAvatar);
+                    com.bumptech.glide.Glide.with(this)
+                            .load(club.getAvatarUrl())
+                            .placeholder(com.grouprace.core.system.R.drawable.ic_default_avt)
+                            .error(com.grouprace.core.system.R.drawable.ic_default_avt)
+                            .circleCrop()
+                            .into(ivAvatar);
+                } else {
+                    ivAvatar.setImageResource(com.grouprace.core.system.R.drawable.ic_default_avt);
                 }
 
                 // Handle Newsfeed visibility

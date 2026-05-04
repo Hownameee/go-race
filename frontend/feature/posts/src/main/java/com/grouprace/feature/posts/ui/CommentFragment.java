@@ -20,7 +20,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.grouprace.core.common.result.Result;
+import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.core.model.Comment;
+import com.grouprace.core.network.utils.SessionManager;
 import com.grouprace.feature.posts.R;
 import com.grouprace.feature.posts.ui.adapter.CommentAdapter;
 
@@ -28,6 +30,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -52,6 +56,12 @@ public class CommentFragment extends BottomSheetDialogFragment implements Commen
 
     private Integer parentId = null;
     private List<Comment> currentComments = new ArrayList<>();
+
+    @Inject
+    AppNavigator appNavigator;
+
+    @Inject
+    SessionManager sessionManager;
 
     public static CommentFragment newInstance(int postId) {
         CommentFragment fragment = new CommentFragment();
@@ -221,6 +231,18 @@ public class CommentFragment extends BottomSheetDialogFragment implements Commen
                 }
             });
         }
+    }
+
+    // profile section
+    @Override
+    public void onOwnerClicked(Comment comment) {
+        if (comment.getUserId() == sessionManager.getUserId()) {
+            appNavigator.openMyProfile(this);
+            dismiss();
+            return;
+        }
+        appNavigator.openUserProfile(this, comment.getUserId());
+        dismiss();
     }
 
     private void insertReplies(Comment parent, List<Comment> replies) {

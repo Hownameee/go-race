@@ -15,6 +15,13 @@ public interface PostRepository {
     LiveData<Post> getPostById(int postId);
     LiveData<Result<List<Post>>> getMyPosts(String cursor, int limit);
 
+    // ===== Profile Section ====
+    LiveData<List<Post>> getLocalMyPosts(int limit);
+    LiveData<List<Post>> getLocalUserPosts(int userId, int limit);
+    LiveData<Result<List<Post>>> getUserPosts(int userId, String cursor, int limit);
+    LiveData<Result<Boolean>> syncMyPosts(String cursor, int limit);
+    LiveData<Result<Boolean>> syncUserPosts(int userId, String cursor, int limit);
+
     /**
      * Triggers a network fetch and syncs with the local database.
      */

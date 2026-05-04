@@ -61,6 +61,8 @@ public class ClubMemberAdapter extends RecyclerView.Adapter<ClubMemberAdapter.Vi
         if (member.getAvatarUrl() != null && !member.getAvatarUrl().isEmpty()) {
             Glide.with(holder.itemView.getContext())
                     .load(member.getAvatarUrl())
+                    .placeholder(com.grouprace.core.system.R.drawable.ic_default_avt)
+                    .error(com.grouprace.core.system.R.drawable.ic_default_avt)
                     .circleCrop()
                     .into(holder.ivAvatar);
         } else {
