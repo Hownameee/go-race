@@ -18,6 +18,8 @@ import com.grouprace.core.common.result.Result;
 import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.core.model.Post;
 import com.grouprace.core.network.utils.SessionManager;
+import com.grouprace.core.system.ui.TopAppBarConfig;
+import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.feature.profile.R;
 import com.grouprace.feature.posts.ui.CommentFragment;
 import com.grouprace.feature.posts.ui.ShareActivityFragment;
@@ -71,15 +73,12 @@ public class ProfilePostsFragment extends Fragment {
         boolean isSelf = getArguments() != null && getArguments().getBoolean(ARG_IS_SELF);
         String profileName = getArguments() != null ? getArguments().getString(ARG_PROFILE_NAME) : null;
 
-        ImageButton backButton = view.findViewById(R.id.profile_posts_back_button);
-        TextView titleView = view.findViewById(R.id.profile_posts_title);
         loadingState = view.findViewById(R.id.profile_posts_loading_state);
         errorState = view.findViewById(R.id.profile_posts_error_state);
         emptyState = view.findViewById(R.id.profile_posts_empty_state);
         recyclerView = view.findViewById(R.id.profile_posts_recycler_view);
 
-        titleView.setText(isSelf ? "Posts" : (profileName != null && !profileName.isEmpty() ? profileName + "'s Posts" : "Posts"));
-        backButton.setOnClickListener(v -> requireActivity().getOnBackPressedDispatcher().onBackPressed());
+        setupTopBar(view, isSelf, profileName);
 
         adapter = new PostAdapter();
         adapter.setOnPostActionListener(new PostAdapter.OnPostActionListener() {
@@ -196,5 +195,13 @@ public class ProfilePostsFragment extends Fragment {
         boolean isEmpty = posts == null || posts.isEmpty();
         recyclerView.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
         emptyState.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+    }
+
+    private void setupTopBar(View view, boolean isSelf, @Nullable String profileName) {
+        String title = isSelf ? "Posts" : (profileName != null && !profileName.isEmpty() ? profileName + "'s Posts" : "Posts");
+        TopAppBarHelper.setupTopAppBar(view, new TopAppBarConfig.Builder()
+                .setTitle(title)
+                .setLeftIcon(com.grouprace.core.system.R.drawable.ic_back, v -> requireActivity().onBackPressed())
+                .build());
     }
 }

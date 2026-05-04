@@ -8,7 +8,6 @@ import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -18,6 +17,8 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.navigation.AppNavigator;
+import com.grouprace.core.system.ui.TopAppBarConfig;
+import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.feature.profile.R;
 
 import javax.inject.Inject;
@@ -48,11 +49,10 @@ public class PasswordResetRequestFragment extends Fragment {
         viewModel = new ViewModelProvider(requireActivity()).get(ChangePasswordViewModel.class);
         viewModel.clearFlowState();
 
-        ImageButton backButton = view.findViewById(R.id.password_reset_request_back_button);
         EditText emailInput = view.findViewById(R.id.password_reset_request_email_input);
         Button sendButton = view.findViewById(R.id.password_reset_request_send_button);
 
-        backButton.setOnClickListener(v -> requireActivity().onBackPressed());
+        setupTopBar(view);
 
         viewModel.getToastMessage().observe(getViewLifecycleOwner(), message -> {
             if (message != null) {
@@ -93,5 +93,12 @@ public class PasswordResetRequestFragment extends Fragment {
         }
 
         return false;
+    }
+
+    private void setupTopBar(View view) {
+        TopAppBarHelper.setupTopAppBar(view, new TopAppBarConfig.Builder()
+                .setTitle("Reset Password")
+                .setLeftIcon(com.grouprace.core.system.R.drawable.ic_back, v -> requireActivity().onBackPressed())
+                .build());
     }
 }

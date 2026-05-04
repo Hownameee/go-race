@@ -2,13 +2,14 @@ package com.grouprace.feature.profile.ui.routes;
 
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.grouprace.core.system.ui.TopAppBarConfig;
+import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.feature.profile.R;
 
 public class ProfileRoutesFragment extends Fragment {
@@ -31,12 +32,17 @@ public class ProfileRoutesFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         String profileName = getArguments() != null ? getArguments().getString(ARG_PROFILE_NAME) : null;
-        ImageButton backButton = view.findViewById(R.id.profile_routes_back_button);
-        TextView titleView = view.findViewById(R.id.profile_routes_title);
         TextView messageView = view.findViewById(R.id.profile_routes_message);
 
-        titleView.setText(profileName != null && !profileName.isEmpty() ? profileName + "'s Routes" : "Routes");
+        setupTopBar(view, profileName);
         messageView.setText("This user's public routes are not available yet.");
-        backButton.setOnClickListener(v -> requireActivity().getOnBackPressedDispatcher().onBackPressed());
+    }
+
+    private void setupTopBar(View view, @Nullable String profileName) {
+        String title = profileName != null && !profileName.isEmpty() ? profileName + "'s Routes" : "Routes";
+        TopAppBarHelper.setupTopAppBar(view, new TopAppBarConfig.Builder()
+                .setTitle(title)
+                .setLeftIcon(com.grouprace.core.system.R.drawable.ic_back, v -> requireActivity().onBackPressed())
+                .build());
     }
 }

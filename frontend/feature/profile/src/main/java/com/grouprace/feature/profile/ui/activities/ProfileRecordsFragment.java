@@ -3,7 +3,6 @@ package com.grouprace.feature.profile.ui.activities;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -15,6 +14,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.Record;
+import com.grouprace.core.system.ui.TopAppBarConfig;
+import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.feature.profile.R;
 import com.grouprace.feature.records.detail.ui.RecordDetailFragment;
 
@@ -64,8 +65,6 @@ public class ProfileRecordsFragment extends Fragment {
         viewModel = new ViewModelProvider(this).get(ProfileRecordsViewModel.class);
         viewModel.initialize(userId, isSelf);
 
-        ImageButton backButton = view.findViewById(R.id.profile_records_back_button);
-        TextView titleView = view.findViewById(R.id.profile_records_title);
         recyclerView = view.findViewById(R.id.profile_records_recycler_view);
         loadingView = view.findViewById(R.id.profile_records_loading_state);
         errorText = view.findViewById(R.id.profile_records_error_state);
@@ -73,8 +72,7 @@ public class ProfileRecordsFragment extends Fragment {
         errorView = view.findViewById(R.id.ll_error);
         retryButton = view.findViewById(R.id.btn_retry);
 
-        titleView.setText(isSelf ? "Activities" : (profileName != null && !profileName.isEmpty() ? profileName + "'s Activities" : "Activities"));
-        backButton.setOnClickListener(v -> requireActivity().getOnBackPressedDispatcher().onBackPressed());
+        setupTopBar(view, isSelf, profileName);
         retryButton.setOnClickListener(v -> viewModel.sync());
 
         adapter = new ProfileRecordAdapter(this::openRecordDetail);
@@ -175,5 +173,13 @@ public class ProfileRecordsFragment extends Fragment {
                 .replace(containerId, detailFragment)
                 .addToBackStack(null)
                 .commit();
+    }
+
+    private void setupTopBar(View view, boolean isSelf, @Nullable String profileName) {
+        String title = isSelf ? "Activities" : (profileName != null && !profileName.isEmpty() ? profileName + "'s Activities" : "Activities");
+        TopAppBarHelper.setupTopAppBar(view, new TopAppBarConfig.Builder()
+                .setTitle(title)
+                .setLeftIcon(com.grouprace.core.system.R.drawable.ic_back, v -> requireActivity().onBackPressed())
+                .build());
     }
 }

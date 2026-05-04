@@ -3,8 +3,8 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const openaiConfig = {
-  apiKey: process.env.OPENAI_API_KEY,
-  model: process.env.OPENAI_MODEL,
+  apiKey: process.env.OPENAI_API_KEY || '', 
+  model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
 };
 
 export default openaiConfig;

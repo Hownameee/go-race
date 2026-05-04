@@ -27,6 +27,8 @@ import androidx.lifecycle.ViewModelProvider;
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.Profile.MyProfileInfo;
 import com.grouprace.core.system.ui.DatePickerHelper;
+import com.grouprace.core.system.ui.TopAppBarConfig;
+import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.feature.profile.R;
 
 import java.io.ByteArrayOutputStream;
@@ -40,9 +42,6 @@ import dagger.hilt.android.AndroidEntryPoint;
 public class EditProfileFragment extends Fragment {
 
     private EditProfileViewModel viewModel;
-
-    private ImageButton backButton;
-    private Button saveButton;
     private Button changeAvatarButton;
     private ImageView avatarImageView;
 
@@ -72,7 +71,7 @@ public class EditProfileFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
+        setupTopBar(view);
         viewModel = new ViewModelProvider(this).get(EditProfileViewModel.class);
         initViews(view);
         setupListeners();
@@ -80,9 +79,15 @@ public class EditProfileFragment extends Fragment {
         loadMyInfo();
     }
 
+    private void setupTopBar(View view) {
+        TopAppBarHelper.setupTopAppBar(view, new TopAppBarConfig.Builder()
+                .setTitle("Edit Profile")
+                .setLeftIcon(com.grouprace.core.system.R.drawable.ic_back, v -> requireActivity().onBackPressed())
+                .addRightIcon(com.grouprace.core.system.R.drawable.ic_check, v -> saveMyInfo())
+                .build());
+    }
+
     private void initViews(View view) {
-        backButton = view.findViewById(R.id.button_back);
-        saveButton = view.findViewById(R.id.button_save_profile);
         changeAvatarButton = view.findViewById(R.id.button_change_avatar);
         avatarImageView = view.findViewById(R.id.edit_profile_avatar_image);
 
@@ -97,8 +102,6 @@ public class EditProfileFragment extends Fragment {
     }
 
     private void setupListeners() {
-        backButton.setOnClickListener(v -> requireActivity().onBackPressed());
-        saveButton.setOnClickListener(v -> saveMyInfo());
         changeAvatarButton.setOnClickListener(v -> avatarPickerLauncher.launch("image/*"));
         DatePickerHelper.attachDatePicker(this, editBirthdate);
         editWeight.setOnEditorActionListener((v, actionId, event) -> {
@@ -126,15 +129,10 @@ public class EditProfileFragment extends Fragment {
     private void loadMyInfo() {
         viewModel.getMyInfo().observe(getViewLifecycleOwner(), result -> {
             if (result instanceof Result.Loading) {
-                saveButton.setEnabled(false);
-                saveButton.setText("Loading...");
+                // Loading...
             } else if (result instanceof Result.Success) {
-                saveButton.setEnabled(true);
-                saveButton.setText("Save");
                 bindMyInfo(((Result.Success<MyProfileInfo>) result).data);
             } else if (result instanceof Result.Error) {
-                saveButton.setEnabled(true);
-                saveButton.setText("Save");
                 String errorMsg = ((Result.Error<MyProfileInfo>) result).message;
                 Toast.makeText(requireContext(), errorMsg, Toast.LENGTH_SHORT).show();
             }
@@ -153,16 +151,11 @@ public class EditProfileFragment extends Fragment {
                 editWeight.getText().toString().trim()
         ).observe(getViewLifecycleOwner(), result -> {
             if (result instanceof Result.Loading) {
-                saveButton.setEnabled(false);
-                saveButton.setText("Saving...");
+                // Saving...
             } else if (result instanceof Result.Success) {
-                saveButton.setEnabled(true);
-                saveButton.setText("Save");
                 Toast.makeText(requireContext(), "Profile saved.", Toast.LENGTH_SHORT).show();
                 requireActivity().onBackPressed();
             } else if (result instanceof Result.Error) {
-                saveButton.setEnabled(true);
-                saveButton.setText("Save");
                 String errorMsg = ((Result.Error<Void>) result).message;
                 Toast.makeText(requireContext(), errorMsg, Toast.LENGTH_SHORT).show();
             }

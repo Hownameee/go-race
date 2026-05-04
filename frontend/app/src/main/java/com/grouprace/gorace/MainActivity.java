@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         bottomNav = findViewById(R.id.bottom_navigation);
+        
         viewModel = new ViewModelProvider(this).get(MainViewModel.class);
 
         handleNotificationIntent(getIntent());

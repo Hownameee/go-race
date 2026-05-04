@@ -16,6 +16,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.network.model.record.RecordProfileStatisticsResponse;
+import com.grouprace.core.system.ui.TopAppBarConfig;
+import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.feature.profile.R;
 
 import java.util.List;
@@ -58,19 +60,25 @@ public class ProfileAchievementsFragment extends Fragment {
         viewModel = new ViewModelProvider(this).get(ProfileAchievementsViewModel.class);
         viewModel.initialize(isSelf, userId);
 
-        ImageButton backButton = view.findViewById(R.id.profile_achievements_back_button);
         loadingState = view.findViewById(R.id.profile_achievements_loading_state);
         errorState = view.findViewById(R.id.profile_achievements_error_state);
         summaryText = view.findViewById(R.id.profile_achievements_summary);
         recyclerView = view.findViewById(R.id.profile_achievements_recycler_view);
 
-        backButton.setOnClickListener(v -> requireActivity().getOnBackPressedDispatcher().onBackPressed());
+        setupTopBar(view);
 
         adapter = new AchievementAdapter();
         recyclerView.setLayoutManager(new GridLayoutManager(requireContext(), 3));
         recyclerView.setAdapter(adapter);
 
         observeAchievements();
+    }
+
+    private void setupTopBar(View view) {
+        TopAppBarHelper.setupTopAppBar(view, new TopAppBarConfig.Builder()
+                .setTitle("Achievements")
+                .setLeftIcon(com.grouprace.core.system.R.drawable.ic_back, v -> requireActivity().onBackPressed())
+                .build());
     }
 
     private void observeAchievements() {

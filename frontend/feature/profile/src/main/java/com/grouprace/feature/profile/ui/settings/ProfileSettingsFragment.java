@@ -16,6 +16,8 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.navigation.AppNavigator;
+import com.grouprace.core.system.ui.TopAppBarConfig;
+import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.feature.profile.R;
 
 import javax.inject.Inject;
@@ -43,20 +45,26 @@ public class ProfileSettingsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        setupTopBar(view);
 
         viewModel = new ViewModelProvider(this).get(ProfileSettingsViewModel.class);
 
-        ImageButton backButton = view.findViewById(R.id.profile_settings_back_button);
         View changeEmailButton = view.findViewById(R.id.profile_settings_change_email_button);
         View changePasswordButton = view.findViewById(R.id.profile_settings_change_password_button);
         View logoutButton = view.findViewById(R.id.profile_settings_logout_button);
         View deleteAccountButton = view.findViewById(R.id.profile_settings_delete_account_button);
 
-        backButton.setOnClickListener(v -> requireActivity().onBackPressed());
         changeEmailButton.setOnClickListener(v -> navigateToChangeEmail());
         changePasswordButton.setOnClickListener(v -> navigateToChangePassword());
         logoutButton.setOnClickListener(v -> confirmLogout());
         deleteAccountButton.setOnClickListener(v -> confirmDeleteAccount());
+    }
+
+    private void setupTopBar(View view) {
+        TopAppBarHelper.setupTopAppBar(view, new TopAppBarConfig.Builder()
+                .setTitle("Profile Settings")
+                .setLeftIcon(com.grouprace.core.system.R.drawable.ic_back, v -> requireActivity().onBackPressed())
+                .build());
     }
 
     private void navigateToChangeEmail() {
