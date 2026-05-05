@@ -19,6 +19,8 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.navigation.AppNavigator;
+import com.grouprace.core.system.ui.TopAppBarConfig;
+import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.feature.profile.R;
 
 import javax.inject.Inject;
@@ -45,20 +47,17 @@ public class SetNewPasswordFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        setupTopBar(view);
 
         viewModel = new ViewModelProvider(requireActivity()).get(ChangePasswordViewModel.class);
 
-        ImageButton backButton = view.findViewById(R.id.set_new_password_back_button);
-        TextView titleView = view.findViewById(R.id.set_new_password_title);
         EditText newPasswordInput = view.findViewById(R.id.set_new_password_input);
         EditText confirmPasswordInput = view.findViewById(R.id.set_new_password_confirm_input);
         Button saveButton = view.findViewById(R.id.set_new_password_submit_button);
 
         if (viewModel.getResetEmail() != null) {
-            titleView.setText("Set New Password");
+            // Title updated in setupTopBar or handled there
         }
-
-        backButton.setOnClickListener(v -> requireActivity().onBackPressed());
 
         viewModel.getToastMessage().observe(getViewLifecycleOwner(), message -> {
             if (message != null) {
@@ -99,6 +98,14 @@ public class SetNewPasswordFragment extends Fragment {
 
         saveButton.setOnClickListener(v -> savePasswordAction.run());
         confirmPasswordInput.setOnEditorActionListener((v, actionId, event) -> handleSubmitAction(actionId, event, savePasswordAction));
+    }
+
+    private void setupTopBar(View view) {
+        String title = viewModel.getResetEmail() != null ? "Set New Password" : "Change Password";
+        TopAppBarHelper.setupTopAppBar(view, new TopAppBarConfig.Builder()
+                .setTitle(title)
+                .setLeftIcon(com.grouprace.core.system.R.drawable.ic_back, v -> requireActivity().onBackPressed())
+                .build());
     }
 
     private boolean handleSubmitAction(int actionId, KeyEvent event, Runnable action) {

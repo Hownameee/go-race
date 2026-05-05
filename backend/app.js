@@ -18,6 +18,7 @@ import userRoute from './routes/user.route.js';
 import recordRoute from './routes/record.route.js';
 import notificationRouter from './routes/notification.route.js';
 import deviceTokenRouter from './routes/device-token.route.js';
+import aiRoute from './routes/ai.route.js';
 import clubRouter from './routes/club.route.js';
 import userRouteRouter from './routes/user-route.route.js';
 
@@ -42,6 +43,7 @@ app.use('/api/records', recordRoute);
 
 app.use('/api/notifications', notificationRouter);
 app.use('/api/device-tokens', deviceTokenRouter);
+app.use('/api/ai', aiRoute);
 
 app.use(followRoutes);
 app.use(postRoutes);

@@ -158,6 +158,16 @@ public class DrawRouteViewModel extends ViewModel {
         }
     }
 
+    public void handleAIRoutingResult(AIRoutingResult result) {
+        if (result == null) return;
+        _generatedRoute.setValue(result.getRoute());
+        _drawingState.setValue(DrawingState.ROUTE_READY);
+        
+        if (result.getWaypoints() != null && !result.getWaypoints().isEmpty()) {
+            _waypoints.setValue(new ArrayList<>(result.getWaypoints()));
+        }
+    }
+
     public void saveRoute(String name) {
         PlannedRoute routeData = _generatedRoute.getValue();
         if (routeData == null) {

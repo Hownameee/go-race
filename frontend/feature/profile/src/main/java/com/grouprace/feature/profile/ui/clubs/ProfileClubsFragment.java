@@ -2,7 +2,6 @@ package com.grouprace.feature.profile.ui.clubs;
 
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -16,6 +15,8 @@ import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.Club;
 import com.grouprace.core.navigation.AppNavigator;
 import com.grouprace.feature.club.ui.adapter.ClubAdapter;
+import com.grouprace.core.system.ui.TopAppBarConfig;
+import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.feature.profile.R;
 
 import java.util.List;
@@ -62,17 +63,12 @@ public class ProfileClubsFragment extends Fragment {
         self = getArguments() == null || getArguments().getBoolean(ARG_IS_SELF, true);
         String profileName = getArguments() != null ? getArguments().getString(ARG_PROFILE_NAME) : null;
 
-        ImageButton backButton = view.findViewById(R.id.profile_clubs_back_button);
-        TextView titleView = view.findViewById(R.id.profile_clubs_title);
         recyclerView = view.findViewById(R.id.profile_clubs_recycler_view);
         emptyView = view.findViewById(R.id.profile_clubs_empty_state);
         errorView = view.findViewById(R.id.profile_clubs_error_state);
         loadingView = view.findViewById(R.id.profile_clubs_loading_state);
 
-        titleView.setText(self
-                ? "Clubs"
-                : (profileName != null && !profileName.isEmpty() ? profileName + "'s Clubs" : "Clubs"));
-        backButton.setOnClickListener(v -> requireActivity().getOnBackPressedDispatcher().onBackPressed());
+        setupTopBar(view, profileName);
 
         adapter = new ClubAdapter();
         adapter.setGridMode(false);
@@ -130,5 +126,13 @@ public class ProfileClubsFragment extends Fragment {
             loadingView.setVisibility(View.GONE);
             errorView.setVisibility(View.GONE);
         }
+    }
+
+    private void setupTopBar(View view, @Nullable String profileName) {
+        String title = self ? "Clubs" : (profileName != null && !profileName.isEmpty() ? profileName + "'s Clubs" : "Clubs");
+        TopAppBarHelper.setupTopAppBar(view, new TopAppBarConfig.Builder()
+                .setTitle(title)
+                .setLeftIcon(com.grouprace.core.system.R.drawable.ic_back, v -> requireActivity().onBackPressed())
+                .build());
     }
 }

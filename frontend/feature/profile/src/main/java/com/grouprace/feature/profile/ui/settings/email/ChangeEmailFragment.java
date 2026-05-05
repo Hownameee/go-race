@@ -19,6 +19,8 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.navigation.AppNavigator;
+import com.grouprace.core.system.ui.TopAppBarConfig;
+import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.feature.profile.R;
 
 import javax.inject.Inject;
@@ -45,6 +47,7 @@ public class ChangeEmailFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        setupTopBar(view);
 
         viewModel = new ViewModelProvider(requireActivity()).get(ChangeEmailViewModel.class);
         if (!viewModel.isCurrentEmailVerified()) {
@@ -52,14 +55,11 @@ public class ChangeEmailFragment extends Fragment {
             return;
         }
 
-        ImageButton backButton = view.findViewById(R.id.change_email_back_button);
         TextView messageView = view.findViewById(R.id.change_email_message);
         EditText newEmailInput = view.findViewById(R.id.change_email_new_email_input);
         TextView otpLabel = view.findViewById(R.id.change_email_new_otp_label);
         EditText otpInput = view.findViewById(R.id.change_email_new_otp_input);
         Button saveEmailButton = view.findViewById(R.id.change_email_send_otp_button);
-
-        backButton.setOnClickListener(v -> requireActivity().onBackPressed());
 
         viewModel.getToastMessage().observe(getViewLifecycleOwner(), message -> {
             if (message != null) {
@@ -116,6 +116,13 @@ public class ChangeEmailFragment extends Fragment {
         saveEmailButton.setOnClickListener(v -> submitChangeEmail.run());
         newEmailInput.setOnEditorActionListener((v, actionId, event) -> handleSubmitAction(actionId, event, submitChangeEmail));
         otpInput.setOnEditorActionListener((v, actionId, event) -> handleSubmitAction(actionId, event, submitChangeEmail));
+    }
+
+    private void setupTopBar(View view) {
+        TopAppBarHelper.setupTopAppBar(view, new TopAppBarConfig.Builder()
+                .setTitle("Change Email")
+                .setLeftIcon(com.grouprace.core.system.R.drawable.ic_back, v -> requireActivity().onBackPressed())
+                .build());
     }
 
     private boolean handleSubmitAction(int actionId, KeyEvent event, Runnable action) {

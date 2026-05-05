@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="BottomNavActiveLabel">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textFontWeight">900</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+
+    <style name="BottomNavInactiveLabel">
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+</resources>

@@ -19,6 +19,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.Profile.FollowUser;
 import com.grouprace.core.navigation.AppNavigator;
+import com.grouprace.core.system.ui.TopAppBarConfig;
+import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.feature.profile.R;
 
 import java.util.List;
@@ -41,7 +43,6 @@ public class FollowListFragment extends Fragment {
     AppNavigator navigator;
 
     private FollowListViewModel viewModel;
-    private TextView titleView;
     private Button followersTabButton;
     private Button followingTabButton;
     private ProgressBar progressBar;
@@ -81,17 +82,14 @@ public class FollowListFragment extends Fragment {
         viewModel = new ViewModelProvider(this).get(FollowListViewModel.class);
         viewModel.initialize(userId);
 
-        ImageButton backButton = view.findViewById(R.id.follow_list_back_button);
-        titleView = view.findViewById(R.id.follow_list_title);
+        setupTopBar(view);
+
         followersTabButton = view.findViewById(R.id.followers_tab_button);
         followingTabButton = view.findViewById(R.id.following_tab_button);
         progressBar = view.findViewById(R.id.follow_list_progress);
         emptyView = view.findViewById(R.id.follow_list_empty);
         errorView = view.findViewById(R.id.follow_list_error);
         RecyclerView recyclerView = view.findViewById(R.id.follow_list_recycler);
-
-        titleView.setText(isSelf ? "Connections" : safeProfileName() + "'s Connections");
-        backButton.setOnClickListener(v -> requireActivity().getOnBackPressedDispatcher().onBackPressed());
 
         adapter = new FollowUserAdapter(this::openUserProfile);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -103,6 +101,14 @@ public class FollowListFragment extends Fragment {
         observeSelectedTab();
         observeUsers();
         viewModel.selectTab(initialTab);
+    }
+
+    private void setupTopBar(View view) {
+        String title = isSelf ? "Connections" : safeProfileName() + "'s Connections";
+        TopAppBarHelper.setupTopAppBar(view, new TopAppBarConfig.Builder()
+                .setTitle(title)
+                .setLeftIcon(com.grouprace.core.system.R.drawable.ic_back, v -> requireActivity().onBackPressed())
+                .build());
     }
 
     private void observeSelectedTab() {

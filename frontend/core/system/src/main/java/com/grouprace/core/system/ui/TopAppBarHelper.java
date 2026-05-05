@@ -5,6 +5,8 @@ import android.graphics.PorterDuff;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -19,10 +21,12 @@ import java.util.List;
 public class TopAppBarHelper {
 
     public static void setupTopAppBar(View rootView, TopAppBarConfig config) {
-        if (config == null || rootView == null) return;
+        if (config == null || rootView == null)
+            return;
 
         View topBar = rootView.findViewById(R.id.top_bar);
-        if (topBar == null) return;
+        if (topBar == null)
+            return;
 
         TextView tvTitle = topBar.findViewById(R.id.tv_app_title);
         if (tvTitle != null) {
@@ -45,7 +49,8 @@ public class TopAppBarHelper {
         }
 
         LinearLayout container = topBar.findViewById(R.id.ll_right_icons_container);
-        if (container == null) return;
+        if (container == null)
+            return;
 
         List<TopAppBarConfig.ActionIcon> icons = config.getRightIcons();
 
@@ -108,24 +113,26 @@ public class TopAppBarHelper {
     }
 
     public static void updateBadge(View rootView, TopAppBarConfig.IconTag iconTag, int count) {
-        if (rootView == null || iconTag == null) return;
+        if (rootView == null || iconTag == null)
+            return;
         View topBar = rootView.findViewById(R.id.top_bar);
-        if (topBar == null) return;
+        if (topBar == null)
+            return;
 
         LinearLayout container = topBar.findViewById(R.id.ll_right_icons_container);
-        if (container == null) return;
+        if (container == null)
+            return;
 
         for (int i = 0; i < container.getChildCount(); i++) {
             View child = container.getChildAt(i);
             if (iconTag == child.getTag(R.id.tag_icon_key)) {
                 TextView badge = child.findViewById(R.id.tv_toolbar_badge);
-                if (badge != null) applyBadgeCount(badge, count);
+                if (badge != null)
+                    applyBadgeCount(badge, count);
                 return;
             }
         }
     }
-
-
 
     private static void applyBadgeCount(TextView badge, int count) {
         if (count <= 0) {

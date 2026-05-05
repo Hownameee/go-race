@@ -20,6 +20,8 @@ import androidx.lifecycle.ViewModelProvider;
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.common.validation.FormValidator;
 import com.grouprace.core.navigation.AppNavigator;
+import com.grouprace.core.system.ui.TopAppBarConfig;
+import com.grouprace.core.system.ui.TopAppBarHelper;
 import com.grouprace.feature.profile.R;
 
 import javax.inject.Inject;
@@ -46,10 +48,9 @@ public class PasswordResetOtpFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        setupTopBar(view);
 
         viewModel = new ViewModelProvider(requireActivity()).get(ChangePasswordViewModel.class);
-
-        ImageButton backButton = view.findViewById(R.id.password_reset_otp_back_button);
         TextView messageView = view.findViewById(R.id.password_reset_otp_message);
         EditText otpInput = view.findViewById(R.id.password_reset_otp_input);
         Button submitButton = view.findViewById(R.id.password_reset_otp_submit_button);
@@ -59,8 +60,6 @@ public class PasswordResetOtpFragment extends Fragment {
         } else if (viewModel.getResetEmail() != null) {
             messageView.setText("Enter the OTP sent to " + viewModel.getResetEmail() + ".");
         }
-
-        backButton.setOnClickListener(v -> requireActivity().onBackPressed());
 
         viewModel.getToastMessage().observe(getViewLifecycleOwner(), message -> {
             if (message != null) {
@@ -101,6 +100,13 @@ public class PasswordResetOtpFragment extends Fragment {
 
         submitButton.setOnClickListener(v -> submitOtpAction.run());
         otpInput.setOnEditorActionListener((v, actionId, event) -> handleSubmitAction(actionId, event, submitOtpAction));
+    }
+
+    private void setupTopBar(View view) {
+        TopAppBarHelper.setupTopAppBar(view, new TopAppBarConfig.Builder()
+                .setTitle("Verify OTP")
+                .setLeftIcon(com.grouprace.core.system.R.drawable.ic_back, v -> requireActivity().onBackPressed())
+                .build());
     }
 
     private boolean handleSubmitAction(int actionId, KeyEvent event, Runnable action) {

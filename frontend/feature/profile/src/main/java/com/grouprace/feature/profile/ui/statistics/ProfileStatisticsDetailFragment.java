@@ -20,6 +20,8 @@ import com.grouprace.core.network.model.record.RecordStatisticsBucketResponse;
 import com.grouprace.feature.profile.R;
 import com.grouprace.feature.profile.ui.main.ProfileActivityType;
 import com.grouprace.feature.profile.util.ProfileFormatUtils;
+import com.grouprace.core.system.ui.TopAppBarConfig;
+import com.grouprace.core.system.ui.TopAppBarHelper;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -29,7 +31,6 @@ public class ProfileStatisticsDetailFragment extends Fragment {
     private static final String ARG_USER_ID = "arg_user_id";
 
     private ProfileStatisticsDetailViewModel viewModel;
-    private ImageButton backButton;
     private Button runButton;
     private Button walkButton;
     private TextView loadingState;
@@ -71,7 +72,8 @@ public class ProfileStatisticsDetailFragment extends Fragment {
         viewModel = new ViewModelProvider(this).get(ProfileStatisticsDetailViewModel.class);
         viewModel.initialize(isSelf, userId);
 
-        backButton = view.findViewById(R.id.profile_statistics_back_button);
+        setupTopBar(view);
+
         runButton = view.findViewById(R.id.profile_statistics_run_button);
         walkButton = view.findViewById(R.id.profile_statistics_walk_button);
         loadingState = view.findViewById(R.id.profile_statistics_loading_state);
@@ -89,12 +91,18 @@ public class ProfileStatisticsDetailFragment extends Fragment {
         allTimeActivityValue = view.findViewById(R.id.profile_statistics_all_time_activity_value);
         allTimeDistanceValue = view.findViewById(R.id.profile_statistics_all_time_distance_value);
 
-        backButton.setOnClickListener(v -> requireActivity().getOnBackPressedDispatcher().onBackPressed());
         runButton.setOnClickListener(v -> viewModel.selectActivityType(ProfileActivityType.RUNNING));
         walkButton.setOnClickListener(v -> viewModel.selectActivityType(ProfileActivityType.WALKING));
 
         observeActivityType();
         observeStatistics();
+    }
+
+    private void setupTopBar(View view) {
+        TopAppBarHelper.setupTopAppBar(view, new TopAppBarConfig.Builder()
+                .setTitle("Statistics")
+                .setLeftIcon(com.grouprace.core.system.R.drawable.ic_back, v -> requireActivity().onBackPressed())
+                .build());
     }
 
     private void observeActivityType() {
