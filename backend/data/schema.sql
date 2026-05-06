@@ -527,3 +527,30 @@ CREATE TABLE IF NOT EXISTS USER_ROUTES (
 
 CREATE INDEX IF NOT EXISTS idx_user_routes_user_id ON USER_ROUTES(user_id);
 
+---FTS5 extension for search club
+CREATE VIRTUAL TABLE IF NOT EXISTS CLUB_FTS USING FTS5(
+    name,
+    description,
+    content="CLUBS",
+    content_rowid="club_id"
+);
+
+---trigger FTS club
+CREATE TRIGGER IF NOT EXISTS CLUB_AI AFTER INSERT ON CLUBS BEGIN
+  INSERT INTO CLUB_FTS(rowid, name, description)
+  VALUES (NEW.club_id, NEW.name, NEW.description);
+END;
+
+CREATE TRIGGER IF NOT EXISTS CLUB_AD AFTER DELETE ON CLUBS BEGIN
+  INSERT INTO CLUB_FTS(CLUB_FTS, rowid, name, description)
+  VALUES('delete', OLD.club_id, OLD.name, OLD.description);
+END;
+
+CREATE TRIGGER IF NOT EXISTS CLUB_AU AFTER UPDATE ON CLUBS BEGIN
+  INSERT INTO CLUB_FTS(CLUB_FTS, rowid, name, description)
+  VALUES('delete', OLD.club_id, OLD.name, OLD.description);
+
+  INSERT INTO CLUB_FTS(rowid, name, description)
+  VALUES (NEW.club_id, NEW.name, NEW.description);
+END;
+
