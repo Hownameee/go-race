@@ -4,11 +4,11 @@ const deviceTokenRepository = {
   upsert: async function ({ userId, token, platform = 'android' }) {
     const sql = `
       INSERT INTO device_tokens (user_id, token, platform, updated_at)
-      VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+      VALUES (?, ?, ?, (datetime('now', '+7 hours')))
       ON CONFLICT(token) DO UPDATE SET
         user_id = excluded.user_id,
         platform = excluded.platform,
-        updated_at = CURRENT_TIMESTAMP
+        updated_at = (datetime('now', '+7 hours'))
     `;
     const info = await db.prepare(sql).run(userId, token, platform);
     return info.lastInsertRowid;
