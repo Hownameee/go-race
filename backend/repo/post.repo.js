@@ -58,19 +58,24 @@ const postRepo = {
     return stmt.get(postId);
   },
 
-  async selectPostWithAccess(postId, userId) {
+  async selectDetailedPostById(postId, userId) {
     const sql = `
-      SELECT 
-        p.*, 
-        c.privacy_type, 
-        cm.status AS membership_status
+      SELECT p.*, u.username, u.fullname, u.avatar_url,
+             CASE WHEN l.user_id IS NOT NULL THEN 1 ELSE 0 END as is_liked,
+             r.activity_type, r.duration_seconds, r.distance_km, r.speed, r.s3_key as record_s3_key,
+             (SELECT GROUP_CONCAT(s3_key) FROM POST_IMAGES WHERE post_id = p.post_id) as photos,
+             c.privacy_type, 
+             cm.status AS membership_status
       FROM POST p
+      JOIN USERS u ON u.user_id = p.owner_id
+      LEFT JOIN LIKE l ON l.post_id = p.post_id AND l.user_id = ?
+      LEFT JOIN RECORD r ON r.record_id = p.record_id
       LEFT JOIN CLUBS c ON p.club_id = c.club_id
       LEFT JOIN CLUB_MEMBERS cm ON p.club_id = cm.club_id AND cm.user_id = ?
       WHERE p.post_id = ?
     `;
     const stmt = db.prepare(sql);
-    return stmt.get(userId, postId);
+    return stmt.get(userId, userId, postId);
   },
 
   async selectFeed(userId, cursor, limit) {

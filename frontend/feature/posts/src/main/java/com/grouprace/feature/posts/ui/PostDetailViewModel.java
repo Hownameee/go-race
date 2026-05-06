@@ -29,15 +29,18 @@ public class PostDetailViewModel extends ViewModel {
     public PostDetailViewModel(PostRepository postRepository) {
         this.postRepository = postRepository;
         
+        // Sync post when postId or refreshTrigger changes
+        this.syncResult = Transformations.switchMap(postId, id -> 
+            Transformations.switchMap(refreshTrigger, trigger -> 
+                postRepository.syncPostById(id)
+            )
+        );
+
         // Combine postId and refreshTrigger to load comments
         this.comments = Transformations.switchMap(postId, id -> 
             Transformations.switchMap(refreshTrigger, trigger -> 
                 postRepository.getComments(id, null, 100)
             )
-        );
-
-        this.syncResult = Transformations.switchMap(postId, id -> 
-            postRepository.syncPostById(id)
         );
     }
 
@@ -52,10 +55,9 @@ public class PostDetailViewModel extends ViewModel {
     }
 
     public LiveData<Post> getPostData() {
-        Integer id = postId.getValue();
-        if (id == null)
-            return new MutableLiveData<>();
-        return postRepository.getPostById(id);
+        return Transformations.switchMap(postId, id -> 
+            postRepository.getPostById(id)
+        );
     }
 
     public LiveData<Result<List<Comment>>> getComments() {
