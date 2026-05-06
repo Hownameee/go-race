@@ -43,32 +43,13 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <LinearLayout
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <Button
-                    android:id="@+id/profile_statistics_run_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="40dp"
-                    android:background="@drawable/bg_button_rounded"
-                    android:backgroundTint="@null"
-                    android:text="Run"
-                    android:textColor="@color/black"
-                    app:backgroundTint="@null" />
-
-                <Button
-                    android:id="@+id/profile_statistics_walk_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="40dp"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_button_secondary_rounded"
-                    android:backgroundTint="@null"
-                    android:text="Walk"
-                    android:textColor="@color/black"
-                    app:backgroundTint="@null" />
-            </LinearLayout>
+                android:text="@string/profile_stats_running_heading"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <LinearLayout
                 android:layout_width="match_parent"

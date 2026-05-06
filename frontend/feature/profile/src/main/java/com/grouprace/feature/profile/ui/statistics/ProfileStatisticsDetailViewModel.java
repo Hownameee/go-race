@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModel;
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.data.repository.RecordRepository;
 import com.grouprace.core.network.model.record.RecordProfileStatisticsResponse;
-import com.grouprace.feature.profile.ui.main.ProfileActivityType;
 
 import javax.inject.Inject;
 
@@ -16,9 +15,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 
 @HiltViewModel
 public class ProfileStatisticsDetailViewModel extends ViewModel {
+    /** Only "Running" activities are surfaced (walking is not tracked). */
+    private static final String ACTIVITY_TYPE = "Running";
+
     private final RecordRepository recordRepository;
     private final MutableLiveData<Result<RecordProfileStatisticsResponse>> statistics = new MutableLiveData<>();
-    private final MutableLiveData<String> selectedActivityType = new MutableLiveData<>(ProfileActivityType.RUNNING);
     private LiveData<Result<RecordProfileStatisticsResponse>> currentStatisticsSource;
     private Observer<Result<RecordProfileStatisticsResponse>> currentStatisticsObserver;
     private boolean isSelf;
@@ -37,26 +38,14 @@ public class ProfileStatisticsDetailViewModel extends ViewModel {
         this.isSelf = isSelf;
         this.userId = userId;
         this.initialized = true;
-        loadStatistics(selectedActivityType.getValue());
+        loadStatistics();
     }
 
     public LiveData<Result<RecordProfileStatisticsResponse>> getStatistics() {
         return statistics;
     }
 
-    public LiveData<String> getSelectedActivityType() {
-        return selectedActivityType;
-    }
-
-    public void selectActivityType(String activityType) {
-        if (activityType == null) {
-            return;
-        }
-        selectedActivityType.setValue(activityType);
-        loadStatistics(activityType);
-    }
-
-    private void loadStatistics(String activityType) {
+    private void loadStatistics() {
         if (!initialized) {
             return;
         }
@@ -65,8 +54,8 @@ public class ProfileStatisticsDetailViewModel extends ViewModel {
         }
 
         currentStatisticsSource = isSelf
-                ? recordRepository.getMyProfileStatistics(activityType)
-                : recordRepository.getUserProfileStatistics(userId, activityType);
+                ? recordRepository.getMyProfileStatistics(ACTIVITY_TYPE)
+                : recordRepository.getUserProfileStatistics(userId, ACTIVITY_TYPE);
         currentStatisticsObserver = result -> statistics.setValue(result);
         currentStatisticsSource.observeForever(currentStatisticsObserver);
     }

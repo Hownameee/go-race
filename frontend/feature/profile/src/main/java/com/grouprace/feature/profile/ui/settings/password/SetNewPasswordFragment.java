@@ -15,6 +15,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.grouprace.core.common.result.Result;
@@ -47,17 +48,12 @@ public class SetNewPasswordFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        setupTopBar(view);
-
         viewModel = new ViewModelProvider(requireActivity()).get(ChangePasswordViewModel.class);
+        setupTopBar(view);
 
         EditText newPasswordInput = view.findViewById(R.id.set_new_password_input);
         EditText confirmPasswordInput = view.findViewById(R.id.set_new_password_confirm_input);
         Button saveButton = view.findViewById(R.id.set_new_password_submit_button);
-
-        if (viewModel.getResetEmail() != null) {
-            // Title updated in setupTopBar or handled there
-        }
 
         viewModel.getToastMessage().observe(getViewLifecycleOwner(), message -> {
             if (message != null) {
@@ -76,18 +72,15 @@ public class SetNewPasswordFragment extends Fragment {
                 saveButton.setEnabled(true);
                 saveButton.setText("Save Password");
                 boolean shouldReturnToLogin = viewModel.getResetEmail() != null;
-                boolean shouldReturnToSettingsFromProfileOtp = viewModel.isProfileOtpFlow();
                 viewModel.clearFlowState();
                 Toast.makeText(requireContext(), "Password updated successfully", Toast.LENGTH_SHORT).show();
                 if (shouldReturnToLogin) {
                     navigator.openLogin(this);
-                } else if (shouldReturnToSettingsFromProfileOtp) {
-                    requireActivity().getSupportFragmentManager().popBackStack();
-                    requireActivity().getSupportFragmentManager().popBackStack();
-                    requireActivity().getSupportFragmentManager().popBackStack();
                 } else {
-                    requireActivity().getSupportFragmentManager().popBackStack();
-                    requireActivity().getSupportFragmentManager().popBackStack();
+                    // Pop the entire change-password flow back to whoever opened it (Settings).
+                    requireActivity().getSupportFragmentManager().popBackStack(
+                            AppNavigator.PASSWORD_FLOW_BACK_TAG,
+                            FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 }
             } else if (result instanceof Result.Error) {
                 saveButton.setEnabled(true);

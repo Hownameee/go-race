@@ -89,12 +89,6 @@ public class ProfileLinksFragment extends Fragment {
                         R.drawable.ic_profile_posts,
                         "Posts",
                         null
-                ),
-                new ProfileLinkItem(
-                        ProfileLinkItem.Action.CLUBS,
-                        com.grouprace.core.system.R.drawable.ic_nav_clubs,
-                        "Clubs",
-                        null
                 )
         );
     }
@@ -112,9 +106,6 @@ public class ProfileLinksFragment extends Fragment {
                 break;
             case POSTS:
                 navigator.openProfilePosts(this, userId, profileName, self);
-                break;
-            case CLUBS:
-                navigator.openProfileClubs(this, userId, profileName, self);
                 break;
         }
     }

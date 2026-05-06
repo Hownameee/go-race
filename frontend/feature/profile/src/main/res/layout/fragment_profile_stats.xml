@@ -7,32 +7,13 @@
     android:padding="16dp"
     android:background="@drawable/bg_stat_card">
 
-    <LinearLayout
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/profile_run_stats_button"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:background="@drawable/bg_button_rounded"
-            android:backgroundTint="@null"
-            app:backgroundTint="@null"
-            android:text="Run"
-            android:textColor="@color/black" />
-
-        <Button
-            android:id="@+id/profile_walk_stats_button"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_marginStart="8dp"
-            android:background="@drawable/bg_button_secondary_rounded"
-            android:backgroundTint="@null"
-            app:backgroundTint="@null"
-            android:text="Walk"
-            android:textColor="@color/black" />
-    </LinearLayout>
+        android:text="@string/profile_stats_running_heading"
+        android:textColor="@color/text_primary"
+        android:textSize="16sp"
+        android:textStyle="bold" />
 
     <TextView
         android:layout_width="wrap_content"
