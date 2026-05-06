@@ -4,8 +4,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -18,7 +16,6 @@ import com.grouprace.core.common.result.Result;
 import com.grouprace.core.network.model.record.RecordProfileStatisticsResponse;
 import com.grouprace.core.network.model.record.RecordStatisticsBucketResponse;
 import com.grouprace.feature.profile.R;
-import com.grouprace.feature.profile.ui.main.ProfileActivityType;
 import com.grouprace.feature.profile.util.ProfileFormatUtils;
 import com.grouprace.core.system.ui.TopAppBarConfig;
 import com.grouprace.core.system.ui.TopAppBarHelper;
@@ -31,8 +28,6 @@ public class ProfileStatisticsDetailFragment extends Fragment {
     private static final String ARG_USER_ID = "arg_user_id";
 
     private ProfileStatisticsDetailViewModel viewModel;
-    private Button runButton;
-    private Button walkButton;
     private TextView loadingState;
     private TextView errorState;
     private View contentContainer;
@@ -74,8 +69,6 @@ public class ProfileStatisticsDetailFragment extends Fragment {
 
         setupTopBar(view);
 
-        runButton = view.findViewById(R.id.profile_statistics_run_button);
-        walkButton = view.findViewById(R.id.profile_statistics_walk_button);
         loadingState = view.findViewById(R.id.profile_statistics_loading_state);
         errorState = view.findViewById(R.id.profile_statistics_error_state);
         contentContainer = view.findViewById(R.id.profile_statistics_content_container);
@@ -91,10 +84,10 @@ public class ProfileStatisticsDetailFragment extends Fragment {
         allTimeActivityValue = view.findViewById(R.id.profile_statistics_all_time_activity_value);
         allTimeDistanceValue = view.findViewById(R.id.profile_statistics_all_time_distance_value);
 
-        runButton.setOnClickListener(v -> viewModel.selectActivityType(ProfileActivityType.RUNNING));
-        walkButton.setOnClickListener(v -> viewModel.selectActivityType(ProfileActivityType.WALKING));
+        weeklyAverageActivityLabel.setText(R.string.profile_stats_avg_runs_per_week);
+        ytdActivityLabel.setText(R.string.profile_stats_total_runs);
+        allTimeActivityLabel.setText(R.string.profile_stats_total_runs);
 
-        observeActivityType();
         observeStatistics();
     }
 
@@ -103,19 +96,6 @@ public class ProfileStatisticsDetailFragment extends Fragment {
                 .setTitle("Statistics")
                 .setLeftIcon(com.grouprace.core.system.R.drawable.ic_back, v -> requireActivity().onBackPressed())
                 .build());
-    }
-
-    private void observeActivityType() {
-        viewModel.getSelectedActivityType().observe(getViewLifecycleOwner(), activityType -> {
-            boolean isRunning = ProfileActivityType.RUNNING.equals(activityType);
-            updateActivityButtonState(runButton, isRunning);
-            updateActivityButtonState(walkButton, !isRunning);
-            String plural = isRunning ? "runs" : "walks";
-
-            weeklyAverageActivityLabel.setText("Average " + plural + " per week");
-            ytdActivityLabel.setText("Total " + plural);
-            allTimeActivityLabel.setText("Total " + plural);
-        });
     }
 
     private void observeStatistics() {
@@ -164,16 +144,5 @@ public class ProfileStatisticsDetailFragment extends Fragment {
     private void bindAllTime(@Nullable RecordStatisticsBucketResponse bucket) {
         allTimeActivityValue.setText(ProfileFormatUtils.formatActivityCount(bucket != null ? bucket.getTotalActivities() : 0));
         allTimeDistanceValue.setText(ProfileFormatUtils.formatDistance(bucket != null ? bucket.getTotalDistanceKm() : 0));
-    }
-
-    private void updateActivityButtonState(@NonNull Button button, boolean isSelected) {
-        int backgroundRes = isSelected
-                ? com.grouprace.core.system.R.drawable.bg_button_rounded
-                : com.grouprace.core.system.R.drawable.bg_button_secondary_rounded;
-        int textColor = requireContext().getColor(android.R.color.black);
-        button.setBackgroundResource(backgroundRes);
-        button.setTextColor(textColor);
-        button.setEnabled(!isSelected);
-        button.setAlpha(1f);
     }
 }

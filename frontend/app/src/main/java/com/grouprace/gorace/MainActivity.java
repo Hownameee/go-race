@@ -41,8 +41,12 @@ public class MainActivity extends AppCompatActivity {
     @Inject
     SessionManager sessionManager;
 
+    @Inject
+    com.grouprace.core.data.SyncManager syncManager;
+
     private BottomNavigationView bottomNav;
     private MainViewModel viewModel;
+    private boolean pendingSyncScheduled;
     private static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 101;
 
     @Override
@@ -89,6 +93,16 @@ public class MainActivity extends AppCompatActivity {
     private void observeViewModel() {
         viewModel.getIsLoggedIn().observe(this, isLoggedIn -> {
             bottomNav.setVisibility(isLoggedIn ? android.view.View.VISIBLE : android.view.View.GONE);
+
+            // Catch up any pending offline records/posts when user is logged in.
+            // WorkManager waits for NetworkType.CONNECTED, so this safely no-ops while offline.
+            if (Boolean.TRUE.equals(isLoggedIn) && !pendingSyncScheduled) {
+                pendingSyncScheduled = true;
+                syncManager.scheduleRecordSync();
+                syncManager.schedulePostSync();
+            } else if (Boolean.FALSE.equals(isLoggedIn)) {
+                pendingSyncScheduled = false;
+            }
 
             Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
             Fragment fragment = null;

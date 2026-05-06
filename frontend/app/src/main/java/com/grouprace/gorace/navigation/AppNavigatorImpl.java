@@ -153,7 +153,10 @@ public class AppNavigatorImpl implements AppNavigator {
 
     @Override
     public void openChangePassword(Fragment currentFragment) {
-      navigateTo(currentFragment, ChangePasswordFragment.newInstance());
+      // Tag the entry so the password flow (verify → OTP → set new) can pop back
+      // to Settings in one call, regardless of how many screens were pushed.
+      navigateToTagged(currentFragment, ChangePasswordFragment.newInstance(),
+              com.grouprace.core.navigation.AppNavigator.PASSWORD_FLOW_BACK_TAG);
     }
 
     //    @Override
@@ -277,12 +280,16 @@ public class AppNavigatorImpl implements AppNavigator {
     }
 
     private void navigateTo(Fragment currentFragment, Fragment targetFragment) {
+        navigateToTagged(currentFragment, targetFragment, null);
+    }
+
+    private void navigateToTagged(Fragment currentFragment, Fragment targetFragment, String backStackTag) {
         Fragment hostFragment = findNavigationHostFragment(currentFragment);
         if (hostFragment != null && hostFragment.getView() != null && hostFragment.getView().getParent() != null) {
             int containerId = ((ViewGroup) hostFragment.getView().getParent()).getId();
             hostFragment.requireActivity().getSupportFragmentManager().beginTransaction()
                     .replace(containerId, targetFragment)
-                    .addToBackStack(null)
+                    .addToBackStack(backStackTag)
                     .commit();
         }
     }
