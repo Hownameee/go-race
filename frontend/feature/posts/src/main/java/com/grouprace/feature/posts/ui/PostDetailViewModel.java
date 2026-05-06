@@ -23,6 +23,7 @@ public class PostDetailViewModel extends ViewModel {
     private final MutableLiveData<Integer> postId = new MutableLiveData<>();
     private final MutableLiveData<Boolean> refreshTrigger = new MutableLiveData<>(true);
     private final LiveData<Result<List<Comment>>> comments;
+    private final LiveData<Result<Boolean>> syncResult;
 
     @Inject
     public PostDetailViewModel(PostRepository postRepository) {
@@ -34,12 +35,20 @@ public class PostDetailViewModel extends ViewModel {
                 postRepository.getComments(id, null, 100)
             )
         );
+
+        this.syncResult = Transformations.switchMap(postId, id -> 
+            postRepository.syncPostById(id)
+        );
     }
 
     public void setPostId(int id) {
         if (postId.getValue() == null || postId.getValue() != id) {
             postId.setValue(id);
         }
+    }
+
+    public LiveData<Result<Boolean>> getSyncResult() {
+        return syncResult;
     }
 
     public LiveData<Post> getPostData() {

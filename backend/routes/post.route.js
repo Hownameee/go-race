@@ -111,4 +111,11 @@ router.get(
   postController.getReplies,
 );
 
+router.get(
+  '/api/posts/:postId',
+  auth,
+  validation(postIdSchema, 'params'),
+  postController.getPostById,
+);
+
 export default router;

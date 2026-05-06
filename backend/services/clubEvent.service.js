@@ -46,7 +46,7 @@ const clubEventService = {
             userId: targetId,
             type: 'club_event',
             actorId: userId,
-            activityId: eventId,
+            activityId: clubId,
             title: 'New Club Event',
             message: `${fullname ?? 'Club leader'} created a new event "${title}" in ${club?.name ?? 'your club'}`,
           });

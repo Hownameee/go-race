@@ -224,6 +224,20 @@ const postController = {
       return next(error);
     }
   },
+
+  async getPostById(req, res, next) {
+    try {
+      const postId = parseInt(req.params.postId);
+      const userId = req.user.userId;
+      const post = await postService.getPostById(postId, userId);
+      return res.ok(post, 'Post retrieved successfully.');
+    } catch (error) {
+      if (error.status === 404 || error.status === 403) {
+        return res.violate(null, error.message);
+      }
+      return next(error);
+    }
+  },
 };
 
 export default postController;

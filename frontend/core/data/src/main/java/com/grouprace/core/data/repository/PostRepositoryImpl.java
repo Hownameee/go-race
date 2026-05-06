@@ -169,6 +169,39 @@ public class PostRepositoryImpl implements PostRepository {
         return syncInternal(postNetworkDataSource.getClubPosts(clubId, cursor, limit));
     }
 
+    @Override
+    public LiveData<Result<Boolean>> syncPostById(int postId) {
+        MediatorLiveData<Result<Boolean>> resultData = new MediatorLiveData<>();
+        resultData.postValue(new Result.Loading<>());
+
+        LiveData<Result<NetworkPost>> networkCall = postNetworkDataSource.getPost(postId);
+        resultData.addSource(networkCall, result -> {
+            if (result instanceof Result.Success) {
+                executorService.execute(() -> {
+                    NetworkPost np = ((Result.Success<NetworkPost>) result).data;
+                    Post p = np.asExternalModel();
+                    boolean isSelf = (p.getOwnerId() == sessionManager.getUserId());
+                    PostEntity entity = new PostEntity(
+                            p.getPostId(), p.getRecordId(), p.getOwnerId(), p.getTitle(),
+                            p.getDescription(), p.getPhotoUrls(), p.getLikeCount(),
+                            p.getCommentCount(), p.getViewMode(), p.getCreatedAt(),
+                            p.getUsername(), p.getFullName(), p.getProfilePictureUrl(),
+                            p.getActivityType(), p.getDurationSeconds(), p.getDistanceKm(),
+                            p.getSpeed(), p.getRecordImageUrl(), p.isLiked(), p.getClubId(),
+                            false, isSelf
+                    );
+                    postDao.upsert(entity);
+                    resultData.postValue(new Result.Success<>(true));
+                });
+            } else if (result instanceof Result.Error) {
+                Result.Error<?> error = (Result.Error<?>) result;
+                resultData.postValue(new Result.Error<>(error.exception, error.message));
+            }
+        });
+
+        return resultData;
+    }
+
     private LiveData<Result<Boolean>> syncInternal(LiveData<Result<List<NetworkPost>>> networkCall) {
         MediatorLiveData<Result<Boolean>> resultData = new MediatorLiveData<>();
         resultData.postValue(new Result.Loading<>());
@@ -181,6 +214,7 @@ public class PostRepositoryImpl implements PostRepository {
                     List<PostEntity> entities = networkPosts.stream()
                         .map(np -> {
                             Post p = np.asExternalModel();
+                            boolean isSelf = (p.getOwnerId() == sessionManager.getUserId());
                             return new PostEntity(
                                 p.getPostId(), p.getRecordId(), p.getOwnerId(), p.getTitle(),
                                 p.getDescription(), p.getPhotoUrls(), p.getLikeCount(),
@@ -189,7 +223,7 @@ public class PostRepositoryImpl implements PostRepository {
                                 p.getActivityType(), p.getDurationSeconds(), p.getDistanceKm(),
                                 p.getSpeed(), p.getRecordImageUrl(), p.isLiked(), p.getClubId(),
                                 false, // pendingSync = false
-                                false
+                                isSelf
                         );
                         })
                         .collect(Collectors.toList());
