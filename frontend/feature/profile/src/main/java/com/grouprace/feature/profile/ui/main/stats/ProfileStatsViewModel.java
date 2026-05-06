@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModel;
 import com.grouprace.core.common.result.Result;
 import com.grouprace.core.data.repository.RecordRepository;
 import com.grouprace.core.model.Profile.WeeklyRecordSummary;
-import com.grouprace.feature.profile.ui.main.ProfileActivityType;
 
 import javax.inject.Inject;
 
@@ -17,10 +16,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 @HiltViewModel
 public class ProfileStatsViewModel extends ViewModel {
   private static final int WEEKLY_SUMMARY_WINDOW = 12;
+  /** Only "Running" activities are surfaced in stats (walking is not tracked). */
+  private static final String ACTIVITY_TYPE = "Running";
 
   private final RecordRepository recordRepository;
   private final MutableLiveData<Result<WeeklyRecordSummary>> weeklySummary = new MutableLiveData<>();
-  private final MutableLiveData<String> selectedActivityType = new MutableLiveData<>(ProfileActivityType.RUNNING);
   private LiveData<Result<WeeklyRecordSummary>> weeklySummarySource;
   private Observer<Result<WeeklyRecordSummary>> weeklySummaryObserver;
   private int userId = -1;
@@ -39,26 +39,14 @@ public class ProfileStatsViewModel extends ViewModel {
     this.userId = userId;
     this.self = self;
     this.initialized = true;
-    loadWeeklySummary(selectedActivityType.getValue());
+    loadWeeklySummary();
   }
 
   public LiveData<Result<WeeklyRecordSummary>> getWeeklySummary() {
     return weeklySummary;
   }
 
-  public LiveData<String> getSelectedActivityType() {
-    return selectedActivityType;
-  }
-
-  public void selectActivityType(String activityType) {
-    if (activityType == null) {
-      return;
-    }
-    selectedActivityType.setValue(activityType);
-    loadWeeklySummary(activityType);
-  }
-
-  private void loadWeeklySummary(String activityType) {
+  private void loadWeeklySummary() {
     if (!initialized || (!self && userId <= 0)) {
       return;
     }
@@ -67,8 +55,8 @@ public class ProfileStatsViewModel extends ViewModel {
     }
 
     weeklySummarySource = self
-        ? recordRepository.getMyWeeklySummary(activityType, WEEKLY_SUMMARY_WINDOW)
-        : recordRepository.getUserWeeklySummary(userId, activityType, WEEKLY_SUMMARY_WINDOW);
+        ? recordRepository.getMyWeeklySummary(ACTIVITY_TYPE, WEEKLY_SUMMARY_WINDOW)
+        : recordRepository.getUserWeeklySummary(userId, ACTIVITY_TYPE, WEEKLY_SUMMARY_WINDOW);
     weeklySummaryObserver = result -> weeklySummary.setValue(result);
     weeklySummarySource.observeForever(weeklySummaryObserver);
   }

@@ -6,6 +6,11 @@ import com.grouprace.core.model.PlannedRoute;
 
 
 public interface AppNavigator {
+    /** Back-stack tag for the change-password flow root (ChangePasswordFragment).
+     *  Use FragmentManager.popBackStack(tag, POP_BACK_STACK_INCLUSIVE) to return to
+     *  the screen that opened the flow (typically Settings). */
+    String PASSWORD_FLOW_BACK_TAG = "password_flow_root";
+
     void navigateToNotification(Fragment currentFragment);
     void navigateToSearch(Fragment currentFragment);
     void openForgotPassword(Fragment currentFragment);

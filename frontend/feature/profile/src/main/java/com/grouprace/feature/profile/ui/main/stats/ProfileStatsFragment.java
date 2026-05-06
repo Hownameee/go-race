@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -17,7 +16,6 @@ import com.grouprace.core.common.result.Result;
 import com.grouprace.core.model.Profile.WeeklyRecordPoint;
 import com.grouprace.core.model.Profile.WeeklyRecordSummary;
 import com.grouprace.feature.profile.R;
-import com.grouprace.feature.profile.ui.main.ProfileActivityType;
 import com.grouprace.feature.profile.util.ProfileFormatUtils;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
@@ -40,8 +38,6 @@ public class ProfileStatsFragment extends Fragment {
   private static final String ARG_IS_SELF = "arg_is_self";
 
   private ProfileStatsViewModel viewModel;
-  private Button runStatsButton;
-  private Button walkStatsButton;
   private TextView recordPeriod;
   private TextView recordDistance;
   private TextView recordDuration;
@@ -72,19 +68,13 @@ public class ProfileStatsFragment extends Fragment {
     viewModel = new ViewModelProvider(this).get(ProfileStatsViewModel.class);
     viewModel.initialize(userId, isSelf);
 
-    runStatsButton = view.findViewById(R.id.profile_run_stats_button);
-    walkStatsButton = view.findViewById(R.id.profile_walk_stats_button);
     recordPeriod = view.findViewById(R.id.profile_record_period);
     recordDistance = view.findViewById(R.id.profile_record_distance);
     recordDuration = view.findViewById(R.id.profile_record_duration);
     recordChart = view.findViewById(R.id.profile_record_chart);
 
-    runStatsButton.setOnClickListener(v -> viewModel.selectActivityType(ProfileActivityType.RUNNING));
-    walkStatsButton.setOnClickListener(v -> viewModel.selectActivityType(ProfileActivityType.WALKING));
-
     setupRecordChart();
     observeWeeklySummary();
-    observeActivitySelection();
   }
 
   private void observeWeeklySummary() {
@@ -95,14 +85,6 @@ public class ProfileStatsFragment extends Fragment {
       } else if (result instanceof Result.Error) {
         clearWeeklySummary();
       }
-    });
-  }
-
-  private void observeActivitySelection() {
-    viewModel.getSelectedActivityType().observe(getViewLifecycleOwner(), activityType -> {
-      boolean isRunning = ProfileActivityType.RUNNING.equals(activityType);
-      updateActivityButtonState(runStatsButton, isRunning);
-      updateActivityButtonState(walkStatsButton, !isRunning);
     });
   }
 
@@ -206,17 +188,5 @@ public class ProfileStatsFragment extends Fragment {
       }
     }
     return points.size() - 1;
-  }
-
-  private void updateActivityButtonState(@NonNull Button button, boolean isSelected) {
-    int backgroundRes = isSelected
-        ? com.grouprace.core.system.R.drawable.bg_button_rounded
-        : com.grouprace.core.system.R.drawable.bg_button_secondary_rounded;
-    int textColor = requireContext().getColor(android.R.color.black);
-
-    button.setBackgroundResource(backgroundRes);
-    button.setTextColor(textColor);
-    button.setEnabled(!isSelected);
-    button.setAlpha(1f);
   }
 }

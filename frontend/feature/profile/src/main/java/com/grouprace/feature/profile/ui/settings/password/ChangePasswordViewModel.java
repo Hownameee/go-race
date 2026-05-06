@@ -199,14 +199,6 @@ public class ChangePasswordViewModel extends ViewModel {
         otpRequested = false;
     }
 
-    public LiveData<Result<Void>> legacyResetPasswordWithOtp(String otpCode, String newPassword, String confirmPassword) {
-        return userRepository.resetPasswordWithOtp(
-                otpCode.trim(),
-                newPassword.trim(),
-                confirmPassword.trim()
-        );
-    }
-
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
     }

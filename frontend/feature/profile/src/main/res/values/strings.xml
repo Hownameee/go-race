@@ -4,4 +4,9 @@
     <string name="city">User City</string>
     <string name="country">User Country</string>
     <string name="default_number">N/A</string>
+
+    <!-- Stats / Statistics -->
+    <string name="profile_stats_running_heading">Running</string>
+    <string name="profile_stats_avg_runs_per_week">Average runs per week</string>
+    <string name="profile_stats_total_runs">Total runs</string>
 </resources>
