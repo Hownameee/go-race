@@ -226,7 +226,13 @@ public class EditProfileFragment extends Fragment {
     }
 
     private void loadAvatarPreview(@Nullable String avatarUrl) {
-        if (avatarUrl == null || avatarUrl.trim().isEmpty() || selectedAvatarUri != null) {
+        if (avatarUrl == null || avatarUrl.trim().isEmpty()) {
+            if (selectedAvatarUri == null) {
+                avatarImageView.setImageResource(com.grouprace.core.system.R.drawable.ic_default_avt);
+            }
+            return;
+        }
+        if (selectedAvatarUri != null) {
             return;
         }
 
@@ -235,8 +241,13 @@ public class EditProfileFragment extends Fragment {
                 Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                 if (bitmap != null && isAdded()) {
                     requireActivity().runOnUiThread(() -> avatarImageView.setImageBitmap(bitmap));
+                } else if (isAdded()) {
+                    requireActivity().runOnUiThread(() -> avatarImageView.setImageResource(com.grouprace.core.system.R.drawable.ic_default_avt));
                 }
             } catch (IOException ignored) {
+                if (isAdded()) {
+                    requireActivity().runOnUiThread(() -> avatarImageView.setImageResource(com.grouprace.core.system.R.drawable.ic_default_avt));
+                }
             }
         }).start();
     }

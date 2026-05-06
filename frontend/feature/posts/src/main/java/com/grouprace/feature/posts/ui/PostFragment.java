@@ -67,6 +67,18 @@ public class PostFragment extends Fragment {
         progressBar = view.findViewById(R.id.loading_state);
         tvError = view.findViewById(R.id.error_state);
 
+        View emptyState = view.findViewById(R.id.empty_posts_state);
+        if (emptyState != null) {
+            View btnFindPeople = emptyState.findViewById(R.id.btn_find_people);
+            if (btnFindPeople != null) {
+                btnFindPeople.setOnClickListener(v -> {
+                    if (appNavigator != null) {
+                        appNavigator.navigateToSearch(PostFragment.this);
+                    }
+                });
+            }
+        }
+
         setupFab(view);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(requireContext());
@@ -178,12 +190,8 @@ public class PostFragment extends Fragment {
                     if (shouldScroll) {
                         rvPosts.scrollToPosition(0);
                     }
+                    updateStateViews(posts.isEmpty());
                 });
-                if (!posts.isEmpty()) {
-                    progressBar.setVisibility(View.GONE);
-                    rvPosts.setVisibility(View.VISIBLE);
-                    tvError.setVisibility(View.GONE);
-                }
             }
         });
 
@@ -205,6 +213,8 @@ public class PostFragment extends Fragment {
                 if (postAdapter.getItemCount() == 0) {
                     progressBar.setVisibility(View.VISIBLE);
                     rvPosts.setVisibility(View.GONE);
+                    View emptyState = getView() != null ? getView().findViewById(R.id.empty_posts_state) : null;
+                    if (emptyState != null) emptyState.setVisibility(View.GONE);
                 }
                 tvError.setVisibility(View.GONE);
                 isLoadingPage = true;
@@ -212,8 +222,8 @@ public class PostFragment extends Fragment {
             } else if (result instanceof Result.Success) {
                 progressBar.setVisibility(View.GONE);
                 tvError.setVisibility(View.GONE);
-                rvPosts.setVisibility(View.VISIBLE);
                 isLoadingPage = false;
+                updateStateViews(postAdapter.getItemCount() == 0);
 
             } else if (result instanceof Result.Error) {
                 progressBar.setVisibility(View.GONE);
@@ -221,6 +231,8 @@ public class PostFragment extends Fragment {
 
                 if (postAdapter.getItemCount() == 0) {
                     rvPosts.setVisibility(View.GONE);
+                    View emptyState = getView() != null ? getView().findViewById(R.id.empty_posts_state) : null;
+                    if (emptyState != null) emptyState.setVisibility(View.GONE);
                     tvError.setVisibility(View.VISIBLE);
                     String errorMessage = ((Result.Error<?>) result).message;
                     tvError.setText(errorMessage != null ? errorMessage : "Check your connection.");
@@ -230,6 +242,17 @@ public class PostFragment extends Fragment {
                 }
             }
         });
+    }
+
+    private void updateStateViews(boolean isEmpty) {
+        View emptyState = getView() != null ? getView().findViewById(R.id.empty_posts_state) : null;
+        if (isEmpty) {
+            rvPosts.setVisibility(View.GONE);
+            if (emptyState != null) emptyState.setVisibility(View.VISIBLE);
+        } else {
+            rvPosts.setVisibility(View.VISIBLE);
+            if (emptyState != null) emptyState.setVisibility(View.GONE);
+        }
     }
 
     private void observeUnreadCount() {

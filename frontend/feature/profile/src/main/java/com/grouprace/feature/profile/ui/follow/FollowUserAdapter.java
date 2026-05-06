@@ -54,8 +54,8 @@ public class FollowUserAdapter extends RecyclerView.Adapter<FollowUserAdapter.Fo
 
         Glide.with(holder.avatar.getContext())
                 .load(user.getAvatarUrl())
-                .placeholder(com.grouprace.core.system.R.drawable.bg_avatar_placeholder)
-                .error(com.grouprace.core.system.R.drawable.bg_avatar_placeholder)
+                .placeholder(com.grouprace.core.system.R.drawable.ic_default_avt)
+                .error(com.grouprace.core.system.R.drawable.ic_default_avt)
                 .into(holder.avatar);
 
         holder.itemView.setOnClickListener(v -> {

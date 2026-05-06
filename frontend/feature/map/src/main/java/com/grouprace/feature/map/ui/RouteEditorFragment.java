@@ -274,7 +274,9 @@ public class RouteEditorFragment extends Fragment {
             navigator.navigateToRunWithRoute(requireParentFragment(), planned);
         });
         btnMore.setOnClickListener(v -> {
-            PopupMenu popup = new PopupMenu(requireContext(), btnMore);
+            int popupStyleId = requireContext().getResources().getIdentifier("Theme_GoRace_PopupMenu", "style", requireContext().getPackageName());
+            android.view.ContextThemeWrapper wrapper = new android.view.ContextThemeWrapper(requireContext(), popupStyleId != 0 ? popupStyleId : com.google.android.material.R.style.Theme_Material3_Dark_Dialog_Alert);
+            androidx.appcompat.widget.PopupMenu popup = new androidx.appcompat.widget.PopupMenu(wrapper, btnMore);
             popup.getMenuInflater().inflate(R.menu.menu_route_preview, popup.getMenu());
             popup.setOnMenuItemClickListener(item -> {
                 if (item.getItemId() == R.id.action_share_gpx) {
@@ -313,10 +315,40 @@ public class RouteEditorFragment extends Fragment {
             viewIntent.setDataAndType(contentUri, "application/gpx+xml");
             viewIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             viewIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(viewIntent);
+            try {
+                startActivity(viewIntent);
+            } catch (android.content.ActivityNotFoundException e) {
+                showInstallKomootDialog();
+            }
         } else {
             Toast.makeText(requireContext(), R.string.msg_export_failed, Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void showInstallKomootDialog() {
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_install_komoot, null);
+        Button btnCancel = dialogView.findViewById(R.id.btn_dialog_cancel);
+        Button btnInstall = dialogView.findViewById(R.id.btn_dialog_install);
+
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnInstall.setOnClickListener(v -> {
+            try {
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=de.komoot.android")));
+            } catch (android.content.ActivityNotFoundException e) {
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=de.komoot.android")));
+            }
+            dialog.dismiss();
+        });
+
+        dialog.show();
     }
 
     private void updateMarkers(List<double[]> waypoints) {

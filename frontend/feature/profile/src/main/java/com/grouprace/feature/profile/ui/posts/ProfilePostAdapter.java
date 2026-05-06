@@ -140,8 +140,7 @@ public class ProfilePostAdapter extends RecyclerView.Adapter<ProfilePostAdapter.
             ivLike.setImageResource(
                     post.isLiked()
                             ? com.grouprace.core.system.R.drawable.ic_like_selected
-                            : com.grouprace.core.system.R.drawable.ic_like
-            );
+                            : com.grouprace.core.system.R.drawable.ic_like);
 
             ivLike.setEnabled(false);
             ivComment.setEnabled(false);
