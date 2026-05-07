@@ -23,11 +23,19 @@ public class PostDetailViewModel extends ViewModel {
     private final MutableLiveData<Integer> postId = new MutableLiveData<>();
     private final MutableLiveData<Boolean> refreshTrigger = new MutableLiveData<>(true);
     private final LiveData<Result<List<Comment>>> comments;
+    private final LiveData<Result<Boolean>> syncResult;
 
     @Inject
     public PostDetailViewModel(PostRepository postRepository) {
         this.postRepository = postRepository;
         
+        // Sync post when postId or refreshTrigger changes
+        this.syncResult = Transformations.switchMap(postId, id -> 
+            Transformations.switchMap(refreshTrigger, trigger -> 
+                postRepository.syncPostById(id)
+            )
+        );
+
         // Combine postId and refreshTrigger to load comments
         this.comments = Transformations.switchMap(postId, id -> 
             Transformations.switchMap(refreshTrigger, trigger -> 
@@ -42,11 +50,14 @@ public class PostDetailViewModel extends ViewModel {
         }
     }
 
+    public LiveData<Result<Boolean>> getSyncResult() {
+        return syncResult;
+    }
+
     public LiveData<Post> getPostData() {
-        Integer id = postId.getValue();
-        if (id == null)
-            return new MutableLiveData<>();
-        return postRepository.getPostById(id);
+        return Transformations.switchMap(postId, id -> 
+            postRepository.getPostById(id)
+        );
     }
 
     public LiveData<Result<List<Comment>>> getComments() {

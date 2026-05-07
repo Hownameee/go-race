@@ -91,7 +91,9 @@ const recordService = {
     }
 
     if (!recordData.endTime) {
-      recordData.endTime = new Date().toISOString();
+      const now = new Date();
+      now.setHours(now.getHours() + 7);
+      recordData.endTime = now.toISOString().replace('T', ' ').replace('Z', '');
     }
 
     const dbRecordData = {

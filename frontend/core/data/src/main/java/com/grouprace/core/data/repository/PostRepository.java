@@ -27,6 +27,7 @@ public interface PostRepository {
      */
     LiveData<Result<Boolean>> syncPosts(String cursor, int limit);
     LiveData<Result<Boolean>> syncClubPosts(int clubId, String cursor, int limit);
+    LiveData<Result<Boolean>> syncPostById(int postId);
 
     LiveData<Result<Boolean>> likePost(int postId);
     LiveData<Result<Boolean>> unlikePost(int postId);

@@ -3,6 +3,7 @@ package com.grouprace.core.network.api;
 import com.grouprace.core.network.model.post.CreateCommentRequest;
 import com.grouprace.core.network.model.post.CommentPayload;
 import com.grouprace.core.network.model.post.CreatePostRequest;
+import com.grouprace.core.network.model.post.NetworkPost;
 import com.grouprace.core.network.model.post.PostPayload;
 import com.grouprace.core.network.utils.ApiResponse;
 
@@ -79,4 +80,7 @@ public interface PostApiService {
             @Path("clubId") int clubId,
             @Query("cursor") String cursor,
             @Query("limit") int limit);
+
+    @GET("api/posts/{postId}")
+    Call<ApiResponse<NetworkPost>> getPostById(@Path("postId") int postId);
 }

@@ -177,7 +177,7 @@ const userRepo = {
 
     values.push(userId);
 
-    const sql = `UPDATE USERS SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`;
+    const sql = `UPDATE USERS SET ${fields.join(', ')}, updated_at = (datetime('now', '+7 hours')) WHERE user_id = ?`;
     return db.prepare(sql).run(...values);
   },
 

@@ -10,4 +10,10 @@
         <item name="android:textStyle">normal</item>
         <item name="android:textSize">12sp</item>
     </style>
+
+    <!-- Custom Theme Overlay for beautiful rounded dark PopupMenus -->
+    <style name="Theme.GoRace.PopupMenu" parent="Widget.MaterialComponents.PopupMenu">
+        <item name="android:popupBackground">@drawable/bg_popup_menu</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
 </resources>

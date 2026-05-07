@@ -474,4 +474,34 @@ public class PostNetworkDataSource {
 
         return liveData;
     }
+
+    public LiveData<Result<NetworkPost>> getPost(int postId) {
+        MutableLiveData<Result<NetworkPost>> liveData = new MutableLiveData<>();
+        liveData.postValue(new Result.Loading<>());
+
+        apiService.getPostById(postId).enqueue(new Callback<ApiResponse<NetworkPost>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<NetworkPost>> call, Response<ApiResponse<NetworkPost>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<NetworkPost> apiResponse = response.body();
+                    if (apiResponse.isSuccess() && apiResponse.getData() != null) {
+                        liveData.postValue(new Result.Success<>(apiResponse.getData()));
+                    } else {
+                        liveData.postValue(new Result.Error<>(new Exception(apiResponse.getMessage()), apiResponse.getMessage()));
+                    }
+                } else {
+                    String errorMessage = "HTTP Error: " + response.code();
+                    liveData.postValue(new Result.Error<>(new Exception(errorMessage), errorMessage));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiResponse<NetworkPost>> call, Throwable t) {
+                Exception exception = (t instanceof Exception) ? (Exception) t : new Exception(t);
+                liveData.postValue(new Result.Error<>(exception, "Network Failure: " + t.getMessage()));
+            }
+        });
+
+        return liveData;
+    }
 }

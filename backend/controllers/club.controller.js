@@ -249,7 +249,7 @@ const clubController = {
         limit,
       );
 
-      return res.ok({ clubs: result }, 'Search clubs successfully.');
+      return res.ok(result, 'Search clubs successfully.');
     } catch (error) {
       if (error.status === 409) {
         console.error(error);

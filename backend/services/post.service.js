@@ -61,7 +61,7 @@ const postService = {
       try {
         const fullname = payload.fullname;
         const ownerId = payload.owner_id;
-        const clubId = payload.club_id;
+        const clubId = post.club_id;
 
         let targets = [];
         let notificationMessage = '';
@@ -217,7 +217,7 @@ const postService = {
   },
 
   async checkPostAccess(postId, userId) {
-    const post = await postRepo.selectPostWithAccess(postId, userId);
+    const post = await postRepo.selectDetailedPostById(postId, userId);
     if (!post) {
       const error = new Error('Post not found.');
       error.status = 404;
@@ -414,6 +414,14 @@ const postService = {
       throw error;
     }
     return { deleted: true };
+  },
+
+  async getPostById(postId, userId) {
+    const post = await this.checkPostAccess(postId, userId);
+    // Since checkPostAccess now uses selectDetailedPostById, we already have all fields.
+    // We just need to resolve S3 URLs and avatar.
+    const resolvedPosts = await attachAvatarUrls(await this.resolvePostPhotos([post]));
+    return resolvedPosts[0];
   },
 };
 

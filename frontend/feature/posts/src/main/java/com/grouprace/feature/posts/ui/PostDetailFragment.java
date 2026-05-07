@@ -227,7 +227,8 @@ public class PostDetailFragment extends Fragment {
                         commentAdapter.submitList(new ArrayList<>(currentComments));
                         commentAdapter.notifyItemChanged(index);
                     } else {
-                        currentComments.removeIf(c -> parent.getCommentId() == (c.getParentId() != null ? c.getParentId() : -1));
+                        currentComments.removeIf(
+                                c -> parent.getCommentId() == (c.getParentId() != null ? c.getParentId() : -1));
                         currentComments.addAll(index + 1, replies);
                         parent.setRepliesExpanded(true);
                         commentAdapter.submitList(new ArrayList<>(currentComments));
@@ -257,6 +258,17 @@ public class PostDetailFragment extends Fragment {
             if (p != null) {
                 this.post = p;
                 bindPostHeader(p);
+            }
+        });
+
+        viewModel.getSyncResult().observe(getViewLifecycleOwner(), result -> {
+            if (result instanceof Result.Loading && post == null) {
+                progressBar.setVisibility(View.VISIBLE);
+                tvErrorMessage.setVisibility(View.GONE);
+            } else if (result instanceof Result.Error && post == null) {
+                progressBar.setVisibility(View.GONE);
+                tvErrorMessage.setVisibility(View.VISIBLE);
+                tvErrorMessage.setText("Failed to load post: " + ((Result.Error<?>) result).message);
             }
         });
 

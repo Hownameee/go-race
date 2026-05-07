@@ -28,6 +28,8 @@ public class PostHeaderViewHolder {
     private final View llStats;
     private final ImageView ivMedia;
     private final RecyclerView rvMedia;
+    private final View flMediaContainer;
+    private final TextView tvImageCounter;
     private final ImageView ivActivityType;
     final TextView tvLikes;
     final TextView tvComments;
@@ -47,6 +49,8 @@ public class PostHeaderViewHolder {
         tvDuration = itemView.findViewById(R.id.tv_duration);
         llStats = itemView.findViewById(R.id.ll_stats);
         ivMedia = itemView.findViewById(R.id.iv_media);
+        flMediaContainer = itemView.findViewById(R.id.fl_media_container);
+        tvImageCounter = itemView.findViewById(R.id.tv_image_counter);
         rvMedia = itemView.findViewById(R.id.rv_media);
         ivActivityType = itemView.findViewById(R.id.iv_activity_type);
         tvLikes = itemView.findViewById(R.id.tv_likes);
@@ -58,6 +62,29 @@ public class PostHeaderViewHolder {
 
         // Setup PagerSnapHelper for rvMedia
         new androidx.recyclerview.widget.PagerSnapHelper().attachToRecyclerView(rvMedia);
+
+        rvMedia.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                androidx.recyclerview.widget.LinearLayoutManager layoutManager = (androidx.recyclerview.widget.LinearLayoutManager) recyclerView
+                        .getLayoutManager();
+                if (layoutManager != null) {
+                    int currentPos = layoutManager.findFirstVisibleItemPosition();
+                    if (currentPos != RecyclerView.NO_POSITION) {
+                        int totalCount = recyclerView.getAdapter() != null ? recyclerView.getAdapter().getItemCount()
+                                : 0;
+                        if (totalCount > 1) {
+                            tvImageCounter
+                                    .setText(String.format(Locale.getDefault(), "%d/%d", currentPos + 1, totalCount));
+                            tvImageCounter.setVisibility(View.VISIBLE);
+                        } else {
+                            tvImageCounter.setVisibility(View.GONE);
+                        }
+                    }
+                }
+            }
+        });
     }
 
     public void bind(Post post) {
@@ -74,7 +101,9 @@ public class PostHeaderViewHolder {
 
         tvUsername.setText(post.getFullName() != null ? post.getFullName() : "Unknown");
         tvTitle.setText(post.getTitle() != null ? post.getTitle() : "Untitled Activity");
-        tvTime.setText(post.getCreatedAt() != null ? post.getCreatedAt() : "");
+        tvTime.setText(post.getCreatedAt() != null
+                ? com.grouprace.core.common.TimeUtils.formatRelativeTime(post.getCreatedAt())
+                : "");
 
         if (post.getDescription() != null && !post.getDescription().isEmpty()) {
             tvDescription.setVisibility(View.VISIBLE);
@@ -136,12 +165,29 @@ public class PostHeaderViewHolder {
         }
 
         if (!combinedMedia.isEmpty()) {
+            if (flMediaContainer != null) {
+                flMediaContainer.setVisibility(View.VISIBLE);
+            }
             rvMedia.setVisibility(View.VISIBLE);
             PostMediaAdapter mediaAdapter = new PostMediaAdapter();
             rvMedia.setAdapter(mediaAdapter);
             mediaAdapter.submitList(combinedMedia);
+            if (tvImageCounter != null) {
+                if (combinedMedia.size() > 1) {
+                    tvImageCounter.setText(String.format(Locale.getDefault(), "1/%d", combinedMedia.size()));
+                    tvImageCounter.setVisibility(View.VISIBLE);
+                } else {
+                    tvImageCounter.setVisibility(View.GONE);
+                }
+            }
         } else {
+            if (flMediaContainer != null) {
+                flMediaContainer.setVisibility(View.GONE);
+            }
             rvMedia.setVisibility(View.GONE);
+            if (tvImageCounter != null) {
+                tvImageCounter.setVisibility(View.GONE);
+            }
         }
 
         tvLikes.setText(String.valueOf(post.getLikeCount()));

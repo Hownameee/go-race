@@ -26,6 +26,7 @@ public class CommentAdapter extends ListAdapter<Comment, CommentAdapter.CommentV
         void onReplyClicked(Comment comment);
 
         void onViewRepliesClicked(Comment comment);
+
         void onOwnerClicked(Comment comment);
     }
 
@@ -69,7 +70,8 @@ public class CommentAdapter extends ListAdapter<Comment, CommentAdapter.CommentV
     }
 
     @Override
-    public void onBindViewHolder(@NonNull CommentViewHolder holder, int position, @NonNull java.util.List<Object> payloads) {
+    public void onBindViewHolder(@NonNull CommentViewHolder holder, int position,
+            @NonNull java.util.List<Object> payloads) {
         if (!payloads.isEmpty()) {
             for (Object payload : payloads) {
                 if (PAYLOAD_LIKE.equals(payload)) {
@@ -144,7 +146,7 @@ public class CommentAdapter extends ListAdapter<Comment, CommentAdapter.CommentV
         public void bind(Comment comment) {
             tvUsername.setText(comment.getFullName() != null ? comment.getFullName() : comment.getUsername());
             tvContent.setText(comment.getContent());
-            tvTime.setText(comment.getCreatedAt());
+            tvTime.setText(com.grouprace.core.common.TimeUtils.formatRelativeTime(comment.getCreatedAt()));
             Glide.with(itemView.getContext())
                     .load(comment.getAvatarUrl())
                     .placeholder(com.grouprace.core.system.R.drawable.bg_avatar_placeholder)
@@ -164,7 +166,8 @@ public class CommentAdapter extends ListAdapter<Comment, CommentAdapter.CommentV
                     tvViewReplies.setText("Hide replies");
                 } else {
                     tvViewReplies.setText(
-                            "View " + comment.getReplyCount() + " " + (comment.getReplyCount() == 1 ? "reply" : "replies"));
+                            "View " + comment.getReplyCount() + " "
+                                    + (comment.getReplyCount() == 1 ? "reply" : "replies"));
                 }
             } else {
                 tvViewReplies.setVisibility(View.GONE);

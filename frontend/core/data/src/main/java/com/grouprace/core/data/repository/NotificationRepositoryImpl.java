@@ -69,8 +69,6 @@ public class NotificationRepositoryImpl implements NotificationRepository {
     public void refreshNotifications() {
         if (!isFetching.compareAndSet(false, true)) return;
 
-        notificationsLiveData.postValue(new Result.Loading<>());
-
         dbExecutor.execute(() -> {
             try {
                 Response<ApiResponse<NotificationPayload>> response =

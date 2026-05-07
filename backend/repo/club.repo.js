@@ -100,7 +100,7 @@ const clubRepo = {
           AND event_id IN (
               SELECT event_id FROM CLUB_EVENTS 
               WHERE club_id = ? 
-                AND (end_time IS NULL OR datetime('now') <= datetime(end_time))
+                AND (end_time IS NULL OR datetime('now', '+7 hours') <= datetime(end_time))
                 AND (target_distance <= 0 OR total_distance < target_distance)
           );
     `;
@@ -215,7 +215,7 @@ const clubRepo = {
 
     if (fields.length === 0) return;
 
-    fields.push('updated_at = CURRENT_TIMESTAMP');
+    fields.push("updated_at = (datetime('now', '+7 hours'))");
     values.push(clubId);
 
     const sql = `UPDATE CLUBS SET ${fields.join(', ')} WHERE club_id = ?`;

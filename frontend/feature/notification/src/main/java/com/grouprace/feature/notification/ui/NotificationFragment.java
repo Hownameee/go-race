@@ -91,6 +91,10 @@ public class NotificationFragment extends Fragment {
                 case "post":
                     navigator.openPostDetail(this, notification.getActivityId());
                     break;
+
+                case "club_event":
+                    navigator.openClubEvents(this, notification.getActivityId());
+                    break;
             }
         });
 
