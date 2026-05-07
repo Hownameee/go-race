@@ -21,7 +21,7 @@ public interface SearchApiService {
     Call<ApiResponse<List<NetworkUserSearch>>> getSuggestedUsers();
 
     @GET("api/clubs/search")
-    Call<ApiResponse<List<NetworkUserSearch>>> searchClubs(@Query("query") String query);
+    Call<ApiResponse<List<NetworkUserSearch>>> searchClubs(@Query("search") String query);
 
     @GET("api/clubs/suggest")
     Call<ApiResponse<List<NetworkUserSearch>>> getSuggestedClubs();

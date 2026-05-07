@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS NOTIFICATIONS (
     title TEXT NOT NULL,
     message TEXT,
     read BOOLEAN DEFAULT FALSE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT (datetime('now', '+7 hours')),
 
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (actor_id) REFERENCES users(user_id) ON DELETE SET NULL
@@ -18,8 +18,8 @@ CREATE TABLE IF NOT EXISTS DEVICE_TOKENS (
     user_id INTEGER NOT NULL,
     token TEXT NOT NULL UNIQUE,
     platform TEXT DEFAULT 'android',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT (datetime('now', '+7 hours')),
+    updated_at DATETIME DEFAULT (datetime('now', '+7 hours')),
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS USERS (
   google_sub TEXT UNIQUE,
 
   -- timestamps
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  created_at DATETIME DEFAULT (datetime('now', '+7 hours')),
   updated_at DATETIME
 );
 
@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS POST (
     comment_count INTEGER DEFAULT 0,
     club_id INTEGER DEFAULT NULL,
     view_mode TEXT NOT NULL CHECK (view_mode IN ('Everyone', 'Followers', 'Self')) DEFAULT 'Everyone',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT (datetime('now', '+7 hours')),
     FOREIGN KEY (record_id) REFERENCES RECORD(record_id) ON DELETE SET NULL,
     FOREIGN KEY (owner_id) REFERENCES USERS(user_id) ON DELETE CASCADE,
     FOREIGN KEY (club_id) REFERENCES CLUBS(club_id) ON DELETE CASCADE
@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS POST_IMAGES (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     post_id INTEGER NOT NULL,
     s3_key TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT (datetime('now', '+7 hours')),
     FOREIGN KEY (post_id) REFERENCES POST(post_id) ON DELETE CASCADE
 );
 
@@ -108,7 +108,7 @@ CREATE TABLE IF NOT EXISTS COMMENT (
     content TEXT NOT NULL,
     like_count INTEGER DEFAULT 0,
     reply_count INTEGER DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT (datetime('now', '+7 hours')),
     FOREIGN KEY (post_id) REFERENCES POST(post_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE,
     FOREIGN KEY (parent_id) REFERENCES COMMENT(comment_id) ON DELETE CASCADE
@@ -117,7 +117,7 @@ CREATE TABLE IF NOT EXISTS COMMENT (
 CREATE TABLE IF NOT EXISTS COMMENT_LIKE (
     comment_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT (datetime('now', '+7 hours')),
     PRIMARY KEY (comment_id, user_id),
     FOREIGN KEY (comment_id) REFERENCES COMMENT(comment_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE
@@ -126,7 +126,7 @@ CREATE TABLE IF NOT EXISTS COMMENT_LIKE (
 CREATE TABLE IF NOT EXISTS LIKE (
     post_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT (datetime('now', '+7 hours')),
     PRIMARY KEY (post_id, user_id),
     FOREIGN KEY (post_id) REFERENCES POST(post_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE
@@ -135,7 +135,7 @@ CREATE TABLE IF NOT EXISTS LIKE (
 CREATE TABLE IF NOT EXISTS FOLLOW (
     follower_id INTEGER NOT NULL,
     following_id INTEGER NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT (datetime('now', '+7 hours')),
     PRIMARY KEY (follower_id, following_id),
     FOREIGN KEY (follower_id) REFERENCES USERS(user_id) ON DELETE CASCADE,
     FOREIGN KEY (following_id) REFERENCES USERS(user_id) ON DELETE CASCADE
@@ -208,8 +208,8 @@ CREATE TABLE IF NOT EXISTS CLUBS (
     total_activities INTEGER DEFAULT 0,
     club_record_distance REAL DEFAULT 0,
     club_record_duration INTEGER DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT (datetime('now', '+7 hours')),
+    updated_at DATETIME DEFAULT (datetime('now', '+7 hours')),
     
     FOREIGN KEY (leader_id) REFERENCES USERS(user_id) ON DELETE SET NULL
 );
@@ -222,7 +222,7 @@ CREATE TABLE IF NOT EXISTS CLUB_MEMBERS (
     status TEXT DEFAULT 'approved' CHECK (status IN ('pending', 'approved', 'rejected', 'left')),
     total_distance REAL DEFAULT 0,
     total_duration INTEGER DEFAULT 0,
-    joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    joined_at DATETIME DEFAULT (datetime('now', '+7 hours')),
     
     PRIMARY KEY (club_id, user_id),
     FOREIGN KEY (club_id) REFERENCES CLUBS(club_id) ON DELETE CASCADE,
@@ -241,7 +241,7 @@ CREATE TABLE IF NOT EXISTS CLUB_EVENTS (
     end_time DATETIME,
     participants_count INTEGER DEFAULT 0,
     total_distance REAL DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT (datetime('now', '+7 hours')),
     
     FOREIGN KEY (club_id) REFERENCES CLUBS(club_id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES USERS(user_id) ON DELETE SET NULL
@@ -251,7 +251,7 @@ CREATE TABLE IF NOT EXISTS CLUB_EVENT_PARTICIPANTS (
     event_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     current_distance REAL DEFAULT 0,
-    joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    joined_at DATETIME DEFAULT (datetime('now', '+7 hours')),
     
     PRIMARY KEY (event_id, user_id),
     FOREIGN KEY (event_id) REFERENCES CLUB_EVENTS(event_id) ON DELETE CASCADE,
@@ -463,7 +463,7 @@ BEGIN
     UPDATE CLUB_EVENTS
     SET participants_count = MAX(0, participants_count - 1),
         total_distance = CASE 
-            WHEN (end_time IS NULL OR datetime('now') <= datetime(end_time)) 
+            WHEN (end_time IS NULL OR datetime('now', '+7 hours') <= datetime(end_time)) 
                  AND (target_distance <= 0 OR total_distance < target_distance)
             THEN MAX(0, total_distance - COALESCE(OLD.current_distance, 0))
             ELSE total_distance 
@@ -521,9 +521,36 @@ CREATE TABLE IF NOT EXISTS USER_ROUTES (
     duration_seconds INTEGER,
     route_coordinates_json TEXT,
     waypoints_json TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT (datetime('now', '+7 hours')),
     FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_user_routes_user_id ON USER_ROUTES(user_id);
+
+---FTS5 extension for search club
+CREATE VIRTUAL TABLE IF NOT EXISTS CLUB_FTS USING FTS5(
+    name,
+    description,
+    content="CLUBS",
+    content_rowid="club_id"
+);
+
+---trigger FTS club
+CREATE TRIGGER IF NOT EXISTS CLUB_AI AFTER INSERT ON CLUBS BEGIN
+  INSERT INTO CLUB_FTS(rowid, name, description)
+  VALUES (NEW.club_id, NEW.name, NEW.description);
+END;
+
+CREATE TRIGGER IF NOT EXISTS CLUB_AD AFTER DELETE ON CLUBS BEGIN
+  INSERT INTO CLUB_FTS(CLUB_FTS, rowid, name, description)
+  VALUES('delete', OLD.club_id, OLD.name, OLD.description);
+END;
+
+CREATE TRIGGER IF NOT EXISTS CLUB_AU AFTER UPDATE ON CLUBS BEGIN
+  INSERT INTO CLUB_FTS(CLUB_FTS, rowid, name, description)
+  VALUES('delete', OLD.club_id, OLD.name, OLD.description);
+
+  INSERT INTO CLUB_FTS(rowid, name, description)
+  VALUES (NEW.club_id, NEW.name, NEW.description);
+END;
 

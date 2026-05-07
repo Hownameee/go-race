@@ -30,9 +30,11 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
         void onCommentClicked(Post post);
 
         void onShareClicked(Post post);
+
         void onReportClicked(Post post);
 
         void onPostClicked(Post post);
+
         void onOwnerClicked(Post post);
     }
 
@@ -80,7 +82,7 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull PostViewHolder holder, int position,
-                                 @NonNull java.util.List<Object> payloads) {
+            @NonNull java.util.List<Object> payloads) {
         if (!payloads.isEmpty()) {
             for (Object payload : payloads) {
                 if (PAYLOAD_LIKE.equals(payload)) {
@@ -178,12 +180,15 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
         private final View llStats;
         private final ImageView ivMedia;
         private final RecyclerView rvMedia;
+        private final View flMediaContainer;
+        private final TextView tvImageCounter;
         private final ImageView ivActivityType;
         final TextView tvLikes;
         final TextView tvComments;
         final ImageView ivLike;
         final ImageView ivComment;
         final ImageView ivShare;
+        final ImageView mt_ivMore; // renamed to match any potential existing or just keep final ImageView ivMore
         final ImageView ivMore;
 
         public PostViewHolder(@NonNull View itemView) {
@@ -198,6 +203,8 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
             tvDuration = itemView.findViewById(R.id.tv_duration);
             llStats = itemView.findViewById(R.id.ll_stats);
             ivMedia = itemView.findViewById(R.id.iv_media);
+            flMediaContainer = itemView.findViewById(R.id.fl_media_container);
+            tvImageCounter = itemView.findViewById(R.id.tv_image_counter);
             rvMedia = itemView.findViewById(R.id.rv_media);
             ivActivityType = itemView.findViewById(R.id.iv_activity_type);
             tvLikes = itemView.findViewById(R.id.tv_likes);
@@ -206,15 +213,42 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
             ivComment = itemView.findViewById(R.id.iv_comment);
             ivShare = itemView.findViewById(R.id.iv_share);
             ivMore = itemView.findViewById(R.id.iv_more);
+            mt_ivMore = ivMore;
 
             // Setup PagerSnapHelper for rvMedia
             new androidx.recyclerview.widget.PagerSnapHelper().attachToRecyclerView(rvMedia);
+
+            rvMedia.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                    super.onScrolled(recyclerView, dx, dy);
+                    androidx.recyclerview.widget.LinearLayoutManager layoutManager = (androidx.recyclerview.widget.LinearLayoutManager) recyclerView
+                            .getLayoutManager();
+                    if (layoutManager != null) {
+                        int currentPos = layoutManager.findFirstVisibleItemPosition();
+                        if (currentPos != RecyclerView.NO_POSITION) {
+                            int totalCount = recyclerView.getAdapter() != null
+                                    ? recyclerView.getAdapter().getItemCount()
+                                    : 0;
+                            if (totalCount > 1) {
+                                tvImageCounter.setText(
+                                        String.format(Locale.getDefault(), "%d/%d", currentPos + 1, totalCount));
+                                tvImageCounter.setVisibility(View.VISIBLE);
+                            } else {
+                                tvImageCounter.setVisibility(View.GONE);
+                            }
+                        }
+                    }
+                }
+            });
         }
 
         public void bind(Post post) {
             tvUsername.setText(post.getFullName() != null ? post.getFullName() : "Unknown");
             tvTitle.setText(post.getTitle() != null ? post.getTitle() : "Untitled Activity");
-            tvTime.setText(post.getCreatedAt() != null ? post.getCreatedAt() : "");
+            tvTime.setText(post.getCreatedAt() != null
+                    ? com.grouprace.core.common.TimeUtils.formatRelativeTime(post.getCreatedAt())
+                    : "");
             if (post.getProfilePictureUrl() != null && !post.getProfilePictureUrl().isEmpty()) {
                 Glide.with(itemView.getContext())
                         .load(post.getProfilePictureUrl())
@@ -286,12 +320,29 @@ public class PostAdapter extends ListAdapter<Post, PostAdapter.PostViewHolder> {
             }
 
             if (!combinedMedia.isEmpty()) {
+                if (flMediaContainer != null) {
+                    flMediaContainer.setVisibility(View.VISIBLE);
+                }
                 rvMedia.setVisibility(View.VISIBLE);
                 PostMediaAdapter mediaAdapter = new PostMediaAdapter();
                 rvMedia.setAdapter(mediaAdapter);
                 mediaAdapter.submitList(combinedMedia);
+                if (tvImageCounter != null) {
+                    if (combinedMedia.size() > 1) {
+                        tvImageCounter.setText(String.format(Locale.getDefault(), "1/%d", combinedMedia.size()));
+                        tvImageCounter.setVisibility(View.VISIBLE);
+                    } else {
+                        tvImageCounter.setVisibility(View.GONE);
+                    }
+                }
             } else {
+                if (flMediaContainer != null) {
+                    flMediaContainer.setVisibility(View.GONE);
+                }
                 rvMedia.setVisibility(View.GONE);
+                if (tvImageCounter != null) {
+                    tvImageCounter.setVisibility(View.GONE);
+                }
             }
 
             tvLikes.setText(String.valueOf(post.getLikeCount()));

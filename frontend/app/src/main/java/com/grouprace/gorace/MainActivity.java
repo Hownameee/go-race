@@ -27,6 +27,7 @@ import com.grouprace.feature.tracking.ui.TrackingFragment;
 import com.grouprace.feature.map.ui.DrawRouteFragment;
 import com.grouprace.feature.profile.ui.main.UserProfileFragment;
 import com.grouprace.feature.posts.ui.PostDetailFragment;
+import com.grouprace.feature.club.ui.detail.tabs.ClubEventsFragment;
 import android.content.Intent;
 
 import androidx.lifecycle.ViewModelProvider;
@@ -168,6 +169,12 @@ public class MainActivity extends AppCompatActivity {
                     int activityId = activityIdStr != null ? Integer.parseInt(activityIdStr) : -1;
                     if (activityId != -1) {
                         fragment = PostDetailFragment.newInstance(activityId);
+                    }
+                } else if ("club_event".equals(type)) {
+                    String activityIdStr = intent.getStringExtra("activity_id");
+                    int clubId = activityIdStr != null ? Integer.parseInt(activityIdStr) : -1;
+                    if (clubId != -1) {
+                        fragment = ClubEventsFragment.newInstance(clubId);
                     }
                 }
             } catch (NumberFormatException e) {

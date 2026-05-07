@@ -17,7 +17,7 @@ public final class ProfileAvatarLoader {
 
     public static void load(Fragment fragment, ImageView target, @Nullable String avatarUrl) {
         if (avatarUrl == null || avatarUrl.trim().isEmpty()) {
-            target.setImageDrawable(null);
+            target.setImageResource(com.grouprace.core.system.R.drawable.ic_default_avt);
             return;
         }
 
@@ -26,8 +26,13 @@ public final class ProfileAvatarLoader {
                 Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                 if (bitmap != null && fragment.isAdded()) {
                     fragment.requireActivity().runOnUiThread(() -> target.setImageBitmap(bitmap));
+                } else if (fragment.isAdded()) {
+                    fragment.requireActivity().runOnUiThread(() -> target.setImageResource(com.grouprace.core.system.R.drawable.ic_default_avt));
                 }
             } catch (IOException ignored) {
+                if (fragment.isAdded()) {
+                    fragment.requireActivity().runOnUiThread(() -> target.setImageResource(com.grouprace.core.system.R.drawable.ic_default_avt));
+                }
             }
         }).start();
     }

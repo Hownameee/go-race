@@ -81,11 +81,18 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         String createdAtStr = item.getCreatedAt();
         try {
             long timeMillis = sdf.parse(createdAtStr).getTime();
-            CharSequence timeAgo = DateUtils.getRelativeTimeSpanString(
-                    timeMillis,
-                    System.currentTimeMillis(),
-                    DateUtils.MINUTE_IN_MILLIS);
-            holder.tvTime.setText(timeAgo);
+            long now = System.currentTimeMillis();
+            long diff = Math.abs(now - timeMillis);
+
+            if (diff < DateUtils.MINUTE_IN_MILLIS) {
+                holder.tvTime.setText("now");
+            } else {
+                CharSequence timeAgo = DateUtils.getRelativeTimeSpanString(
+                        timeMillis,
+                        now,
+                        DateUtils.MINUTE_IN_MILLIS);
+                holder.tvTime.setText(timeAgo);
+            }
         } catch (ParseException e) {
             holder.tvTime.setText(createdAtStr);
         }
