@@ -129,13 +129,23 @@ const authController = {
       const { email, password } = req.body;
 
       const user = await userService.getUserByEmail(email);
-      if (!user) return res.unauthorized();
+      if (!user)
+       return res.status(401).json({
+          success: false,
+          data: null,
+          message: 'Email or password is invalid',
+        });
 
       const isMatch = await authService.comparePassword(
         password,
         user.hashed_password,
       );
-      if (!isMatch) return res.unauthorized();
+      if (!isMatch) 
+        return res.status(401).json({
+          success: false,
+          data: null,
+          message: 'Email or password is invalid',
+        });
 
       const tokens = authService.generateTokens(buildAuthPayload(user));
       return res.ok(buildTokenResponse(tokens), 'Login successful');
